@@ -1,0 +1,12 @@
+# Secretos: nunca se suben (claves de Twitch/IGDB, JWT, BD)
+.env
+.env.*
+!.env.example
+
+# Dependencias y builds
+node_modules/
+dist/
+
+# Sistema / editor
+.DS_Store
+*.log
