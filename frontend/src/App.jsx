@@ -21,7 +21,7 @@ function App() {
           path="/biblioteca"
           element={
             <RutaProtegida token={token}>
-              <Menu />
+              <Menu setToken={setToken} />
               <Biblioteca setToken={setToken} />
             </RutaProtegida>
           }
@@ -30,7 +30,7 @@ function App() {
           path="/buscar"
           element={
             <RutaProtegida token={token}>
-              <Menu />
+              <Menu setToken={setToken} />
               <Buscar setToken={setToken} />
             </RutaProtegida>
           }
