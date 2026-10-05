@@ -1,15 +1,10 @@
 import { useState } from 'react'
+import { ETIQUETAS_ESTADO } from './estados'
 
 // Tarjeta de un juego que ya está en la biblioteca del usuario. Tiene dos
 // modos: lectura (por defecto) y edición (formulario con los campos que admite
 // PATCH /games/:id). onActualizar y onBorrar son funciones async del padre que
 // lanzan un Error si el backend falla.
-const ETIQUETAS_ESTADO = {
-  jugando: "Jugando",
-  completado: "Completado",
-  abandonado: "Abandonado",
-  pendiente: "Pendiente",
-}
 
 function JuegoGuardado({ juego, onActualizar, onBorrar }) {
   const [editando, setEditando] = useState(false)

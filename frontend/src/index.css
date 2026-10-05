@@ -13,7 +13,12 @@
   --barra: #0b121c;
   --superficie: #192536;
   --superficie-2: #223249;
+  --campo: #0b121c;
   --borde: #2b3d55;
+
+  /* Banner del buscador y opacidad del mosaico de portadas del login */
+  --banner: linear-gradient(135deg, #1c2f4a, #192536 55%, #2a1f5c);
+  --mosaico-opacidad: 0.16;
 
   --texto: #c3d0dd;
   --texto-h: #ffffff;
@@ -41,11 +46,16 @@
   --barra: #ffffff;
   --superficie: #ffffff;
   --superficie-2: #f1f5f9;
+  --campo: #f1f5f9;
   --borde: #d3dce6;
+
+  --banner: linear-gradient(135deg, #dfe8f7, #ffffff 55%, #e6e0fb);
+  --mosaico-opacidad: 0.2;
 
   --texto: #3a4a5c;
   --texto-h: #0f1b2a;
-  --texto-suave: #66788c;
+  /* Un punto más oscuro que antes: así llega a contraste 4.5:1 sobre el fondo gris */
+  --texto-suave: #5a6c80;
 
   --acento: #4a35d6;
   --acento-suave: rgba(74, 53, 214, 0.1);
@@ -66,7 +76,9 @@
   /* El toque diferencial: degradado violeta → azul eléctrico */
   --degradado: linear-gradient(135deg, #5b3df5, #1b74c8);
 
-  --sans: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --sans: 'Figtree', system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Para el logo y los títulos: condensada y en mayúsculas, como en el diseño */
+  --display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
   --radio: 8px;
   --radio-grande: 12px;
   --transicion: 0.2s ease;
@@ -134,7 +146,7 @@ textarea {
   width: 100%;
   font: inherit;
   color: var(--texto-h);
-  background: var(--superficie-2);
+  background: var(--campo);
   border: 1px solid var(--borde);
   border-radius: var(--radio);
   padding: 0.6rem 0.8rem;

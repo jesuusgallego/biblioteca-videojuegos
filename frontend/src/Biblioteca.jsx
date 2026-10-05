@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import JuegoGuardado from './JuegoGuardado'
+import { ETIQUETAS_ESTADO } from './estados'
 import { apiFetch } from './api'
 
 // "Mi biblioteca": los juegos que el usuario ha guardado (GET /games).
@@ -8,6 +9,10 @@ function Biblioteca({ setToken }) {
   const [juegos, setJuegos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState("")
+  // Filtros de la vista. Solo viven en el navegador: no hacen peticiones al
+  // backend, se aplican sobre la lista que ya tenemos en "juegos".
+  const [filtroEstado, setFiltroEstado] = useState("todos")
+  const [consulta, setConsulta] = useState("")
 
   useEffect(() => {
     let cancelado = false
@@ -79,22 +84,113 @@ function Biblioteca({ setToken }) {
     )
   }
 
-  return (
-    <div>
-      <h1 className="titulo-pagina">
-        Mi biblioteca <span className="contador">{juegos.length}</span>
-      </h1>
+  // Valores derivados: se calculan en cada render a partir del estado, así
+  // nunca se quedan desactualizados (no hace falta guardarlos en un useState).
+  const jugandoAhora = juegos.filter((j) => j.status === "jugando")
 
-      <ul className="rejilla">
-        {juegos.map((juego) => (
-          <JuegoGuardado
-            key={juego.id}
-            juego={juego}
-            onActualizar={(cambios) => actualizarJuego(juego.id, cambios)}
-            onBorrar={() => borrarJuego(juego.id)}
-          />
-        ))}
-      </ul>
+  const texto = consulta.trim().toLowerCase()
+  const visibles = juegos.filter(
+    (j) =>
+      (filtroEstado === "todos" || j.status === filtroEstado) &&
+      j.name.toLowerCase().includes(texto)
+  )
+
+  // Un botón por filtro, con su contador. "todos" no es un estado de la BD.
+  const filtros = [
+    { id: "todos", etiqueta: "Todos", cuenta: juegos.length },
+    ...Object.entries(ETIQUETAS_ESTADO).map(([id, etiqueta]) => ({
+      id,
+      etiqueta,
+      cuenta: juegos.filter((j) => j.status === id).length,
+    })),
+  ]
+
+  return (
+    <div className="biblioteca-pagina">
+      {jugandoAhora.length > 0 && (
+        <section aria-labelledby="titulo-jugando">
+          <h2 id="titulo-jugando" className="titulo-seccion">Jugando ahora</h2>
+          <ul className="jugando">
+            {jugandoAhora.map((juego) => (
+              <li key={juego.id} className="jugando__tarjeta">
+                <div className="jugando__portada">
+                  {juego.cover_url
+                    ? <img src={juego.cover_url} alt="" loading="lazy" />
+                    : <span className="portada__vacia">Sin portada</span>}
+                </div>
+                <div className="jugando__cuerpo">
+                  <h3 className="jugando__titulo">{juego.name}</h3>
+                  {juego.platform && <p className="tarjeta__meta">{juego.platform}</p>}
+                  <span className="chip chip--jugando">{ETIQUETAS_ESTADO.jugando}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <div className="biblioteca">
+        <aside className="filtros" aria-label="Filtrar por estado">
+          <p className="filtros__titulo">Estado</p>
+          {filtros.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              className={filtroEstado === f.id ? "filtro filtro--activo" : "filtro"}
+              aria-pressed={filtroEstado === f.id}
+              onClick={() => setFiltroEstado(f.id)}
+            >
+              <span className="filtro__nombre">
+                {f.id !== "todos" && <span className={`punto punto--${f.id}`} aria-hidden="true" />}
+                {f.etiqueta}
+              </span>
+              <span className="filtro__cuenta">{f.cuenta}</span>
+            </button>
+          ))}
+        </aside>
+
+        <section className="biblioteca__contenido" aria-labelledby="titulo-biblioteca">
+          <div className="biblioteca__cabecera">
+            <h1 id="titulo-biblioteca" className="titulo-pagina">
+              Mi biblioteca <span className="contador">{juegos.length}</span>
+            </h1>
+
+            <div className="caja-busqueda caja-busqueda--filtro">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+              <input
+                type="search"
+                value={consulta}
+                onChange={(e) => setConsulta(e.target.value)}
+                placeholder="Filtrar mis juegos"
+                aria-label="Filtrar mis juegos"
+              />
+            </div>
+          </div>
+
+          <ul className="rejilla">
+            {visibles.map((juego) => (
+              <JuegoGuardado
+                key={juego.id}
+                juego={juego}
+                onActualizar={(cambios) => actualizarJuego(juego.id, cambios)}
+                onBorrar={() => borrarJuego(juego.id)}
+              />
+            ))}
+          </ul>
+
+          {visibles.length === 0 && (
+            <div className="sin-resultados">
+              <h2>Ningún juego coincide</h2>
+              <p>
+                Prueba con otro filtro o <Link to="/buscar">busca juegos nuevos</Link> para añadirlos.
+              </p>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   )
 }

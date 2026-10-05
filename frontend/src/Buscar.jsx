@@ -89,18 +89,28 @@ function Buscar({ setToken }) {
   }
 
   return (
-    <div>
-      <h1 className="titulo-pagina">Buscar juegos</h1>
+    <div className="buscar-pagina">
+      <section className="banner">
+        <h1 className="banner__titulo">Descubre tu próximo juego</h1>
+        <p className="banner__texto">
+          Busca en el catálogo de IGDB y guarda lo que quieras jugar en tu biblioteca.
+        </p>
 
-      <input
-        type="search"
-        className="buscador"
-        value={nombreJuego}
-        onChange={(e) => setNombreJuego(e.target.value)}
-        placeholder="Buscar un juego..."
-        aria-label="Buscar un juego"
-        autoFocus
-      />
+        <div className="caja-busqueda caja-busqueda--grande">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            type="search"
+            value={nombreJuego}
+            onChange={(e) => setNombreJuego(e.target.value)}
+            placeholder="Busca un juego..."
+            aria-label="Buscar un juego"
+            autoFocus
+          />
+        </div>
+      </section>
 
       {!termino && (
         <p className="estado">Escribe el nombre de un juego para buscarlo en IGDB.</p>
@@ -108,6 +118,13 @@ function Buscar({ setToken }) {
 
       {termino && error && (
         <p className="mensaje mensaje--error" role="alert">{error}</p>
+      )}
+
+      {termino && !error && (
+        <div className="resultados__cabecera">
+          <h2 className="titulo-seccion">Resultados para “{termino}”</h2>
+          <span className="estado">Los que ya tienes aparecen marcados</span>
+        </div>
       )}
 
       <ul className="rejilla">
