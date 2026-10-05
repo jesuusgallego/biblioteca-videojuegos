@@ -30,20 +30,30 @@ function GameCard({ nombre, portada, yaGuardado, onAnadir }) {
   }
 
   return (
-    <li>
-      {portada && <img src={portada} alt={nombre} width="80" />}
-      <span>{nombre}</span>
+    <li className="tarjeta">
+      <div className="portada">
+        {portada
+          ? <img src={portada} alt={nombre} loading="lazy" />
+          : <span className="portada__vacia">Sin portada</span>}
+      </div>
 
-      <button
-        onClick={handleAnadir}
-        disabled={estado === "guardando" || estado === "anadido"}
-      >
-        {estado === "guardando" && "Guardando..."}
-        {estado === "anadido" && "✓ En tu biblioteca"}
-        {(estado === "idle" || estado === "error") && "Añadir a mi biblioteca"}
-      </button>
+      <div className="tarjeta__cuerpo">
+        <h3 className="tarjeta__titulo">{nombre}</h3>
 
-      {estado === "error" && <span> {mensaje}</span>}
+        <button
+          className={estado === "anadido" ? "btn btn--ok btn--block" : "btn btn--primario btn--block"}
+          onClick={handleAnadir}
+          disabled={estado === "guardando" || estado === "anadido"}
+        >
+          {estado === "guardando" && "Guardando..."}
+          {estado === "anadido" && "✓ En tu biblioteca"}
+          {(estado === "idle" || estado === "error") && "Añadir a mi biblioteca"}
+        </button>
+
+        {estado === "error" && (
+          <p className="mensaje mensaje--error" role="alert">{mensaje}</p>
+        )}
+      </div>
     </li>
   )
 }

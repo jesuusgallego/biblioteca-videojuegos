@@ -66,70 +66,105 @@ function JuegoGuardado({ juego, onActualizar, onBorrar }) {
     }
   }
 
+  const portada = (
+    <div className="portada">
+      {juego.cover_url
+        ? <img src={juego.cover_url} alt={juego.name} loading="lazy" />
+        : <span className="portada__vacia">Sin portada</span>}
+      {!editando && juego.rating && <span className="nota">★ {juego.rating}</span>}
+    </div>
+  )
+
   if (editando) {
     return (
-      <li>
-        <strong>{juego.name}</strong>
-        <form onSubmit={handleGuardar}>
-          <label>
-            Estado{" "}
-            <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              {Object.entries(ETIQUETAS_ESTADO).map(([valor, etiqueta]) => (
-                <option key={valor} value={valor}>{etiqueta}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Nota (1-10){" "}
-            <input
-              type="number"
-              min="1"
-              max="10"
-              step="1"
-              value={rating}
-              onChange={(e) => setRating(e.target.value)}
-            />
-          </label>
-          <label>
-            Plataforma{" "}
-            <input
-              type="text"
-              maxLength="100"
-              value={platform}
-              onChange={(e) => setPlatform(e.target.value)}
-            />
-          </label>
-          <label>
-            Reseña{" "}
-            <textarea value={review} onChange={(e) => setReview(e.target.value)} />
-          </label>
+      <li className="tarjeta tarjeta--editando">
+        {portada}
 
-          <button type="submit" disabled={ocupado}>
-            {ocupado ? "Guardando..." : "Guardar"}
-          </button>
-          <button type="button" onClick={() => setEditando(false)} disabled={ocupado}>
-            Cancelar
-          </button>
+        <div className="tarjeta__cuerpo">
+          <h3 className="tarjeta__titulo">{juego.name}</h3>
 
-          {error && <p style={{ color: "red" }}>{error}</p>}
-        </form>
+          <form className="formulario formulario--edicion" onSubmit={handleGuardar}>
+            <label className="campo">
+              <span>Estado</span>
+              <select value={status} onChange={(e) => setStatus(e.target.value)}>
+                {Object.entries(ETIQUETAS_ESTADO).map(([valor, etiqueta]) => (
+                  <option key={valor} value={valor}>{etiqueta}</option>
+                ))}
+              </select>
+            </label>
+            <label className="campo">
+              <span>Nota (1-10)</span>
+              <input
+                type="number"
+                min="1"
+                max="10"
+                step="1"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+              />
+            </label>
+            <label className="campo">
+              <span>Plataforma</span>
+              <input
+                type="text"
+                maxLength="100"
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value)}
+              />
+            </label>
+            <label className="campo campo--ancho">
+              <span>Reseña</span>
+              <textarea value={review} onChange={(e) => setReview(e.target.value)} />
+            </label>
+
+            {error && (
+              <p className="mensaje mensaje--error campo--ancho" role="alert">{error}</p>
+            )}
+
+            <div className="tarjeta__acciones campo--ancho">
+              <button type="submit" className="btn btn--primario" disabled={ocupado}>
+                {ocupado ? "Guardando..." : "Guardar"}
+              </button>
+              <button
+                type="button"
+                className="btn btn--secundario"
+                onClick={() => setEditando(false)}
+                disabled={ocupado}
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
       </li>
     )
   }
 
   return (
-    <li>
-      {juego.cover_url && <img src={juego.cover_url} alt={juego.name} width="80" />}
-      <span>{juego.name}</span>
-      <span> — {ETIQUETAS_ESTADO[juego.status] ?? juego.status}</span>
-      {juego.rating && <span> — {juego.rating}/10</span>}
-      {juego.platform && <span> — {juego.platform}</span>}
-      {juego.review && <p>{juego.review}</p>}
+    <li className="tarjeta">
+      {portada}
 
-      <button onClick={empezarEdicion} disabled={ocupado}>Editar</button>
-      <button onClick={handleBorrar} disabled={ocupado}>Quitar</button>
+      <div className="tarjeta__cuerpo">
+        <h3 className="tarjeta__titulo">{juego.name}</h3>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        <span className={`chip chip--${juego.status}`}>
+          {ETIQUETAS_ESTADO[juego.status] ?? juego.status}
+        </span>
+
+        {juego.platform && <p className="tarjeta__meta">{juego.platform}</p>}
+        {juego.review && <p className="tarjeta__resena">{juego.review}</p>}
+
+        {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
+
+        <div className="tarjeta__acciones">
+          <button className="btn btn--secundario" onClick={empezarEdicion} disabled={ocupado}>
+            Editar
+          </button>
+          <button className="btn btn--peligro" onClick={handleBorrar} disabled={ocupado}>
+            Quitar
+          </button>
+        </div>
+      </div>
     </li>
   )
 }

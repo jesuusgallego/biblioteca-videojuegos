@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { apiFetch } from './api'
+import Marca from './Marca'
+import BotonTema from './BotonTema'
 
 function Login({ setToken }) {
   const [email, setEmail] = useState("")
@@ -34,25 +36,49 @@ function Login({ setToken }) {
   }
 
   return (
-    <form onSubmit={handleLogin}>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">Iniciar sesión</button>
+    <main className="auth">
+      <div className="auth__tema">
+        <BotonTema />
+      </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </form>
+      <div className="auth__tarjeta">
+        <Marca grande />
+        <h1 className="auth__titulo">Iniciar sesión</h1>
+
+        <form className="formulario" onSubmit={handleLogin}>
+          <label className="campo">
+            <span>Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              required
+            />
+          </label>
+          <label className="campo">
+            <span>Contraseña</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </label>
+
+          {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
+
+          <button type="submit" className="btn btn--primario btn--block">
+            Iniciar sesión
+          </button>
+        </form>
+
+        <p className="auth__pie">
+          ¿No tienes cuenta? <Link to="/registro">Regístrate</Link>
+        </p>
+      </div>
+    </main>
   )
 }
 

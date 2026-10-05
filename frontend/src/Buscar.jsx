@@ -90,16 +90,27 @@ function Buscar({ setToken }) {
 
   return (
     <div>
+      <h1 className="titulo-pagina">Buscar juegos</h1>
+
       <input
-        type="text"
+        type="search"
+        className="buscador"
         value={nombreJuego}
         onChange={(e) => setNombreJuego(e.target.value)}
         placeholder="Buscar un juego..."
+        aria-label="Buscar un juego"
+        autoFocus
       />
 
-      {termino && error && <p>{error}</p>}
+      {!termino && (
+        <p className="estado">Escribe el nombre de un juego para buscarlo en IGDB.</p>
+      )}
 
-      <ul>
+      {termino && error && (
+        <p className="mensaje mensaje--error" role="alert">{error}</p>
+      )}
+
+      <ul className="rejilla">
         {termino && resultados.map((juego) => (
           <GameCard
             key={juego.igdb_id}

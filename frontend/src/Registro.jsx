@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { apiFetch } from './api'
+import Marca from './Marca'
+import BotonTema from './BotonTema'
 
 function Registro() {
   const [username, setUsername] = useState("")
@@ -40,32 +42,60 @@ function Registro() {
   }
 
   return (
-    <form onSubmit={handleRegistro}>
-      <input
-        type="text"
-        placeholder="Nombre de usuario"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        required
-      />
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">Registrarse</button>
+    <main className="auth">
+      <div className="auth__tema">
+        <BotonTema />
+      </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </form>
+      <div className="auth__tarjeta">
+        <Marca grande />
+        <h1 className="auth__titulo">Crear cuenta</h1>
+
+        <form className="formulario" onSubmit={handleRegistro}>
+          <label className="campo">
+            <span>Nombre de usuario</span>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
+              required
+            />
+          </label>
+          <label className="campo">
+            <span>Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              required
+            />
+          </label>
+          <label className="campo">
+            <span>Contraseña</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+            <small>Mínimo 8 caracteres, con mayúscula, minúscula y número.</small>
+          </label>
+
+          {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
+
+          <button type="submit" className="btn btn--primario btn--block">
+            Registrarse
+          </button>
+        </form>
+
+        <p className="auth__pie">
+          ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+        </p>
+      </div>
+    </main>
   )
 }
 

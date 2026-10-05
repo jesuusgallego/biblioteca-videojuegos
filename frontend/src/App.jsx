@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './Login'
 import Biblioteca from './Biblioteca'
 import Buscar from './Buscar'
-import Menu from './Menu'
+import Layout from './Layout'
 import RutaProtegida from './RutaProtegida'
 import './App.css'
 import Registro from './Registro'
@@ -21,8 +21,9 @@ function App() {
           path="/biblioteca"
           element={
             <RutaProtegida token={token}>
-              <Menu setToken={setToken} />
-              <Biblioteca setToken={setToken} />
+              <Layout setToken={setToken}>
+                <Biblioteca setToken={setToken} />
+              </Layout>
             </RutaProtegida>
           }
         />
@@ -30,8 +31,9 @@ function App() {
           path="/buscar"
           element={
             <RutaProtegida token={token}>
-              <Menu setToken={setToken} />
-              <Buscar setToken={setToken} />
+              <Layout setToken={setToken}>
+                <Buscar setToken={setToken} />
+              </Layout>
             </RutaProtegida>
           }
         />

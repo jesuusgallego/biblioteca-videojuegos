@@ -1,10 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>Biblioteca de videojuegos</title>
+    <!-- Aplica el tema ANTES de pintar nada, para que no haya un parpadeo del
+         tema equivocado al cargar. Misma lógica que src/tema.js. -->
+    <script>
+      (function () {
+        var tema = 'oscuro'
+        try {
+          tema = localStorage.getItem('tema')
+          if (tema !== 'claro' && tema !== 'oscuro') {
+            tema = matchMedia('(prefers-color-scheme: light)').matches ? 'claro' : 'oscuro'
+          }
+        } catch (e) {
+          tema = 'oscuro'
+        }
+        document.documentElement.dataset.tema = tema
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
