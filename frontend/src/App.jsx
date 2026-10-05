@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './Login'
 import Biblioteca from './Biblioteca'
+import Buscar from './Buscar'
+import Menu from './Menu'
 import RutaProtegida from './RutaProtegida'
 import './App.css'
 import Registro from './Registro'
@@ -19,7 +21,17 @@ function App() {
           path="/biblioteca"
           element={
             <RutaProtegida token={token}>
+              <Menu />
               <Biblioteca setToken={setToken} />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/buscar"
+          element={
+            <RutaProtegida token={token}>
+              <Menu />
+              <Buscar setToken={setToken} />
             </RutaProtegida>
           }
         />

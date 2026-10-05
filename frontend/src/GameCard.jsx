@@ -3,9 +3,14 @@ import { useState } from 'react'
 // onAnadir es una función async que pasa el padre: guarda el juego en el
 // backend y lanza un Error si algo falla. La tarjeta solo se ocupa de mostrar
 // el estado del botón: "idle" (por defecto), "guardando", "anadido" o "error".
-function GameCard({ nombre, portada, onAnadir }) {
-  const [estado, setEstado] = useState("idle")
+// yaGuardado lo calcula el padre (el juego ya estaba en la biblioteca al cargar
+// la página). Se combina con el estado propio en vez de copiarlo al useState,
+// porque la lista de guardados puede llegar después de pintar la tarjeta.
+function GameCard({ nombre, portada, yaGuardado, onAnadir }) {
+  const [estadoPropio, setEstado] = useState("idle")
   const [mensaje, setMensaje] = useState("")
+
+  const estado = yaGuardado ? "anadido" : estadoPropio
 
   async function handleAnadir() {
     setEstado("guardando")

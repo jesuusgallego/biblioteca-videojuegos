@@ -1,34 +1,23 @@
 import { useState, useEffect } from 'react'
-import GameCard from './GameCard'
+import { Link } from 'react-router-dom'
+import JuegoGuardado from './JuegoGuardado'
 import { apiFetch } from './api'
 
-const RETARDO_BUSQUEDA_MS = 400
-
+// "Mi biblioteca": los juegos que el usuario ha guardado (GET /games).
 function Biblioteca({ setToken }) {
-  const [nombreJuego, setNombreJuego] = useState("")
-  const [resultados, setResultados] = useState([])
+  const [juegos, setJuegos] = useState([])
+  const [cargando, setCargando] = useState(true)
   const [error, setError] = useState("")
 
-  const termino = nombreJuego.trim()
-
   useEffect(() => {
+    let cancelado = false
 
-    if (termino === "") return
-
-    // Debounce: esperamos a que el usuario deje de escribir antes de buscar.
-    // El AbortController cancela la petición anterior si llega una nueva.
-    const controller = new AbortController()
-    const timer = setTimeout(async () => {
-      try {
-        const data = await apiFetch(
-          `/games/search?q=${encodeURIComponent(termino)}`,
-          { signal: controller.signal }
-        )
-
-        setResultados(data.results ?? [])
-        setError("")
-      } catch (err) {
-        if (err.name === "AbortError") return
+    apiFetch('/games')
+      .then((data) => {
+        if (!cancelado) setJuegos(data.games)
+      })
+      .catch((err) => {
+        if (cancelado) return
 
         if (err.status === 401) {
           // Token caducado o inválido: cerramos sesión y RutaProtegida redirige al login
@@ -37,53 +26,33 @@ function Biblioteca({ setToken }) {
           return
         }
 
-        setResultados([])
         setError(err.message)
-      }
-    }, RETARDO_BUSQUEDA_MS)
-
-    return () => {
-      clearTimeout(timer)
-      controller.abort()
-    }
-  }, [termino, setToken])
-
-  // Guarda un juego en la biblioteca del usuario. Los errores se relanzan para
-  // que la GameCard los muestre; solo el 401 se gestiona aquí (cerrar sesión).
-  async function anadirJuego(juego) {
-    try {
-      await apiFetch('/games', {
-        method: 'POST',
-        body: { igdb_id: juego.igdb_id, name: juego.name, cover_url: juego.cover_url },
       })
-    } catch (err) {
-      if (err.status === 401) {
-        localStorage.removeItem("token")
-        setToken("")
-      }
-      throw err
-    }
+      .finally(() => {
+        if (!cancelado) setCargando(false)
+      })
+
+    // Si el componente se desmonta antes de que llegue la respuesta, la ignoramos
+    return () => { cancelado = true }
+  }, [setToken])
+
+  if (cargando) return <p>Cargando tu biblioteca...</p>
+  if (error) return <p>{error}</p>
+
+  if (juegos.length === 0) {
+    return (
+      <p>
+        Aún no tienes juegos. <Link to="/buscar">Busca alguno</Link> para empezar.
+      </p>
+    )
   }
 
   return (
     <div>
-      <input
-        type="text"
-        value={nombreJuego}
-        onChange={(e) => setNombreJuego(e.target.value)}
-        placeholder="Buscar un juego..."
-      />
-
-      {termino && error && <p>{error}</p>}
-
+      <h2>Mi biblioteca ({juegos.length})</h2>
       <ul>
-        {termino && resultados.map((juego) => (
-          <GameCard
-            key={juego.igdb_id}
-            nombre={juego.name}
-            portada={juego.cover_url}
-            onAnadir={() => anadirJuego(juego)}
-          />
+        {juegos.map((juego) => (
+          <JuegoGuardado key={juego.id} juego={juego} />
         ))}
       </ul>
     </div>
