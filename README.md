@@ -87,7 +87,7 @@ Disponible en http://localhost:5173 (puerto por defecto de Vite).
 | POST | `/auth/login` | No | Inicia sesión y devuelve un token JWT |
 | GET | `/auth/me` | Bearer token | Devuelve el usuario del token |
 | GET | `/games/search?q=<nombre>` | Bearer token | Busca juegos por nombre en IGDB |
-| POST | `/games` | Bearer token | Añade un juego a tu biblioteca (`rawg_id` y `name` obligatorios; 409 si ya lo tienes) |
+| POST | `/games` | Bearer token | Añade un juego a tu biblioteca (`igdb_id` y `name` obligatorios; 409 si ya lo tienes) |
 | GET | `/games` | Bearer token | Lista los juegos de tu biblioteca |
 | PATCH | `/games/:id` | Bearer token | Actualiza `status`, `rating`, `review` o `platform`. Los campos omitidos no cambian; enviar `null` borra `rating`, `review` o `platform` |
 | DELETE | `/games/:id` | Bearer token | Elimina un juego de tu biblioteca |
@@ -102,7 +102,7 @@ Disponible en http://localhost:5173 (puerto por defecto de Vite).
 ## Notas
 
 - Todas las llamadas al backend pasan por `frontend/src/api.js` (`apiFetch`). La URL base es `http://localhost:4000` por defecto; para otro host define `VITE_API_URL` en `frontend/.env`.
-- La columna `user_games.rawg_id` guarda el ID del juego en **IGDB**. El nombre es heredado de cuando se usaba RAWG; el proyecto ya no depende de RAWG.
+- La columna `user_games.igdb_id` guarda el ID del juego en **IGDB**.
 - El token JWT se guarda en `localStorage`.
 - Las credenciales de `docker-compose.yml` son solo para desarrollo; cámbialas en cualquier otro entorno.
 - `backend/.env` contiene secretos: asegúrate de que esté en `.gitignore`.

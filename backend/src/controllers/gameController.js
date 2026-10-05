@@ -27,24 +27,24 @@ function responderErrorDeValidacion(err, res) {
 // POST /games — añadir un juego a la biblioteca del usuario autenticado
 async function addGame(req, res) {
   const userId = req.user.id;
-  const { rawg_id, name, cover_url, status, rating, review, platform } = req.body;
+  const { igdb_id, name, cover_url, status, rating, review, platform } = req.body;
 
-  if (!rawg_id || !name) {
-    return res.status(400).json({ error: 'rawg_id y name son obligatorios' });
+  if (!igdb_id || !name) {
+    return res.status(400).json({ error: 'igdb_id y name son obligatorios' });
   }
 
   try {
     const result = await pool.query(
-      `INSERT INTO user_games (user_id, rawg_id, name, cover_url, status, rating, review, platform)
+      `INSERT INTO user_games (user_id, igdb_id, name, cover_url, status, rating, review, platform)
        VALUES ($1, $2, $3, $4, COALESCE($5, 'pendiente'), $6, $7, $8)
        RETURNING *`,
-      [userId, rawg_id, name, cover_url, status, rating, review, platform]
+      [userId, igdb_id, name, cover_url, status, rating, review, platform]
     );
 
     res.status(201).json({ game: result.rows[0] });
   } catch (err) {
     if (err.code === '23505') {
-      // violación de la restricción UNIQUE (user_id, rawg_id)
+      // violación de la restricción UNIQUE (user_id, igdb_id)
       return res.status(409).json({ error: 'Ese juego ya está en tu biblioteca' });
     }
     if (responderErrorDeValidacion(err, res)) return;

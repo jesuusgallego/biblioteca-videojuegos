@@ -11,9 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS user_games (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    -- OJO: el nombre es histórico (el proyecto empezó con RAWG). Aquí se guarda
-    -- el ID del juego en IGDB, no de RAWG.
-    rawg_id INTEGER NOT NULL,
+    -- ID del juego en IGDB
+    igdb_id INTEGER NOT NULL,
     name VARCHAR(255) NOT NULL,
     cover_url VARCHAR(500),
     status VARCHAR(20) NOT NULL DEFAULT 'pendiente'
@@ -27,4 +26,4 @@ CREATE TABLE IF NOT EXISTS user_games (
 
 -- Evita que un mismo usuario añada el mismo juego dos veces
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_game_unique
-    ON user_games (user_id, rawg_id);
+    ON user_games (user_id, igdb_id);

@@ -48,6 +48,23 @@ function Biblioteca({ setToken }) {
     }
   }, [termino, setToken])
 
+  // Guarda un juego en la biblioteca del usuario. Los errores se relanzan para
+  // que la GameCard los muestre; solo el 401 se gestiona aquí (cerrar sesión).
+  async function anadirJuego(juego) {
+    try {
+      await apiFetch('/games', {
+        method: 'POST',
+        body: { igdb_id: juego.igdb_id, name: juego.name, cover_url: juego.cover_url },
+      })
+    } catch (err) {
+      if (err.status === 401) {
+        localStorage.removeItem("token")
+        setToken("")
+      }
+      throw err
+    }
+  }
+
   return (
     <div>
       <input
@@ -65,6 +82,7 @@ function Biblioteca({ setToken }) {
             key={juego.igdb_id}
             nombre={juego.name}
             portada={juego.cover_url}
+            onAnadir={() => anadirJuego(juego)}
           />
         ))}
       </ul>
