@@ -2,41 +2,74 @@
 
 Cómo retomar el trabajo en el proyecto cada vez que abres el ordenador. Para la primera instalación (clonar, crear `.env`, `npm install`) consulta el [README](../README.md#puesta-en-marcha).
 
-## Arranque rápido
+## Dos formas de trabajar
 
-Necesitas **tres terminales** (en VS Code: `` Ctrl+` `` y el botón `+`). Todos los comandos parten de la raíz del proyecto, `biblioteca-videojuegos/`.
+Abre **Docker Desktop** (si usas WSL2) antes de nada. Todos los comandos parten de la raíz del proyecto, `biblioteca-videojuegos/`.
+
+| Modo | Cuándo usarlo | Terminales | Recarga al guardar |
+|------|---------------|------------|--------------------|
+| **A. Todo en Docker** | Usar la app, enseñarla, comprobar que funciona "como en producción" | 1 | No: hay que reconstruir |
+| **B. Desarrollo** | Programar y ver los cambios al instante | 3 | Sí (nodemon y Vite) |
+
+> ⚠️ **No mezcles los dos modos.** Ambos usan los puertos 4000 y 5173: si tienes el modo A encendido, `npm run dev` fallará con `EADDRINUSE`. Para cambiar de modo, para primero el otro (`docker compose stop backend frontend`).
+
+## Modo A: todo en Docker
+
+```bash
+docker compose up -d --build
+```
+
+| Servicio | Contenedor | URL |
+|----------|------------|-----|
+| Frontend (nginx) | `biblioteca_frontend` | http://localhost:5173 |
+| Backend (Express) | `biblioteca_backend` | http://localhost:4000 |
+| PostgreSQL | `biblioteca_db` | `localhost:5432` |
+
+- `up` crea y arranca los contenedores; `-d` los deja en segundo plano; `--build` reconstruye las imágenes si cambiaste código. Si no tocaste nada, puedes omitirlo.
+- **Los cambios de código no se ven solos:** el código se copia dentro de la imagen al construirla. Tras editar, vuelve a ejecutar `docker compose up -d --build` (o solo `docker compose up -d --build backend`).
+- Los contenedores **no** se arrancan solos al abrir Docker Desktop (el compose no define `restart`, y el valor por defecto es `no`). Solo se encienden cuando tú ejecutas `docker compose up`.
+- Los datos viven en el volumen `pgdata`, así que **sobreviven** a parar o recrear los contenedores.
+
+### Comandos de Docker Compose que más vas a usar
+
+| Comando | Qué hace |
+|---------|----------|
+| `docker compose ps` | Estado de los contenedores |
+| `docker compose logs -f backend` | Logs del backend en vivo (`Ctrl+C` para salir; cambia `backend` por `frontend` o `postgres`) |
+| `docker compose restart backend` | Reinicia un servicio (útil tras cambiar `backend/.env`) |
+| `docker compose stop` | Para todo sin borrar nada |
+| `docker compose start` | Arranca de nuevo lo parado |
+| `docker compose down` | Para y **elimina los contenedores** (los datos se conservan) |
+| `docker compose build --no-cache backend` | Reconstruye una imagen desde cero si algo raro persiste |
+
+## Modo B: desarrollo con recarga automática
+
+Necesitas **tres terminales** (en VS Code: `` Ctrl+` `` y el botón `+`).
 
 | # | Qué | Comando | Resultado esperado |
 |---|-----|---------|--------------------|
-| 1 | Base de datos | `docker compose up -d` | Contenedor `biblioteca_db` en `localhost:5432` |
+| 1 | Base de datos | `docker compose up -d postgres` | Contenedor `biblioteca_db` en `localhost:5432` |
 | 2 | Backend | `cd backend && npm run dev` | `Servidor corriendo en http://localhost:4000` |
 | 3 | Frontend | `cd frontend && npm run dev` | App en http://localhost:5173 |
 
 **El orden importa:** el backend necesita la base de datos al arrancar, y el frontend necesita el backend para funcionar.
 
-## Paso a paso
+**Importante:** en el paso 1 se indica `postgres` a propósito. Un `docker compose up -d` a secas levantaría también los contenedores de backend y frontend, que ocuparían los puertos 4000 y 5173.
 
-### 1. Docker y la base de datos
+En este modo el `DATABASE_URL` de `backend/.env` usa `localhost` (el backend corre en tu máquina). Dentro de Docker, el compose lo sobrescribe con `postgres`.
 
-Abre **Docker Desktop** (si usas WSL2) o asegúrate de que el servicio de Docker está activo. Después, desde la raíz:
+### Paso a paso
 
-```bash
-docker compose up -d
-```
-
-- `up` crea y arranca el contenedor; `-d` lo deja en segundo plano (no ocupa la terminal).
-- El contenedor tiene `restart: unless-stopped`, así que si no lo paraste a mano, Docker lo reinicia solo al arrancar. Entonces este paso puede ser innecesario, pero ejecutarlo no hace daño.
-- Los datos se guardan en el volumen `pgdata`, así que **sobreviven** a apagar el contenedor o el ordenador.
-
-Comprueba que está vivo:
+#### 1. Base de datos
 
 ```bash
+docker compose up -d postgres
 docker compose ps
 ```
 
-Debe aparecer `biblioteca_db` con estado `Up`.
+Debe aparecer `biblioteca_db` con estado `Up (healthy)`.
 
-### 2. Backend (Express)
+#### 2. Backend (Express)
 
 ```bash
 cd backend
@@ -53,7 +86,7 @@ curl localhost:4000/health
 
 Debe devolver `{"status":"ok", ...}`. Si devuelve error de base de datos, vuelve al paso 1.
 
-### 3. Frontend (React + Vite)
+#### 3. Frontend (React + Vite)
 
 ```bash
 cd frontend
@@ -74,10 +107,11 @@ Abre http://localhost:5173. Vite recarga la página al guardar (HMR).
 
 | Qué | Cómo |
 |-----|------|
-| Frontend y backend | `Ctrl+C` en cada terminal |
-| Base de datos | `docker compose stop` (conserva los datos) |
+| Modo A (todo en Docker) | `docker compose stop` (conserva todo) |
+| Modo B: frontend y backend | `Ctrl+C` en cada terminal |
+| Modo B: base de datos | `docker compose stop` (conserva los datos) |
 
-Apagar la base de datos es opcional: puede quedarse corriendo sin problema.
+Apagar es opcional: los contenedores pueden quedarse corriendo sin problema.
 
 > ⚠️ **No uses `docker compose down -v`** salvo que quieras borrar la base de datos. La opción `-v` elimina el volumen `pgdata` y **con él todos los usuarios y juegos**. `docker compose down` (sin `-v`) solo elimina el contenedor y es seguro.
 
@@ -106,7 +140,7 @@ docker exec biblioteca_db psql -U biblioteca_user -d biblioteca_db -c "SELECT * 
 
 ### Crear las tablas en una base de datos vacía
 
-Si borraste el volumen o es una máquina nueva, el contenedor arranca **sin tablas** (el `docker-compose.yml` no ejecuta el esquema automáticamente). Créalas con:
+Normalmente no hace falta: con un volumen nuevo, Postgres ejecuta `schema.sql` solo, una única vez (está montado en `/docker-entrypoint-initdb.d`). Pero si tu volumen `pgdata` ya existía de antes de añadir ese montaje y quedó sin tablas, créalas a mano con:
 
 ```bash
 docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db < backend/src/models/sql/schema.sql
@@ -149,8 +183,11 @@ npm run build    # comprueba que compila para producción
 | Síntoma | Causa probable | Solución |
 |---------|----------------|----------|
 | `Cannot connect to the Docker daemon` | Docker no está arrancado | Abre Docker Desktop y espera a que indique que está listo |
-| `/health` devuelve error de base de datos | El contenedor está parado | `docker compose up -d` y `docker compose ps` |
-| `EADDRINUSE: address already in use :::4000` | Ya hay un backend corriendo | Cierra la otra terminal, o localiza el proceso con `lsof -i :4000` y párelo con `kill <PID>` |
+| `/health` devuelve error de base de datos | El contenedor está parado | `docker compose up -d postgres` y `docker compose ps` |
+| `EADDRINUSE: address already in use :::4000` (o `port is already allocated` en 4000/5173) | Ya hay un backend o frontend corriendo: el modo A encendido mientras usas el modo B, o al revés | `docker compose stop backend frontend`, o cierra la otra terminal. También: `lsof -i :4000` y `kill <PID>` |
+| Edité código y en Docker no cambia nada | La imagen se construyó con el código antiguo | `docker compose up -d --build` |
+| El backend en Docker no conecta a la BD | Se está usando `localhost` en vez de `postgres` | No toques `DATABASE_URL` en el compose; mira `docker compose logs backend` |
+| Cambié `VITE_API_URL` y no se nota en Docker | Vite la incrusta al compilar | Reconstruye: `docker compose build frontend && docker compose up -d` |
 | `port is already allocated` (5432) | Hay otro Postgres usando el puerto | Para el otro Postgres, o cambia el puerto de la izquierda en `docker-compose.yml` (`"5433:5432"`) y ajusta `DATABASE_URL` |
 | La app te echa al login | El token JWT caducó (dura 7 días) o es inválido | Vuelve a iniciar sesión |
 | `relation "users" does not exist` | Base de datos sin tablas | Ejecuta el comando de la sección *Crear las tablas* |
@@ -160,6 +197,6 @@ npm run build    # comprueba que compila para producción
 ## Checklist de cierre de sesión
 
 - [ ] Guardar todos los archivos
-- [ ] `Ctrl+C` en las terminales de backend y frontend
+- [ ] Modo B: `Ctrl+C` en las terminales de backend y frontend
 - [ ] (Opcional) `docker compose stop`
 - [ ] Anotar qué sigue pendiente para la próxima vez

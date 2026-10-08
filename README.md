@@ -9,12 +9,13 @@ Aplicación web para registrarte, iniciar sesión, buscar videojuegos y gestiona
 | Frontend | React 19, React Router 7, Vite 8, ESLint |
 | Backend | Node.js, Express 5, JWT, bcrypt, axios, pg |
 | Base de datos | PostgreSQL 16 (Docker) |
+| Despliegue | Docker Compose (nginx sirve el frontend) |
 
 ## Estructura
 
 ```
 biblioteca-videojuegos/
-├── docker-compose.yml   # PostgreSQL
+├── docker-compose.yml   # PostgreSQL + backend + frontend
 ├── docs/
 │   └── DESARROLLO.md    # Cómo retomar el trabajo cada día
 ├── backend/
@@ -43,10 +44,10 @@ biblioteca-videojuegos/
 ### 1. Base de datos
 
 ```bash
-docker compose up -d
+docker compose up -d postgres
 ```
 
-Levanta PostgreSQL en `localhost:5432` con usuario `biblioteca_user`, contraseña `biblioteca_pass` y base de datos `biblioteca_db` (datos persistidos en el volumen `pgdata`).
+Levanta solo PostgreSQL en `localhost:5432` con usuario `biblioteca_user`, contraseña `biblioteca_pass` y base de datos `biblioteca_db` (datos persistidos en el volumen `pgdata`).
 
 ### 2. Backend
 
@@ -77,6 +78,20 @@ npm run dev
 ```
 
 Disponible en http://localhost:5173 (puerto por defecto de Vite).
+
+## Ejecutar todo con Docker
+
+Alternativa a la puesta en marcha manual: un solo comando levanta base de datos, backend y frontend. Solo necesitas `backend/.env` (el `DATABASE_URL` se sobrescribe dentro de Docker).
+
+```bash
+docker compose up -d --build
+```
+
+- Frontend: http://localhost:5173 (nginx)
+- Backend: http://localhost:4000
+- Las tablas se crean solas la primera vez (`schema.sql` se monta en `/docker-entrypoint-initdb.d`). Si ya tenías el volumen `pgdata` creado, no se vuelve a ejecutar.
+- Para pararlo: `docker compose down` (añade `-v` solo si quieres borrar los datos).
+- Si cambias `VITE_API_URL`, reconstruye el frontend: la URL se incrusta al compilar (`docker compose build --build-arg VITE_API_URL=... frontend`).
 
 ## API
 
