@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './Login'
 import Biblioteca from './Biblioteca'
 import Buscar from './Buscar'
+import Perfil from './Perfil'
 import Layout from './Layout'
 import RutaProtegida from './RutaProtegida'
 import './App.css'
@@ -27,6 +28,7 @@ function App() {
         >
           <Route path="/biblioteca" element={<Biblioteca setToken={setToken} />} />
           <Route path="/buscar" element={<Buscar setToken={setToken} />} />
+          <Route path="/perfil" element={<Perfil setToken={setToken} />} />
         </Route>
       </Routes>
     </BrowserRouter>

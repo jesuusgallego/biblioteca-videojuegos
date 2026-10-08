@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import Marca from './Marca'
 import BotonTema from './BotonTema'
+import Avatar from './Avatar'
 
 // Coloco la línea bajo el enlace activo: mido dónde está y cuánto ocupa (en
 // píxeles, respecto a la barra de navegación) y se lo aplico a la línea.
@@ -31,7 +32,7 @@ function colocarLinea(nav, linea, conAnimacion) {
 // Barra superior. NavLink añade la clase "active" al enlace de la página actual.
 // Cerrar sesión borra el token; RutaProtegida ve que ya no hay y redirige al
 // login.
-function Menu({ setToken }) {
+function Menu({ setToken, perfil }) {
   const navRef = useRef(null)
   const lineaRef = useRef(null)
   // useLocation hace que este componente se vuelva a pintar cada vez que cambia la ruta
@@ -72,6 +73,10 @@ function Menu({ setToken }) {
         </nav>
 
         <div className="barra__acciones">
+          {/* Fuera de <nav> a propósito: la línea deslizante solo sigue a los enlaces de dentro */}
+          <NavLink to="/perfil" className="barra__perfil" aria-label="Mi perfil">
+            <Avatar usuario={perfil} tamano="pequeno" />
+          </NavLink>
           <BotonTema />
           <button type="button" className="btn btn--secundario" onClick={cerrarSesion}>
             Cerrar sesión

@@ -3,8 +3,16 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL, -- solo el hash de bcrypt, nunca la contraseña
+    avatar TEXT, -- foto de perfil como data URL (data:image/jpeg;base64,...); NULL = sin foto
+    bio VARCHAR(300), -- descripción corta del perfil
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Para una BD creada antes de existir el perfil: CREATE TABLE IF NOT EXISTS no
+-- toca una tabla que ya existe, así que añado las columnas aparte. En una BD
+-- nueva estas dos líneas no hacen nada (las columnas ya están).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS bio VARCHAR(300);
 
 -- Cada fila es un juego en la biblioteca de un usuario.
 -- Con ON DELETE CASCADE, si borro al usuario se borran también sus juegos.

@@ -1658,6 +1658,290 @@ body:has(dialog[open]) {
   margin-top: 1.5rem;
 }
 
+/* ---- Avatar (Avatar.jsx) -------------------------------------------------- */
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  overflow: hidden;
+  font-family: var(--display);
+  font-weight: 600;
+  color: #fff;
+  background: var(--degradado);
+  border-radius: 50%;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar--pequeno { width: 36px; height: 36px; font-size: 1.1rem; }
+.avatar--normal { width: 56px; height: 56px; font-size: 1.6rem; }
+.avatar--grande { width: 96px; height: 96px; font-size: 2.8rem; }
+
+/* Enlace al perfil en la barra: un aro de color al pasar el ratón y en la página activa */
+.barra__perfil {
+  display: inline-flex;
+  border-radius: 50%;
+  transition: box-shadow var(--transicion);
+}
+
+.barra__perfil:hover,
+.barra__perfil.active {
+  box-shadow: 0 0 0 2px var(--barra), 0 0 0 4px var(--acento);
+}
+
+/* ---- Perfil (Perfil.jsx) ---------------------------------------------------- */
+.perfil {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.perfil__cabecera {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.perfil__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+/* Un nombre muy largo sin espacios no debe salirse de la pantalla */
+.perfil__datos .titulo-pagina {
+  overflow-wrap: anywhere;
+}
+
+.perfil__meta {
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+
+.perfil__bio {
+  margin-top: 0.4rem;
+  overflow-wrap: anywhere;
+  white-space: pre-line; /* respeto los saltos de línea que escribió */
+}
+
+.perfil__bio--vacia {
+  font-style: italic;
+  color: var(--texto-suave);
+}
+
+/* Cada bloque de la página: una tarjeta con su título */
+.panel {
+  padding: 1.5rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+}
+
+.panel > .titulo-seccion {
+  margin-bottom: 1.25rem;
+}
+
+/* ---- Estadísticas del perfil ---------------------------------------------- */
+.estadisticas {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.estadisticas__subtitulo {
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+/* En el HTML va primero la etiqueta (<dt>) y luego el valor (<dd>), que es lo
+   correcto para un lector de pantalla; column-reverse pinta el número encima. */
+.stat {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 0.15rem;
+  padding: 1rem;
+  background: var(--superficie-2);
+  border-radius: var(--radio);
+}
+
+.stat__valor {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 2.2rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--texto-h);
+}
+
+.stat__etiqueta {
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+/* Barra de estados: tramos de color cuyo ancho depende de cuántos juegos hay */
+.barra-estados {
+  display: flex;
+  gap: 2px;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.barra-estados__tramo {
+  min-width: 6px;
+}
+
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 0.75rem;
+}
+
+.leyenda__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.leyenda__item strong {
+  color: var(--texto-h);
+}
+
+.mejores {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mejores__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.4rem;
+  background: var(--superficie-2);
+  border-radius: var(--radio);
+}
+
+.mejores__portada {
+  flex: none;
+  width: 32px;
+  aspect-ratio: 264 / 374; /* misma proporción que las portadas de IGDB */
+  overflow: hidden;
+  background: var(--campo);
+  border-radius: 4px;
+}
+
+.mejores__portada img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mejores__nombre {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--texto-h);
+}
+
+.mejores__nota {
+  font-weight: 700;
+  color: var(--acento);
+}
+
+.mejores__nota small {
+  font-weight: 400;
+  color: var(--texto-suave);
+}
+
+/* ---- Editar perfil y cuenta ------------------------------------------------ */
+.foto-perfil {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.foto-perfil__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.foto-perfil__acciones small {
+  flex-basis: 100%;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.formulario__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.mensaje--ok {
+  color: var(--exito);
+  background: color-mix(in srgb, var(--exito) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--exito) 35%, transparent);
+}
+
+.cuenta {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Cada ajuste va separado del anterior por una línea */
+.cuenta__bloque {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--borde);
+}
+
+.cuenta__bloque:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.cuenta__titulo {
+  font-size: 1rem;
+}
+
+.cuenta__aviso {
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+
+.cuenta__bloque--peligro .cuenta__titulo {
+  color: var(--peligro);
+}
+
 /* ---- Móvil --------------------------------------------------------------- */
 @media (max-width: 640px) {
   .barra__interior {
@@ -1710,5 +1994,15 @@ body:has(dialog[open]) {
 
   .jugando__titulo {
     font-size: 1.2rem;
+  }
+
+  .perfil__cabecera,
+  .foto-perfil {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .panel {
+    padding: 1.1rem;
   }
 }

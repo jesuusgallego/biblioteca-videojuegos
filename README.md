@@ -107,6 +107,12 @@ docker compose up -d --build
 | GET | `/games` | Bearer token | Lista los juegos de tu biblioteca |
 | PATCH | `/games/:id` | Bearer token | Actualiza `status`, `rating`, `review` o `platform`. Los campos omitidos no cambian; enviar `null` borra `rating`, `review` o `platform` |
 | DELETE | `/games/:id` | Bearer token | Elimina un juego de tu biblioteca |
+| GET | `/profile` | Bearer token | Tus datos: usuario, email, bio, foto y fecha de alta |
+| GET | `/profile/stats` | Bearer token | Estadísticas de tu biblioteca (juegos por estado, nota media) y tus 5 juegos mejor valorados |
+| PATCH | `/profile` | Bearer token | Cambia `username`, `bio` y/o `avatar` (data URL JPG/PNG/WebP; `null` borra bio o foto). 409 si el usuario ya existe |
+| PATCH | `/profile/email` | Bearer token | Cambia el email (`email` + `current_password`). 403 si la contraseña es incorrecta |
+| PATCH | `/profile/password` | Bearer token | Cambia la contraseña (`current_password` + `new_password`) |
+| DELETE | `/profile` | Bearer token | Borra tu cuenta y toda tu biblioteca (`password`) |
 
 `status` admite `jugando`, `completado`, `abandonado` y `pendiente`; `rating` va de 1 a 10.
 
@@ -120,5 +126,6 @@ docker compose up -d --build
 - Todas las llamadas al backend pasan por `frontend/src/api.js` (`apiFetch`). La URL base es `http://localhost:4000` por defecto; para otro host define `VITE_API_URL` en `frontend/.env`.
 - La columna `user_games.igdb_id` guarda el ID del juego en **IGDB**.
 - El token JWT se guarda en `localStorage`.
+- La foto de perfil se guarda como texto (data URL en base64) en `users.avatar`; el navegador la reduce a 256 px antes de enviarla. Si tu base de datos es anterior al perfil, añade las columnas con `docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT; ALTER TABLE users ADD COLUMN IF NOT EXISTS bio VARCHAR(300);"` (o vuelve a ejecutar `schema.sql`, que es idempotente).
 - Las credenciales de `docker-compose.yml` son solo para desarrollo; cámbialas en cualquier otro entorno.
 - `backend/.env` contiene secretos: asegúrate de que esté en `.gitignore`.

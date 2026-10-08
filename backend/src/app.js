@@ -5,13 +5,17 @@ const pool = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const verifyToken = require('./middleware/authMiddleware');
 const gameRoutes = require('./routes/gameRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors());
-app.use(express.json());
+// La foto de perfil viaja en el JSON como texto (base64), así que subo el límite
+// por defecto de 100 KB. El frontend la reduce a ~256 px antes de enviarla.
+app.use(express.json({ limit: '1mb' }));
 app.use('/games', gameRoutes);
+app.use('/profile', profileRoutes);
 
 // Compruebo a la vez el servidor y la base de datos: si la BD no responde, devuelvo 500
 app.get('/health', async (req, res) => {
