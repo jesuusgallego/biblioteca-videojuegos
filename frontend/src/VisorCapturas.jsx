@@ -1,0 +1,98 @@
+import { useEffect, useRef } from 'react'
+
+// El backend manda las capturas en tamaño medio (t_screenshot_big, 889x500), pensado
+// para la rejilla. Para verlas grandes pido a IGDB la misma imagen en 1080p
+// cambiando solo el nombre de la plantilla en la URL.
+function ampliar(url) {
+  return url.replace('/t_screenshot_big/', '/t_1080p/')
+}
+
+// Visor a pantalla completa de las capturas de un juego.
+//  - urls: todas las capturas (para poder pasar de una a otra)
+//  - indice: cuál se está viendo
+//  - onCambiar(nuevoIndice) / onCerrar(): los gestiona quien lo abre
+function VisorCapturas({ urls, indice, onCambiar, onCerrar }) {
+  const dialogRef = useRef(null)
+
+  // Igual que la ficha, un <dialog> modal nativo. Al abrirse encima de otro modal,
+  // Esc cierra solo el de arriba (este) y no la ficha.
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog.open) dialog.showModal()
+  }, [])
+
+  const hayVarias = urls.length > 1
+
+  // Uso el módulo para que tras la última se vuelva a la primera y viceversa
+  function mover(paso) {
+    onCambiar((indice + paso + urls.length) % urls.length)
+  }
+
+  function alPulsarTecla(e) {
+    if (!hayVarias) return
+    if (e.key === 'ArrowLeft') mover(-1)
+    if (e.key === 'ArrowRight') mover(1)
+  }
+
+  // Un clic en el fondo oscuro (::backdrop) tiene como objetivo el propio dialog
+  function cerrarSiEsElFondo(e) {
+    if (e.target === e.currentTarget) onCerrar()
+  }
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className="visor"
+      aria-label={`Captura ${indice + 1} de ${urls.length}`}
+      onClose={onCerrar}
+      onMouseDown={cerrarSiEsElFondo}
+      onKeyDown={alPulsarTecla}
+    >
+      <img className="visor__imagen" src={ampliar(urls[indice])} alt="" />
+
+      <button
+        type="button"
+        className="btn-icono visor__boton visor__cerrar"
+        onClick={onCerrar}
+        aria-label="Cerrar"
+        title="Cerrar"
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6 6 18" />
+        </svg>
+      </button>
+
+      {hayVarias && (
+        <>
+          <button
+            type="button"
+            className="btn-icono visor__boton visor__anterior"
+            onClick={() => mover(-1)}
+            aria-label="Captura anterior"
+            title="Anterior"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M15 5l-7 7 7 7" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            className="btn-icono visor__boton visor__siguiente"
+            onClick={() => mover(1)}
+            aria-label="Captura siguiente"
+            title="Siguiente"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          <span className="visor__contador contador">{indice + 1} / {urls.length}</span>
+        </>
+      )}
+    </dialog>
+  )
+}
+
+export default VisorCapturas

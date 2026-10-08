@@ -5,17 +5,17 @@ import DetalleJuego from './DetalleJuego'
 import { ETIQUETAS_ESTADO } from './estados'
 import { apiFetch } from './api'
 
-// "Mi biblioteca": los juegos que el usuario ha guardado (GET /games).
+// Muestro los juegos que el usuario ha guardado (GET /games).
 function Biblioteca({ setToken }) {
   const [juegos, setJuegos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState("")
-  // Filtros de la vista. Solo viven en el navegador: no hacen peticiones al
-  // backend, se aplican sobre la lista que ya tenemos en "juegos".
+  // Los filtros solo viven en el navegador: no piden nada al backend, los aplico
+  // sobre la lista que ya tengo en "juegos".
   const [filtroEstado, setFiltroEstado] = useState("todos")
   const [consulta, setConsulta] = useState("")
-  // Juego cuya ficha está abierta (null = ninguna). Un solo estado en la página
-  // sirve para todas las tarjetas: abrir una ficha es guardar aquí su juego.
+  // Juego cuya ficha está abierta (null = ninguna). Un único estado en la página
+  // vale para todas las tarjetas.
   const [detalle, setDetalle] = useState(null)
 
   useEffect(() => {
@@ -29,7 +29,7 @@ function Biblioteca({ setToken }) {
         if (cancelado) return
 
         if (err.status === 401) {
-          // Token caducado o inválido: cerramos sesión y RutaProtegida redirige al login
+          // Token caducado o inválido: cierro sesión y RutaProtegida me redirige al login
           localStorage.removeItem("token")
           setToken("")
           return
@@ -41,14 +41,14 @@ function Biblioteca({ setToken }) {
         if (!cancelado) setCargando(false)
       })
 
-    // Si el componente se desmonta antes de que llegue la respuesta, la ignoramos
+    // Si el componente se desmonta antes de que llegue la respuesta, la ignoro
     return () => { cancelado = true }
   }, [setToken])
 
-  // Las peticiones de editar y borrar viven aquí porque este componente es el
-  // dueño de la lista. Tras responder el backend actualizamos el estado local,
-  // sin volver a pedir toda la lista. Los errores se relanzan para que la
-  // tarjeta los muestre; solo el 401 se gestiona aquí (cerrar sesión).
+  // Editar y borrar viven aquí porque este componente es el dueño de la lista:
+  // al responder el backend actualizo el estado local sin volver a pedirla entera.
+  // Relanzo los errores para que la tarjeta los muestre; solo gestiono aquí el
+  // 401 (cerrar sesión).
   async function actualizarJuego(id, cambios) {
     try {
       const data = await apiFetch(`/games/${id}`, { method: 'PATCH', body: cambios })
@@ -92,8 +92,8 @@ function Biblioteca({ setToken }) {
     setDetalle({ igdb_id: juego.igdb_id, name: juego.name, cover_url: juego.cover_url })
   }
 
-  // Valores derivados: se calculan en cada render a partir del estado, así
-  // nunca se quedan desactualizados (no hace falta guardarlos en un useState).
+  // Valores derivados: los calculo en cada render a partir del estado para que
+  // nunca queden desactualizados (así no necesitan su propio useState).
   const jugandoAhora = juegos.filter((j) => j.status === "jugando")
 
   const texto = consulta.trim().toLowerCase()
@@ -103,7 +103,7 @@ function Biblioteca({ setToken }) {
       j.name.toLowerCase().includes(texto)
   )
 
-  // Un botón por filtro, con su contador. "todos" no es un estado de la BD.
+  // Un botón por filtro con su contador. Ojo: "todos" no existe como estado en la BD.
   const filtros = [
     { id: "todos", etiqueta: "Todos", cuenta: juegos.length },
     ...Object.entries(ETIQUETAS_ESTADO).map(([id, etiqueta]) => ({

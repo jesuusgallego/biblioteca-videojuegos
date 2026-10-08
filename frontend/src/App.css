@@ -1,6 +1,6 @@
 /* ==========================================================================
-   Estilos de los componentes. Los colores vienen de las variables de index.css.
-   Nombres de clase estilo BEM: bloque, bloque__elemento, bloque--variante.
+      Estilos de los componentes. Los colores vienen de las variables de index.css.
+      Nombro las clases con BEM: bloque, bloque__elemento, bloque--variante.
    ========================================================================== */
 
 /* ---- Logo ---------------------------------------------------------------- */
@@ -165,7 +165,7 @@
 }
 
 /* Línea del enlace activo. Menu.jsx le pone el ancho y la posición; aquí solo
-   decimos que los cambios se animen en 0,3 s, empezando y acabando suave. */
+   hago que los cambios se animen en 0,3 s, empezando y acabando suave. */
 .barra__linea {
   position: absolute;
   left: 0;
@@ -178,9 +178,9 @@
     width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Los enlaces miden lo mismo que la barra (64px) para que la línea, pegada al
-   borde inferior de la barra, quede como en Steam. El borde transparente se
-   mantiene para que el texto siga centrado igual. */
+/* Hago que los enlaces midan lo mismo que la barra (64px) para que la línea,
+   pegada al borde inferior, quede como en Steam. Mantengo el borde transparente
+   para que el texto siga centrado igual. */
 .barra__nav a {
   display: inline-flex;
   align-items: center;
@@ -541,6 +541,105 @@
   color: var(--texto-suave);
 }
 
+/* ---- Desplegable propio (Desplegable.jsx) -------------------------------- */
+/* El botón copia el aspecto de los demás campos (mira "Campos de formulario"
+   en index.css). */
+.desplegable__boton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  font: inherit;
+  text-align: left;
+  color: var(--texto-h);
+  background: var(--campo);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  transition: border-color var(--transicion), box-shadow var(--transicion);
+}
+
+.desplegable__boton:focus-visible,
+.desplegable__boton[aria-expanded="true"] {
+  outline: none;
+  border-color: var(--acento);
+  box-shadow: 0 0 0 3px var(--acento-suave);
+}
+
+.desplegable__boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.desplegable__flecha {
+  flex-shrink: 0;
+  color: var(--texto-suave);
+  transition: transform var(--transicion);
+}
+
+.desplegable__boton[aria-expanded="true"] .desplegable__flecha {
+  transform: rotate(180deg);
+}
+
+/* Esta lista cuelga de <body> con position: fixed (top, left y width los pone el
+   componente). Entra y sale con un fundido y un pequeño desplazamiento hacia o
+   desde el botón. */
+.desplegable__lista {
+  --desplazamiento: -6px;
+  position: fixed;
+  z-index: 1000;
+  margin: 0;
+  padding: 0.3rem;
+  overflow-y: auto;
+  color: var(--texto-h);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  transform-origin: top;
+  animation: desplegable-entrada 0.16s ease both;
+}
+
+.desplegable__lista--arriba {
+  --desplazamiento: 6px;
+  transform-origin: bottom;
+}
+
+.desplegable__lista--saliendo {
+  animation: desplegable-salida 0.16s ease both;
+}
+
+@keyframes desplegable-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(var(--desplazamiento));
+  }
+}
+
+@keyframes desplegable-salida {
+  to {
+    opacity: 0;
+    transform: translateY(var(--desplazamiento));
+  }
+}
+
+.desplegable__opcion {
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color var(--transicion), color var(--transicion);
+}
+
+.desplegable__opcion--activa {
+  background: var(--acento-suave);
+}
+
+.desplegable__opcion[aria-selected="true"] {
+  font-weight: 600;
+  color: var(--acento);
+}
+
 /* Formulario de edición: campos en rejilla, la reseña ocupa todo el ancho */
 .formulario--edicion {
   display: grid;
@@ -742,7 +841,7 @@
 .punto--pendiente { background: var(--estado-pendiente); }
 
 /* flex: 999 1 560px = "crece mucho, base 560px": así la barra lateral solo se
-   queda al lado si caben las dos cosas; si no, el contenido salta a otra línea */
+   queda al lado si caben las dos cosas; si no, el contenido pasa a otra línea */
 .biblioteca__contenido {
   display: flex;
   flex-direction: column;
@@ -827,12 +926,12 @@
 }
 
 /* ---- Ventana con la ficha del juego ---------------------------------------- */
-/* <dialog> abierto con showModal() se pinta en la "capa superior" del
+/* Un <dialog> abierto con showModal() se pinta en la "capa superior" del
    navegador: encima de todo, sin depender de z-index ni de los overflow de las
    tarjetas. El oscurecimiento de detrás es el pseudoelemento ::backdrop. */
-/* OJO: no poner "position" aquí. Un <dialog> modal ya es position: fixed (así
+/* OJO: aquí no pongo "position". Un <dialog> modal ya es position: fixed (así
    se centra en la pantalla) y por eso ya sirve de referencia para colocar el
-   botón de cerrar. Cambiarlo a relative lo saca de la pantalla por arriba. */
+   botón de cerrar. Si lo cambio a relative se sale de la pantalla por arriba. */
 .detalle {
   width: min(880px, calc(100% - 2rem));
   max-height: calc(100svh - 2rem);
@@ -861,8 +960,8 @@
   }
 }
 
-/* Con la ventana abierta, la página de detrás no se desplaza. El hueco de la
-   barra de scroll está reservado (scrollbar-gutter), así que no hay saltos. */
+/* Con la ventana abierta bloqueo el scroll de la página de detrás. El hueco de
+   la barra de scroll está reservado (scrollbar-gutter), así que no hay saltos. */
 body:has(dialog[open]) {
   overflow: hidden;
 }
@@ -985,12 +1084,87 @@ body:has(dialog[open]) {
   gap: 0.75rem;
 }
 
-.detalle__capturas img {
+/* Cada miniatura es un <button> (se puede pulsar con ratón y con teclado); le
+   quito el aspecto de botón para que parezca solo la imagen. */
+.detalle__captura {
+  display: block;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: var(--radio);
+  cursor: zoom-in;
+  transition: border-color var(--transicion);
+}
+
+.detalle__captura:hover,
+.detalle__captura:focus-visible {
+  border-color: var(--acento);
+}
+
+.detalle__captura img {
+  display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   background: var(--superficie-2);
+  border-radius: calc(var(--radio) - 2px);
+}
+
+/* ---- Visor de capturas --------------------------------------------------- */
+/* El propio <dialog> se ajusta al tamaño de la imagen y coloco sus botones
+   encima con position: absolute (un <dialog> modal ya es position: fixed). */
+.visor {
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+}
+
+.visor::backdrop {
+  background: rgba(0, 0, 0, 0.88);
+}
+
+.visor__imagen {
+  display: block;
+  max-width: min(94vw, 1600px);
+  max-height: 86svh;
   border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.visor__boton {
+  position: absolute;
+  background: var(--superficie);
+}
+
+.visor__cerrar {
+  top: 0.6rem;
+  right: 0.6rem;
+}
+
+.visor__anterior,
+.visor__siguiente {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.visor__anterior {
+  left: 0.6rem;
+}
+
+.visor__siguiente {
+  right: 0.6rem;
+}
+
+.visor__contador {
+  position: absolute;
+  bottom: 0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--superficie); /* sólido: el del .contador es translúcido y sobre la imagen no se lee */
 }
 
 .detalle__pie {

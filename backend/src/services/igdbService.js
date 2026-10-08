@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { getAccessToken } = require('./igdbAuth');
 
-// Envía una consulta (en el lenguaje "Apicalypse" de IGDB) a un endpoint de IGDB
+// Mando una consulta en Apicalypse (el lenguaje de IGDB) a un endpoint de IGDB
 async function igdbPost(endpoint, body) {
   const accessToken = await getAccessToken();
 
@@ -17,15 +17,19 @@ async function igdbPost(endpoint, body) {
 }
 
 async function searchGames(query) {
+  // El texto va entre comillas dentro de la consulta: escapo \ y " para que lo que
+  // escriba el usuario no pueda cerrar la cadena ni meter instrucciones propias
+  const texto = query.replace(/[\\"]/g, '\\$&');
+
   return igdbPost(
     'games',
-    `search "${query}"; fields name, cover.image_id, platforms.name, first_release_date; limit 10;`
+    `search "${texto}"; fields name, cover.image_id, platforms.name, first_release_date; limit 10;`
   );
 }
 
-// "empresa.campo" le dice a IGDB que expanda la relación y traiga ese dato (igual
-// que un JOIN en SQL). involved_companies une el juego con sus empresas y lleva
-// dos booleanos: developer y publisher.
+// "empresa.campo" hace que IGDB expanda la relación y me traiga ese dato, como un
+// JOIN en SQL. involved_companies une el juego con sus empresas y trae dos
+// booleanos: developer y publisher.
 const CAMPOS_DETALLE = [
   'name',
   'summary',
@@ -43,14 +47,14 @@ const CAMPOS_DETALLE = [
   'url',
 ].join(', ');
 
-// Caché en memoria: los datos de un juego casi nunca cambian, así que no hace
-// falta preguntar a IGDB cada vez que se abre la misma ficha. Además IGDB limita
-// a 4 peticiones por segundo. Se vacía al reiniciar el servidor.
+// Cacheo las fichas en memoria: los datos de un juego casi nunca cambian y IGDB
+// limita a 4 peticiones por segundo. La caché se vacía al reiniciar el servidor.
 const DURACION_CACHE_MS = 60 * 60 * 1000; // 1 hora
 const MAX_CACHE = 200;
 const cacheDetalles = new Map(); // igdbId -> { game, caducaEn }
 
-// igdbId debe llegar ya validado como entero (se interpola en la consulta)
+// Interpolo igdbId en la consulta, así que el controlador tiene que validarlo
+// antes como entero
 async function getGameDetails(igdbId) {
   const guardado = cacheDetalles.get(igdbId);
   if (guardado && Date.now() < guardado.caducaEn) {
@@ -62,7 +66,7 @@ async function getGameDetails(igdbId) {
 
   if (game) {
     if (cacheDetalles.size >= MAX_CACHE) {
-      // Un Map recuerda el orden de inserción: la primera clave es la más antigua
+      // Si está llena borro la entrada más antigua (un Map conserva el orden de inserción)
       cacheDetalles.delete(cacheDetalles.keys().next().value);
     }
     cacheDetalles.set(igdbId, { game, caducaEn: Date.now() + DURACION_CACHE_MS });

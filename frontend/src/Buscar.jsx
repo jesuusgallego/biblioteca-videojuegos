@@ -9,18 +9,18 @@ function Buscar({ setToken }) {
   const [nombreJuego, setNombreJuego] = useState("")
   const [resultados, setResultados] = useState([])
   const [error, setError] = useState("")
-  // IDs de IGDB de los juegos que el usuario ya tiene guardados
-  // Es un Map (igdb_id -> fila de la biblioteca) y no un Set: además de saber
-  // si un juego está guardado, así tenemos su nota y reseña para la ficha.
+  // Juegos que ya tengo guardados, en un Map (igdb_id -> fila de la biblioteca) y
+  // no en un Set: así, además de saber si uno está guardado, tengo su nota y su
+  // reseña para la ficha.
   const [guardados, setGuardados] = useState(new Map())
   // Juego cuya ficha está abierta (null = ninguna)
   const [detalle, setDetalle] = useState(null)
 
   const termino = nombreJuego.trim()
 
-  // Al entrar, cargamos la biblioteca para marcar los juegos ya guardados.
-  // Si falla no pasa nada grave: los botones salen como "Añadir" y el 409 del
-  // backend cubre el caso de pulsar uno que ya tenías.
+  // Al entrar cargo mi biblioteca para marcar los juegos ya guardados. Si falla no
+  // es grave: los botones salen como "Añadir" y el 409 del backend cubre el caso
+  // de pulsar uno que ya tenía.
   useEffect(() => {
     let cancelado = false
 
@@ -42,8 +42,8 @@ function Buscar({ setToken }) {
 
     if (termino === "") return
 
-    // Debounce: esperamos a que el usuario deje de escribir antes de buscar.
-    // El AbortController cancela la petición anterior si llega una nueva.
+    // Debounce: espero a que el usuario deje de escribir antes de buscar. El
+    // AbortController cancela la petición anterior si llega una nueva.
     const controller = new AbortController()
     const timer = setTimeout(async () => {
       try {
@@ -58,7 +58,7 @@ function Buscar({ setToken }) {
         if (err.name === "AbortError") return
 
         if (err.status === 401) {
-          // Token caducado o inválido: cerramos sesión y RutaProtegida redirige al login
+          // Token caducado o inválido: cierro sesión y RutaProtegida me redirige al login
           localStorage.removeItem("token")
           setToken("")
           return
@@ -75,15 +75,15 @@ function Buscar({ setToken }) {
     }
   }, [termino, setToken])
 
-  // Guarda un juego en la biblioteca del usuario. Los errores se relanzan para
-  // que la GameCard los muestre; solo el 401 se gestiona aquí (cerrar sesión).
+  // Guardo un juego en mi biblioteca. Relanzo los errores para que la GameCard los
+  // muestre; solo gestiono aquí el 401 (cerrar sesión).
   async function anadirJuego(juego) {
     try {
       const data = await apiFetch('/games', {
         method: 'POST',
         body: { igdb_id: juego.igdb_id, name: juego.name, cover_url: juego.cover_url },
       })
-      // El backend devuelve la fila recién creada: la guardamos tal cual
+      // El backend devuelve la fila recién creada: la guardo tal cual
       setGuardados((prev) => new Map(prev).set(juego.igdb_id, data.game))
     } catch (err) {
       if (err.status === 401) {
@@ -97,7 +97,7 @@ function Buscar({ setToken }) {
   return (
     <div className="buscar-pagina">
       <section className="banner">
-        <h1 className="banner__titulo">Descubre tu próximo juego</h1>
+        <h1 className="banner__titulo">Añade tu juego a la biblioteca</h1>
         <p className="banner__texto">
           Busca en el catálogo de IGDB y guarda lo que quieras jugar en tu biblioteca.
         </p>

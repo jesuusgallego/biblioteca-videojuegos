@@ -3,7 +3,8 @@ const router = express.Router();
 const verifyToken = require('../middleware/authMiddleware');
 const { addGame, listGames, updateGame, deleteGame, search, details } = require('../controllers/gameController');
 
-router.use(verifyToken); // aplica a TODAS las rutas de este archivo
+// Todas las rutas de juegos exigen haber iniciado sesión
+router.use(verifyToken);
 
 router.post('/', addGame);
 router.get('/', listGames);

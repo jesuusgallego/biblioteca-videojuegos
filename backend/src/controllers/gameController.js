@@ -1,29 +1,29 @@
 const pool = require('../config/db');
 const { searchGames, getGameDetails } = require('../services/igdbService');
 
-// URL de una imagen de IGDB. "tamano" es el nombre de plantilla de IGDB:
-// t_cover_big (portada), t_screenshot_big (captura)...
+// Monto la URL de una imagen de IGDB. "tamano" es una plantilla de IGDB:
+// t_cover_big (portada), t_screenshot_big (captura), t_1080p (captura grande)...
 function urlImagen(imageId, tamano) {
   return `https://images.igdb.com/igdb/image/upload/${tamano}/${imageId}.jpg`;
 }
 
-// Mensajes para las restricciones CHECK de user_games (ver models/sql/schema.sql)
+// Mensajes legibles para los CHECK de user_games (los defino en schema.sql)
 const MENSAJES_CHECK = {
   user_games_status_check: 'status debe ser: jugando, completado, abandonado o pendiente',
   user_games_rating_check: 'rating debe ser un entero entre 1 y 10',
 };
 
-// Errores de Postgres causados por datos del cliente → 400 en vez de 500.
-// Devuelve true si respondió.
+// Si el error de Postgres lo causan los datos del cliente respondo 400 y no 500.
+// Devuelve true si ya he respondido.
 function responderErrorDeValidacion(err, res) {
   if (err.code === '23514') {
-    // violación de un CHECK (status o rating fuera de rango)
+    // Se ha violado un CHECK (status o rating fuera de rango)
     const error = MENSAJES_CHECK[err.constraint] || 'Algún valor no cumple las restricciones permitidas';
     res.status(400).json({ error });
     return true;
   }
   if (err.code === '22P02' || err.code === '22003') {
-    // texto no convertible a número, o número fuera de rango (p. ej. rating "abc" o id "abc")
+    // Texto que no es un número (rating "abc") o número fuera de rango
     res.status(400).json({ error: 'Algún valor numérico no es válido' });
     return true;
   }
@@ -50,7 +50,7 @@ async function addGame(req, res) {
     res.status(201).json({ game: result.rows[0] });
   } catch (err) {
     if (err.code === '23505') {
-      // violación de la restricción UNIQUE (user_id, igdb_id)
+      // Salta el UNIQUE (user_id, igdb_id): el juego ya estaba
       return res.status(409).json({ error: 'Ese juego ya está en tu biblioteca' });
     }
     if (responderErrorDeValidacion(err, res)) return;
@@ -82,14 +82,15 @@ async function updateGame(req, res) {
   const gameId = req.params.id;
   const { status, rating, review, platform } = req.body;
 
-  // Un campo ausente no se toca; un campo enviado como null sí se borra
-  // (rating, review y platform admiten NULL; status no).
+  // Distingo entre campo ausente (no lo toco) y campo enviado como null (lo borro).
+  // Por eso uso has() y el CASE WHEN del SQL. status no admite NULL.
   const has = (field) => Object.prototype.hasOwnProperty.call(req.body, field);
 
   if (has('status') && status === null) {
     return res.status(400).json({ error: 'status no puede ser null' });
   }
 
+  // Filtro siempre por user_id además de por id: así nadie toca juegos de otro usuario
   try {
     const result = await pool.query(
       `UPDATE user_games
@@ -126,6 +127,7 @@ async function deleteGame(req, res) {
   const userId = req.user.id;
   const gameId = req.params.id;
 
+  // Igual que en updateGame, filtro por user_id para borrar solo juegos propios
   try {
     const result = await pool.query(
       'DELETE FROM user_games WHERE id = $1 AND user_id = $2 RETURNING id',
@@ -148,7 +150,8 @@ async function deleteGame(req, res) {
 async function search(req, res) {
   const query = req.query.q;
 
-  if (!query) {
+  // Con ?q=a&q=b Express me daría una lista en vez de un texto
+  if (!query || typeof query !== 'string') {
     return res.status(400).json({ error: 'Falta el parámetro de búsqueda "q"' });
   }
 
@@ -184,10 +187,10 @@ async function details(req, res) {
       return res.status(404).json({ error: 'Juego no encontrado en IGDB' });
     }
 
-    // Saca la lista de nombres de un campo tipo [{ id, name }, ...]
+    // De [{ id, name }, ...] me quedo solo con los nombres
     const nombres = (lista) => (lista ?? []).map((item) => item.name);
-    // Empresas que cumplen un rol ("developer" o "publisher"). Una misma empresa
-    // puede tener los dos roles, y puede faltar el dato de la empresa.
+    // Una misma empresa puede ser developer y publisher a la vez, y a veces falta
+    // el dato de la empresa, por eso filtro por rol y por ic.company
     const empresasConRol = (rol) =>
       (game.involved_companies ?? [])
         .filter((ic) => ic[rol] && ic.company)
@@ -198,7 +201,7 @@ async function details(req, res) {
         igdb_id: game.id,
         name: game.name,
         summary: game.summary ?? null,
-        // IGDB da la fecha como segundos Unix; la pasamos a "AAAA-MM-DD"
+        // IGDB da la fecha en segundos Unix; la paso a "AAAA-MM-DD"
         release_date: game.first_release_date
           ? new Date(game.first_release_date * 1000).toISOString().slice(0, 10)
           : null,
@@ -211,6 +214,7 @@ async function details(req, res) {
         rating: game.total_rating ? Math.round(game.total_rating) : null,
         rating_count: game.total_rating_count ?? 0,
         cover_url: game.cover ? urlImagen(game.cover.image_id, 't_cover_big') : null,
+        // Máximo 6 capturas, en tamaño medio; el visor del frontend pide la de 1080p
         screenshots: (game.screenshots ?? [])
           .slice(0, 6)
           .map((s) => urlImagen(s.image_id, 't_screenshot_big')),

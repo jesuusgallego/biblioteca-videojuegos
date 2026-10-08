@@ -1,7 +1,7 @@
 /* ==========================================================================
    Tokens de diseño y estilos base.
-   Todos los colores salen de aquí: para retocar la paleta basta con cambiar
-   las variables. El tema lo decide el atributo data-tema de <html>.
+   Todos los colores salen de aquí: para retocar la paleta solo cambio las
+   variables. El tema lo decide el atributo data-tema de <html>.
    ========================================================================== */
 
 /* Tema oscuro (por defecto) */
@@ -52,7 +52,7 @@
 
   --texto: #3a4a5c;
   --texto-h: #0f1b2a;
-  /* Un punto más oscuro que antes: así llega a contraste 4.5:1 sobre el fondo gris */
+  /* Lo oscurecí un punto para llegar a contraste 4.5:1 sobre el fondo gris */
   --texto-suave: #5a6c80;
 
   --acento: #4a35d6;
@@ -92,9 +92,9 @@
   box-sizing: border-box;
 }
 
-/* Reserva siempre el hueco de la barra de scroll. Sin esto, las páginas largas
-   (con scroll) y las cortas (sin él) tienen un ancho útil distinto y al
-   navegar entre ellas todo lo centrado se desplaza unos píxeles. */
+/* Reservo siempre el hueco de la barra de scroll. Sin esto, las páginas largas
+   (con scroll) y las cortas (sin él) tienen un ancho útil distinto y al navegar
+   entre ellas todo lo centrado se mueve unos píxeles. */
 html {
   scrollbar-gutter: stable;
 }
@@ -174,6 +174,13 @@ textarea:focus-visible {
   outline: none;
   border-color: var(--acento);
   box-shadow: 0 0 0 3px var(--acento-suave);
+}
+
+/* La manita en todos los botones activados. Uso :where() para que esta regla no
+   tenga "peso" (especificidad) y sigan mandando los cursores concretos de cada
+   clase (zoom-in en las capturas, not-allowed en los desactivados). */
+:where(button:not(:disabled), select:not(:disabled), [role="button"]:not([aria-disabled="true"])) {
+  cursor: pointer;
 }
 
 button:focus-visible,

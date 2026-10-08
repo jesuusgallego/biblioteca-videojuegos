@@ -1,7 +1,7 @@
 import BotonAnadir from './BotonAnadir'
 
-// Tarjeta de un resultado de la búsqueda. El botón de añadir (y sus estados)
-// vive en BotonAnadir; yaGuardado y onAnadir los pasa el padre (Buscar).
+// Tarjeta de un resultado de la búsqueda. El botón de añadir vive en BotonAnadir
+// y el padre (Buscar) me pasa yaGuardado y onAnadir.
 function GameCard({ nombre, portada, yaGuardado, onAnadir, onVerDetalle }) {
   return (
     <li className="tarjeta">

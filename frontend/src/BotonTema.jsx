@@ -3,7 +3,7 @@ import { temaActual, aplicarTema } from './tema'
 
 // Botón sol/luna para alternar entre tema oscuro y claro.
 function BotonTema() {
-  // temaActual lee el tema que ya puso el script de index.html
+  // Leo el tema que ya puso el script de index.html
   const [tema, setTema] = useState(temaActual)
 
   function alternar() {
@@ -34,7 +34,7 @@ function BotonTema() {
         aria-hidden="true"
       >
         {tema === "oscuro" ? (
-          // En oscuro mostramos el sol: es el tema al que se cambia
+          // En oscuro enseño el sol: es el tema al que se cambia al pulsar
           <>
             <circle cx="12" cy="12" r="4" />
             <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />

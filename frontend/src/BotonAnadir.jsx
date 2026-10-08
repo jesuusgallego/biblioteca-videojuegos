@@ -1,15 +1,15 @@
 import { useState } from 'react'
 
-// Botón "Añadir a mi biblioteca" con sus estados. Lo usan la tarjeta de la
-// búsqueda (GameCard) y la ficha del juego (DetalleJuego), así el
-// comportamiento es idéntico en los dos sitios.
+// Botón "Añadir a mi biblioteca" con sus estados. Lo uso en la tarjeta de la
+// búsqueda (GameCard) y en la ficha (DetalleJuego) para que se comporte igual
+// en los dos sitios.
 //
-// onAnadir es una función async que pasa el padre: guarda el juego en el
-// backend y lanza un Error si algo falla. Este componente solo se ocupa de
-// mostrar el estado del botón: "idle" (por defecto), "guardando", "anadido" o
-// "error". yaGuardado lo calcula el padre (el juego ya estaba en la biblioteca).
-// Se combina con el estado propio en vez de copiarlo al useState, porque la
-// lista de guardados puede llegar después de pintar el botón.
+// onAnadir es una función async del padre: guarda el juego en el backend y lanza
+// un Error si falla. Aquí solo me ocupo de mostrar el estado del botón: "idle",
+// "guardando", "anadido" o "error".
+// yaGuardado lo calcula el padre y lo combino con el estado propio en vez de
+// copiarlo al useState, porque la lista de guardados puede llegar después de
+// pintar el botón.
 function BotonAnadir({ yaGuardado, onAnadir, bloque = true }) {
   const [estadoPropio, setEstado] = useState("idle")
   const [mensaje, setMensaje] = useState("")
@@ -23,7 +23,7 @@ function BotonAnadir({ yaGuardado, onAnadir, bloque = true }) {
       await onAnadir()
       setEstado("anadido")
     } catch (err) {
-      // 409 = el backend dice que ya lo tienes: no es un fallo, el juego está
+      // Un 409 significa que ya lo tenía: no es un fallo, lo marco como añadido
       if (err.status === 409) {
         setEstado("anadido")
         return

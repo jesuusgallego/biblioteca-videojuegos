@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { apiFetch } from './api'
 import { ETIQUETAS_ESTADO } from './estados'
 import BotonAnadir from './BotonAnadir'
+import VisorCapturas from './VisorCapturas'
 
-// "2015-05-19" -> "19 de mayo de 2015". timeZone UTC evita que, según la zona
+// "2015-05-19" -> "19 de mayo de 2015". Con timeZone UTC evito que, según la zona
 // horaria del usuario, la fecha salga un día antes.
 function formatearFecha(iso) {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', {
@@ -14,8 +15,8 @@ function formatearFecha(iso) {
   })
 }
 
-// Una fila "Etiqueta: valor, valor". Si no hay datos no se pinta nada, así no
-// quedan filas vacías.
+// Una fila "Etiqueta: valor, valor". Si no hay datos no pinto nada, así no quedan
+// filas vacías.
 function Fila({ etiqueta, valores }) {
   if (!valores || valores.length === 0) return null
 
@@ -27,22 +28,24 @@ function Fila({ etiqueta, valores }) {
   )
 }
 
-// Ventana con la ficha de un juego. "juego" trae lo que ya sabemos sin pedir
-// nada (igdb_id, name, cover_url) para enseñarlo al instante mientras llega el
-// resto desde GET /games/details/:igdbId.
-//  - guardado: la fila del juego en la biblioteca del usuario (o undefined si
-//    no lo tiene). Si existe, se enseñan su estado, nota, plataforma y reseña.
+// Ventana con la ficha de un juego. "juego" trae lo que ya sé sin pedir nada
+// (igdb_id, name, cover_url) para enseñarlo al instante mientras llega el resto
+// desde GET /games/details/:igdbId.
+//  - guardado: la fila del juego en mi biblioteca (o undefined si no lo tengo).
+//    Si existe, enseño su estado, nota, plataforma y reseña.
 //  - onAnadir: si se pasa, la ficha muestra el botón "Añadir a mi biblioteca"
 //    (lo usa la búsqueda; en Mi biblioteca el juego ya está guardado).
 function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
   const dialogRef = useRef(null)
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState("")
+  // Índice de la captura que se ve en grande, o null si el visor está cerrado
+  const [capturaAbierta, setCapturaAbierta] = useState(null)
 
-  // <dialog> es la ventana modal nativa del navegador. showModal() la abre
-  // encima de todo, oscurece el fondo, atrapa el foco del teclado y la cierra
-  // con Esc, sin librerías. La comprobación "open" evita un error si React
-  // ejecuta este efecto dos veces (modo estricto en desarrollo).
+  // <dialog> es la ventana modal nativa del navegador: showModal() la abre encima
+  // de todo, oscurece el fondo, atrapa el foco y la cierra con Esc, sin librerías.
+  // Compruebo "open" para evitar un error si React ejecuta este efecto dos veces
+  // (modo estricto en desarrollo).
   useEffect(() => {
     const dialog = dialogRef.current
     if (!dialog.open) dialog.showModal()
@@ -59,13 +62,13 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
         if (!cancelado) setError(err.message)
       })
 
-    // Si se cierra la ventana antes de que llegue la respuesta, la ignoramos
+    // Si se cierra la ventana antes de que llegue la respuesta, la ignoro
     return () => { cancelado = true }
   }, [juego.igdb_id])
 
-  // El "fondo" oscuro (::backdrop) cuenta como parte del <dialog>: un clic ahí
-  // tiene como objetivo el propio dialog, no su contenido. Usamos mousedown y
-  // no click para que seleccionar texto y soltar fuera no la cierre sin querer.
+  // El fondo oscuro (::backdrop) cuenta como parte del <dialog>: un clic ahí tiene
+  // como objetivo el propio dialog, no su contenido. Uso mousedown y no click para
+  // que seleccionar texto y soltar fuera no cierre la ventana sin querer.
   function cerrarSiEsElFondo(e) {
     if (e.target === e.currentTarget) onCerrar()
   }
@@ -170,9 +173,16 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
         <section className="detalle__seccion">
           <h3 className="titulo-seccion">Capturas</h3>
           <ul className="detalle__capturas">
-            {datos.screenshots.map((url) => (
+            {datos.screenshots.map((url, i) => (
               <li key={url}>
-                <img src={url} alt="" loading="lazy" />
+                <button
+                  type="button"
+                  className="detalle__captura"
+                  onClick={() => setCapturaAbierta(i)}
+                  aria-label={`Ampliar captura ${i + 1}`}
+                >
+                  <img src={url} alt="" loading="lazy" />
+                </button>
               </li>
             ))}
           </ul>
@@ -183,6 +193,15 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
         <p className="detalle__pie">
           <a href={datos.igdb_url} target="_blank" rel="noreferrer">Ver en IGDB</a>
         </p>
+      )}
+
+      {capturaAbierta !== null && (
+        <VisorCapturas
+          urls={datos.screenshots}
+          indice={capturaAbierta}
+          onCambiar={setCapturaAbierta}
+          onCerrar={() => setCapturaAbierta(null)}
+        />
       )}
     </dialog>
   )

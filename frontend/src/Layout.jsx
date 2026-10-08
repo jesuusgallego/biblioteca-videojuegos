@@ -2,9 +2,9 @@ import { Outlet } from 'react-router-dom'
 import Menu from './Menu'
 
 // Estructura común de las páginas con sesión: barra arriba y contenido centrado.
-// <Outlet /> es el hueco donde React Router pinta la página hija que toque
-// (Biblioteca o Buscar). El Layout se queda siempre en pantalla, así que la
-// barra NO se vuelve a crear al cambiar de página.
+// <Outlet /> es donde React Router pinta la página hija (Biblioteca o Buscar).
+// El Layout no se desmonta al cambiar de página, así que la barra no se vuelve
+// a crear.
 function Layout({ setToken }) {
   return (
     <>

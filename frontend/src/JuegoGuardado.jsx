@@ -1,30 +1,52 @@
 import { useState } from 'react'
+import { apiFetch } from './api'
 import { ETIQUETAS_ESTADO } from './estados'
+import Desplegable from './Desplegable'
 
-// Tarjeta de un juego que ya está en la biblioteca del usuario. Tiene dos
-// modos: lectura (por defecto) y edición (formulario con los campos que admite
-// PATCH /games/:id). onActualizar y onBorrar son funciones async del padre que
-// lanzan un Error si el backend falla.
+const OPCIONES_ESTADO = Object.entries(ETIQUETAS_ESTADO).map(([valor, etiqueta]) => ({ valor, etiqueta }))
+
+// Tarjeta de un juego que ya está en mi biblioteca. Tiene dos modos: lectura
+// (por defecto) y edición (formulario con los campos que admite PATCH /games/:id).
+// onActualizar y onBorrar son funciones async del padre que lanzan un Error si
+// el backend falla.
 
 function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
   const [editando, setEditando] = useState(false)
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState("")
 
-  // Los campos del formulario son strings; null (vacío en la BD) pasa a ""
+  // Los campos del formulario son strings: null (vacío en la BD) pasa a ""
   const [status, setStatus] = useState(juego.status)
   const [rating, setRating] = useState(juego.rating ?? "")
   const [platform, setPlatform] = useState(juego.platform ?? "")
   const [review, setReview] = useState(juego.review ?? "")
 
+  // Plataformas en las que sale el juego (según IGDB); null = aún sin pedir. Las
+  // pido al abrir el formulario y las guardo para no repetir la petición.
+  const [plataformas, setPlataformas] = useState(null)
+  const [errorPlataformas, setErrorPlataformas] = useState(false)
+
+  async function cargarPlataformas() {
+    if (plataformas) return
+    setErrorPlataformas(false)
+    try {
+      const data = await apiFetch(`/games/details/${juego.igdb_id}`)
+      setPlataformas(data.game.platforms)
+    } catch {
+      // No es grave: el desplegable seguirá mostrando la plataforma actual
+      setErrorPlataformas(true)
+    }
+  }
+
   function empezarEdicion() {
-    // Partimos siempre de los datos actuales: así "Cancelar" descarta los cambios
+    // Parto siempre de los datos actuales: así "Cancelar" descarta los cambios
     setStatus(juego.status)
     setRating(juego.rating ?? "")
     setPlatform(juego.platform ?? "")
     setReview(juego.review ?? "")
     setError("")
     setEditando(true)
+    cargarPlataformas()
   }
 
   async function handleGuardar(e) {
@@ -32,11 +54,11 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
     setOcupado(true)
     setError("")
     try {
-      // Un campo vacío se envía como null: el backend lo borra de la BD
+      // Un campo vacío lo envío como null: el backend lo borra de la BD
       await onActualizar({
         status,
         rating: rating === "" ? null : Number(rating),
-        platform: platform.trim() || null,
+        platform: platform || null,
         review: review.trim() || null,
       })
       setEditando(false)
@@ -54,7 +76,7 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
     setError("")
     try {
       await onBorrar()
-      // La tarjeta desaparece al quitarse de la lista del padre
+      // La tarjeta desaparece sola al quitarse el juego de la lista del padre
     } catch (err) {
       setError(err.message)
       setOcupado(false)
@@ -77,6 +99,19 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
     </div>
   )
 
+  // Si el juego ya tiene una plataforma que no está en la lista (por ejemplo,
+  // escrita a mano antes de existir el desplegable), la añado para no perderla
+  // al guardar.
+  const cargandoPlataformas = !plataformas && !errorPlataformas
+  const nombresPlataforma = [...(plataformas ?? [])]
+  if (platform && !nombresPlataforma.includes(platform)) {
+    nombresPlataforma.unshift(platform)
+  }
+  const opcionesPlataforma = [
+    { valor: "", etiqueta: cargandoPlataformas ? "Cargando..." : "Sin especificar" },
+    ...nombresPlataforma.map((nombre) => ({ valor: nombre, etiqueta: nombre })),
+  ]
+
   if (editando) {
     return (
       <li className="tarjeta tarjeta--editando">
@@ -88,11 +123,7 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
           <form className="formulario formulario--edicion" onSubmit={handleGuardar}>
             <label className="campo">
               <span>Estado</span>
-              <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                {Object.entries(ETIQUETAS_ESTADO).map(([valor, etiqueta]) => (
-                  <option key={valor} value={valor}>{etiqueta}</option>
-                ))}
-              </select>
+              <Desplegable opciones={OPCIONES_ESTADO} valor={status} onChange={setStatus} />
             </label>
             <label className="campo">
               <span>Nota (1-10)</span>
@@ -107,12 +138,15 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
             </label>
             <label className="campo">
               <span>Plataforma</span>
-              <input
-                type="text"
-                maxLength="100"
-                value={platform}
-                onChange={(e) => setPlatform(e.target.value)}
+              <Desplegable
+                opciones={opcionesPlataforma}
+                valor={platform}
+                onChange={setPlatform}
+                disabled={cargandoPlataformas}
               />
+              {errorPlataformas && (
+                <small>No se pudo cargar la lista de plataformas.</small>
+              )}
             </label>
             <label className="campo campo--ancho">
               <span>Reseña</span>

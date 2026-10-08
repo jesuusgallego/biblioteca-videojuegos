@@ -9,12 +9,11 @@ const gameRoutes = require('./routes/gameRoutes');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Middlewares globales
 app.use(cors());
 app.use(express.json());
 app.use('/games', gameRoutes);
 
-// Ruta de salud: comprueba que el servidor Y la base de datos responden
+// Compruebo a la vez el servidor y la base de datos: si la BD no responde, devuelvo 500
 app.get('/health', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');

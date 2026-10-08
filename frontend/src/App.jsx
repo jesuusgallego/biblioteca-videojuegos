@@ -17,7 +17,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login setToken={setToken} />} />
         <Route path="/registro" element={<Registro />} />
-        {/* Ruta "layout" (sin path): protege y envuelve a sus hijas con la barra */}
+        {/* Esta ruta no tiene path: la uso para proteger a sus hijas y envolverlas con la barra */}
         <Route
           element={
             <RutaProtegida token={token}>

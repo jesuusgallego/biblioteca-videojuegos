@@ -1,13 +1,13 @@
-// Logo de la app: un mando que es a la vez un libro abierto (la biblioteca).
-//  - El cuerpo del mando se hunde en el centro como las páginas de un libro.
+// Logo de la app: un mando que a la vez es un libro abierto (la biblioteca).
+//  - El cuerpo se hunde en el centro como las páginas de un libro.
 //  - Cruceta a la izquierda y cuatro botones a la derecha, recortados en el
 //    cuerpo (se ve el fondo a través de ellos).
-//  - La página derecha es un poco más translúcida que la izquierda.
-//  - La cinta es el marcapáginas. Usa currentColor: el CSS le da el color del
+//  - La página derecha es algo más translúcida que la izquierda.
+//  - La cinta es el marcapáginas y usa currentColor: el CSS le da el color de
 //    acento del tema (celeste en oscuro, violeta en claro).
 //
-// El dibujo está en una cuadrícula de 64x64. Los id (marca-...) son fijos: si
-// la marca sale dos veces en la misma página, ambas definen lo mismo y no pasa nada.
+// Uso una cuadrícula de 64x64. Los id (marca-...) son fijos: si la marca sale dos
+// veces en la misma página, las dos definen lo mismo y no pasa nada.
 function Marca({ grande = false }) {
   return (
     <span className={grande ? "marca marca--grande" : "marca"}>
@@ -18,7 +18,7 @@ function Marca({ grande = false }) {
             <stop offset="1" stopColor="#1b74c8" />
           </linearGradient>
 
-          {/* La silueta del mando/libro, definida una vez y usada dos veces */}
+          {/* La silueta del mando/libro: la defino una vez y la uso dos veces */}
           <path
             id="marca-cuerpo"
             d="M16 14H27Q32 20 37 14H48C55 14 59 19 60.5 28L62 42C62.6 48 59 52 54 52C50 52 48 50 45 46L43 43H21L19 46C16 50 14 52 10 52C5 52 1.4 48 2 42L3.5 28C5 19 9 14 16 14Z"

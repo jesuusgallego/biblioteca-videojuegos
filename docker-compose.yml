@@ -10,8 +10,8 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # Los .sql de esta carpeta se ejecutan SOLO la primera vez, cuando el
-      # volumen está vacío: así las tablas se crean solas.
+      # Los .sql de esta carpeta se ejecutan SOLO la primera vez, con el volumen
+      # vacío: así las tablas se crean solas.
       - ./backend/src/models/sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
     healthcheck:
       # "Healthy" = Postgres ya acepta conexiones
@@ -26,8 +26,8 @@ services:
     env_file:
       - ./backend/.env        # JWT_SECRET, claves de Twitch... (no se sube a git)
     environment:
-      # Dentro de la red de Docker, la BD se llama "postgres" (nombre del
-      # servicio), no "localhost". Esto pisa el DATABASE_URL del .env.
+      # Dentro de la red de Docker la BD se llama "postgres" (nombre del servicio),
+      # no "localhost". Esto pisa el DATABASE_URL del .env.
       DATABASE_URL: postgresql://biblioteca_user:biblioteca_pass@postgres:5432/biblioteca_db
     ports:
       - "4000:4000"

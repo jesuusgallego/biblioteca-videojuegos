@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 function verifyToken(req, res, next) {
+  // Espero la cabecera "Authorization: Bearer <token>"
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -11,6 +12,7 @@ function verifyToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Dejo el usuario en req.user para que lo lean los controladores
     req.user = { id: decoded.userId, username: decoded.username };
     next();
   } catch (err) {

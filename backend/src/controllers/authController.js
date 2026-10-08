@@ -13,7 +13,7 @@ async function register(req, res) {
   }
 
   try {
-    // 1. Comprobar si ya existe el email o username
+    // Compruebo antes de insertar para poder avisar con un 409 claro
     const existing = await pool.query(
       'SELECT id FROM users WHERE email = $1 OR username = $2',
       [email, username]
@@ -23,10 +23,9 @@ async function register(req, res) {
       return res.status(409).json({ error: 'El email o username ya está en uso' });
     }
 
-    // 2. Hashear la contraseña
+    // Nunca guardo la contraseña: solo su hash con bcrypt
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // 3. Insertar el usuario
     const result = await pool.query(
       `INSERT INTO users (username, email, password_hash)
        VALUES ($1, $2, $3)
@@ -50,7 +49,6 @@ async function login(req, res) {
   }
 
   try {
-    // 1. Buscar el usuario
     const result = await pool.query(
       'SELECT id, username, email, password_hash FROM users WHERE email = $1',
       [email]
@@ -62,14 +60,14 @@ async function login(req, res) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    // 2. Comparar la contraseña con el hash guardado
+    // Si falla el email o la contraseña doy el mismo error, para no revelar qué emails están registrados
     const passwordMatches = await bcrypt.compare(password, user.password_hash);
 
     if (!passwordMatches) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    // 3. Generar el JWT
+    // El token lleva el id y el nombre del usuario y caduca a los 7 días
     const token = jwt.sign(
       { userId: user.id, username: user.username },
       process.env.JWT_SECRET,
