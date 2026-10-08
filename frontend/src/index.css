@@ -16,9 +16,8 @@
   --campo: #0b121c;
   --borde: #2b3d55;
 
-  /* Banner del buscador y opacidad del mosaico de portadas del login */
+  /* Banner del buscador */
   --banner: linear-gradient(135deg, #1c2f4a, #192536 55%, #2a1f5c);
-  --mosaico-opacidad: 0.16;
 
   --texto: #c3d0dd;
   --texto-h: #ffffff;
@@ -50,7 +49,6 @@
   --borde: #d3dce6;
 
   --banner: linear-gradient(135deg, #dfe8f7, #ffffff 55%, #e6e0fb);
-  --mosaico-opacidad: 0.2;
 
   --texto: #3a4a5c;
   --texto-h: #0f1b2a;
@@ -92,6 +90,13 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Reserva siempre el hueco de la barra de scroll. Sin esto, las páginas largas
+   (con scroll) y las cortas (sin él) tienen un ancho útil distinto y al
+   navegar entre ellas todo lo centrado se desplaza unos píxeles. */
+html {
+  scrollbar-gutter: stable;
 }
 
 body {

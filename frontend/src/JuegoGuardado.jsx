@@ -6,7 +6,7 @@ import { ETIQUETAS_ESTADO } from './estados'
 // PATCH /games/:id). onActualizar y onBorrar son funciones async del padre que
 // lanzan un Error si el backend falla.
 
-function JuegoGuardado({ juego, onActualizar, onBorrar }) {
+function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
   const [editando, setEditando] = useState(false)
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState("")
@@ -63,9 +63,16 @@ function JuegoGuardado({ juego, onActualizar, onBorrar }) {
 
   const portada = (
     <div className="portada">
-      {juego.cover_url
-        ? <img src={juego.cover_url} alt={juego.name} loading="lazy" />
-        : <span className="portada__vacia">Sin portada</span>}
+      <button
+        type="button"
+        className="boton-portada boton-portada--llena"
+        onClick={onVerDetalle}
+        aria-label={`Ver detalles de ${juego.name}`}
+      >
+        {juego.cover_url
+          ? <img src={juego.cover_url} alt="" loading="lazy" />
+          : <span className="portada__vacia">Sin portada</span>}
+      </button>
       {!editando && juego.rating && <span className="nota">★ {juego.rating}</span>}
     </div>
   )
@@ -140,7 +147,9 @@ function JuegoGuardado({ juego, onActualizar, onBorrar }) {
       {portada}
 
       <div className="tarjeta__cuerpo">
-        <h3 className="tarjeta__titulo">{juego.name}</h3>
+        <h3 className="tarjeta__titulo">
+          <button type="button" className="enlace-titulo" onClick={onVerDetalle}>{juego.name}</button>
+        </h3>
 
         <span className={`chip chip--${juego.status}`}>
           {ETIQUETAS_ESTADO[juego.status] ?? juego.status}

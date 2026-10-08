@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { apiFetch } from './api'
 import Marca from './Marca'
 import BotonTema from './BotonTema'
-import FondoMosaico from './FondoMosaico'
 
 function Login({ setToken }) {
   const [email, setEmail] = useState("")
@@ -38,8 +37,6 @@ function Login({ setToken }) {
 
   return (
     <main className="auth">
-      <FondoMosaico />
-
       <div className="auth__tema">
         <BotonTema />
       </div>

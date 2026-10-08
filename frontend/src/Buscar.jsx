@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import GameCard from './GameCard'
+import DetalleJuego from './DetalleJuego'
 import { apiFetch } from './api'
 
 const RETARDO_BUSQUEDA_MS = 400
@@ -9,7 +10,11 @@ function Buscar({ setToken }) {
   const [resultados, setResultados] = useState([])
   const [error, setError] = useState("")
   // IDs de IGDB de los juegos que el usuario ya tiene guardados
-  const [guardados, setGuardados] = useState(new Set())
+  // Es un Map (igdb_id -> fila de la biblioteca) y no un Set: además de saber
+  // si un juego está guardado, así tenemos su nota y reseña para la ficha.
+  const [guardados, setGuardados] = useState(new Map())
+  // Juego cuya ficha está abierta (null = ninguna)
+  const [detalle, setDetalle] = useState(null)
 
   const termino = nombreJuego.trim()
 
@@ -21,7 +26,7 @@ function Buscar({ setToken }) {
 
     apiFetch('/games')
       .then((data) => {
-        if (!cancelado) setGuardados(new Set(data.games.map((g) => g.igdb_id)))
+        if (!cancelado) setGuardados(new Map(data.games.map((g) => [g.igdb_id, g])))
       })
       .catch((err) => {
         if (err.status === 401) {
@@ -74,11 +79,12 @@ function Buscar({ setToken }) {
   // que la GameCard los muestre; solo el 401 se gestiona aquí (cerrar sesión).
   async function anadirJuego(juego) {
     try {
-      await apiFetch('/games', {
+      const data = await apiFetch('/games', {
         method: 'POST',
         body: { igdb_id: juego.igdb_id, name: juego.name, cover_url: juego.cover_url },
       })
-      setGuardados((prev) => new Set(prev).add(juego.igdb_id))
+      // El backend devuelve la fila recién creada: la guardamos tal cual
+      setGuardados((prev) => new Map(prev).set(juego.igdb_id, data.game))
     } catch (err) {
       if (err.status === 401) {
         localStorage.removeItem("token")
@@ -135,9 +141,22 @@ function Buscar({ setToken }) {
             portada={juego.cover_url}
             yaGuardado={guardados.has(juego.igdb_id)}
             onAnadir={() => anadirJuego(juego)}
+            onVerDetalle={() =>
+              setDetalle({ igdb_id: juego.igdb_id, name: juego.name, cover_url: juego.cover_url })
+            }
           />
         ))}
       </ul>
+
+      {detalle && (
+        <DetalleJuego
+          key={detalle.igdb_id}
+          juego={detalle}
+          guardado={guardados.get(detalle.igdb_id)}
+          onAnadir={() => anadirJuego(detalle)}
+          onCerrar={() => setDetalle(null)}
+        />
+      )}
     </div>
   )
 }

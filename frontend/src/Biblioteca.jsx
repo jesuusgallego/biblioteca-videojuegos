@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import JuegoGuardado from './JuegoGuardado'
+import DetalleJuego from './DetalleJuego'
 import { ETIQUETAS_ESTADO } from './estados'
 import { apiFetch } from './api'
 
@@ -13,6 +14,9 @@ function Biblioteca({ setToken }) {
   // backend, se aplican sobre la lista que ya tenemos en "juegos".
   const [filtroEstado, setFiltroEstado] = useState("todos")
   const [consulta, setConsulta] = useState("")
+  // Juego cuya ficha está abierta (null = ninguna). Un solo estado en la página
+  // sirve para todas las tarjetas: abrir una ficha es guardar aquí su juego.
+  const [detalle, setDetalle] = useState(null)
 
   useEffect(() => {
     let cancelado = false
@@ -84,6 +88,10 @@ function Biblioteca({ setToken }) {
     )
   }
 
+  function abrirDetalle(juego) {
+    setDetalle({ igdb_id: juego.igdb_id, name: juego.name, cover_url: juego.cover_url })
+  }
+
   // Valores derivados: se calculan en cada render a partir del estado, así
   // nunca se quedan desactualizados (no hace falta guardarlos en un useState).
   const jugandoAhora = juegos.filter((j) => j.status === "jugando")
@@ -114,12 +122,23 @@ function Biblioteca({ setToken }) {
             {jugandoAhora.map((juego) => (
               <li key={juego.id} className="jugando__tarjeta">
                 <div className="jugando__portada">
-                  {juego.cover_url
-                    ? <img src={juego.cover_url} alt="" loading="lazy" />
-                    : <span className="portada__vacia">Sin portada</span>}
+                  <button
+                    type="button"
+                    className="boton-portada boton-portada--llena"
+                    onClick={() => abrirDetalle(juego)}
+                    aria-label={`Ver detalles de ${juego.name}`}
+                  >
+                    {juego.cover_url
+                      ? <img src={juego.cover_url} alt="" loading="lazy" />
+                      : <span className="portada__vacia">Sin portada</span>}
+                  </button>
                 </div>
                 <div className="jugando__cuerpo">
-                  <h3 className="jugando__titulo">{juego.name}</h3>
+                  <h3 className="jugando__titulo">
+                    <button type="button" className="enlace-titulo" onClick={() => abrirDetalle(juego)}>
+                      {juego.name}
+                    </button>
+                  </h3>
                   {juego.platform && <p className="tarjeta__meta">{juego.platform}</p>}
                   <span className="chip chip--jugando">{ETIQUETAS_ESTADO.jugando}</span>
                 </div>
@@ -177,6 +196,7 @@ function Biblioteca({ setToken }) {
                 juego={juego}
                 onActualizar={(cambios) => actualizarJuego(juego.id, cambios)}
                 onBorrar={() => borrarJuego(juego.id)}
+                onVerDetalle={() => abrirDetalle(juego)}
               />
             ))}
           </ul>
@@ -191,6 +211,15 @@ function Biblioteca({ setToken }) {
           )}
         </section>
       </div>
+
+      {detalle && (
+        <DetalleJuego
+          key={detalle.igdb_id}
+          juego={detalle}
+          guardado={juegos.find((j) => j.igdb_id === detalle.igdb_id)}
+          onCerrar={() => setDetalle(null)}
+        />
+      )}
     </div>
   )
 }

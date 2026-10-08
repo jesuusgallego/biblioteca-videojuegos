@@ -17,26 +17,17 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login setToken={setToken} />} />
         <Route path="/registro" element={<Registro />} />
+        {/* Ruta "layout" (sin path): protege y envuelve a sus hijas con la barra */}
         <Route
-          path="/biblioteca"
           element={
             <RutaProtegida token={token}>
-              <Layout setToken={setToken}>
-                <Biblioteca setToken={setToken} />
-              </Layout>
+              <Layout setToken={setToken} />
             </RutaProtegida>
           }
-        />
-        <Route
-          path="/buscar"
-          element={
-            <RutaProtegida token={token}>
-              <Layout setToken={setToken}>
-                <Buscar setToken={setToken} />
-              </Layout>
-            </RutaProtegida>
-          }
-        />
+        >
+          <Route path="/biblioteca" element={<Biblioteca setToken={setToken} />} />
+          <Route path="/buscar" element={<Buscar setToken={setToken} />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )

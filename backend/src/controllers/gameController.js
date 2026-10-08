@@ -1,5 +1,11 @@
 const pool = require('../config/db');
-const { searchGames } = require('../services/igdbService');
+const { searchGames, getGameDetails } = require('../services/igdbService');
+
+// URL de una imagen de IGDB. "tamano" es el nombre de plantilla de IGDB:
+// t_cover_big (portada), t_screenshot_big (captura)...
+function urlImagen(imageId, tamano) {
+  return `https://images.igdb.com/igdb/image/upload/${tamano}/${imageId}.jpg`;
+}
 
 // Mensajes para las restricciones CHECK de user_games (ver models/sql/schema.sql)
 const MENSAJES_CHECK = {
@@ -152,9 +158,7 @@ async function search(req, res) {
     const simplified = results.map((game) => ({
       igdb_id: game.id,
       name: game.name,
-      cover_url: game.cover
-        ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover.image_id}.jpg`
-        : null,
+      cover_url: game.cover ? urlImagen(game.cover.image_id, 't_cover_big') : null,
       platforms: game.platforms ? game.platforms.map((p) => p.name) : [],
     }));
 
@@ -165,4 +169,58 @@ async function search(req, res) {
   }
 }
 
-module.exports = { addGame, listGames, updateGame, deleteGame, search };
+// GET /games/details/:igdbId — ficha completa de un juego, sacada de IGDB
+async function details(req, res) {
+  const igdbId = Number(req.params.igdbId);
+
+  if (!Number.isInteger(igdbId) || igdbId <= 0) {
+    return res.status(400).json({ error: 'igdbId debe ser un número entero positivo' });
+  }
+
+  try {
+    const game = await getGameDetails(igdbId);
+
+    if (!game) {
+      return res.status(404).json({ error: 'Juego no encontrado en IGDB' });
+    }
+
+    // Saca la lista de nombres de un campo tipo [{ id, name }, ...]
+    const nombres = (lista) => (lista ?? []).map((item) => item.name);
+    // Empresas que cumplen un rol ("developer" o "publisher"). Una misma empresa
+    // puede tener los dos roles, y puede faltar el dato de la empresa.
+    const empresasConRol = (rol) =>
+      (game.involved_companies ?? [])
+        .filter((ic) => ic[rol] && ic.company)
+        .map((ic) => ic.company.name);
+
+    res.json({
+      game: {
+        igdb_id: game.id,
+        name: game.name,
+        summary: game.summary ?? null,
+        // IGDB da la fecha como segundos Unix; la pasamos a "AAAA-MM-DD"
+        release_date: game.first_release_date
+          ? new Date(game.first_release_date * 1000).toISOString().slice(0, 10)
+          : null,
+        developers: empresasConRol('developer'),
+        publishers: empresasConRol('publisher'),
+        genres: nombres(game.genres),
+        platforms: nombres(game.platforms),
+        game_modes: nombres(game.game_modes),
+        // Nota media de IGDB (0-100) y cuánta gente la ha puntuado
+        rating: game.total_rating ? Math.round(game.total_rating) : null,
+        rating_count: game.total_rating_count ?? 0,
+        cover_url: game.cover ? urlImagen(game.cover.image_id, 't_cover_big') : null,
+        screenshots: (game.screenshots ?? [])
+          .slice(0, 6)
+          .map((s) => urlImagen(s.image_id, 't_screenshot_big')),
+        igdb_url: game.url ?? null,
+      },
+    });
+  } catch (err) {
+    console.error('Error en details:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Error al obtener la información del juego en IGDB' });
+  }
+}
+
+module.exports = { addGame, listGames, updateGame, deleteGame, search, details };

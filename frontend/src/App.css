@@ -158,13 +158,29 @@
 }
 
 .barra__nav {
+  position: relative; /* la línea se coloca respecto a este contenedor */
   display: flex;
   gap: 1.75rem;
   flex: 1;
 }
 
-/* Los enlaces miden lo mismo que la barra (64px) para que la raya inferior del
-   enlace activo quede pegada al borde de la barra, como en Steam */
+/* Línea del enlace activo. Menu.jsx le pone el ancho y la posición; aquí solo
+   decimos que los cambios se animen en 0,3 s, empezando y acabando suave. */
+.barra__linea {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 3px;
+  background: var(--acento);
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Los enlaces miden lo mismo que la barra (64px) para que la línea, pegada al
+   borde inferior de la barra, quede como en Steam. El borde transparente se
+   mantiene para que el texto siga centrado igual. */
 .barra__nav a {
   display: inline-flex;
   align-items: center;
@@ -175,7 +191,7 @@
   font-size: 0.95rem;
   color: var(--texto-suave);
   border-bottom: 3px solid transparent;
-  transition: color var(--transicion), border-color var(--transicion);
+  transition: color var(--transicion);
 }
 
 .barra__nav a:hover {
@@ -185,7 +201,6 @@
 
 .barra__nav a.active {
   color: var(--texto-h);
-  border-bottom-color: var(--acento);
 }
 
 .barra__acciones {
@@ -544,7 +559,6 @@
   place-items: center;
   min-height: 100svh;
   padding: 1.25rem;
-  overflow: hidden; /* el mosaico de fondo no debe provocar scroll */
 }
 
 .auth__tema {
@@ -554,7 +568,6 @@
 }
 
 .auth__tarjeta {
-  position: relative; /* por encima del mosaico, que es position: absolute */
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -759,30 +772,256 @@
   font-size: 1.1rem;
 }
 
-/* ---- Fondo de portadas del login y el registro --------------------------- */
-.mosaico {
+/* ---- Portadas y títulos pulsables (abren la ficha del juego) --------------- */
+.boton-portada {
+  display: block;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+/* Llena toda la portada; la nota (position: absolute, más abajo en el HTML)
+   queda por encima y deja pasar los clics al botón */
+.boton-portada--llena {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 14px;
-  padding: 14px;
-  align-content: start;
-  opacity: var(--mosaico-opacidad);
+  width: 100%;
+  height: 100%;
+}
+
+.boton-portada:focus-visible {
+  outline-offset: -3px;
+}
+
+.boton-portada img {
+  transition: transform var(--transicion);
+}
+
+.boton-portada:hover img {
+  transform: scale(1.04);
+}
+
+.nota {
   pointer-events: none;
 }
 
-.mosaico__pieza {
-  aspect-ratio: 3 / 4;
+.enlace-titulo {
+  display: inline;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: color var(--transicion);
+}
+
+.enlace-titulo:hover {
+  color: var(--acento);
+}
+
+/* ---- Ventana con la ficha del juego ---------------------------------------- */
+/* <dialog> abierto con showModal() se pinta en la "capa superior" del
+   navegador: encima de todo, sin depender de z-index ni de los overflow de las
+   tarjetas. El oscurecimiento de detrás es el pseudoelemento ::backdrop. */
+/* OJO: no poner "position" aquí. Un <dialog> modal ya es position: fixed (así
+   se centra en la pantalla) y por eso ya sirve de referencia para colocar el
+   botón de cerrar. Cambiarlo a relative lo saca de la pantalla por arriba. */
+.detalle {
+  width: min(880px, calc(100% - 2rem));
+  max-height: calc(100svh - 2rem);
+  padding: 1.75rem;
+  overflow-y: auto;
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra);
+}
+
+.detalle[open] {
+  animation: detalle-entrada 0.2s ease;
+}
+
+.detalle::backdrop {
+  background: rgba(5, 10, 18, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+@keyframes detalle-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+/* Con la ventana abierta, la página de detrás no se desplaza. El hueco de la
+   barra de scroll está reservado (scrollbar-gutter), así que no hay saltos. */
+body:has(dialog[open]) {
+  overflow: hidden;
+}
+
+.detalle__cerrar {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.detalle__cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding-right: 2.5rem; /* deja sitio al botón de cerrar */
+}
+
+.detalle__portada {
+  position: relative;
+  flex: 0 0 200px;
+  aspect-ratio: 264 / 374;
+  overflow: hidden;
+  background: var(--superficie-2);
   border-radius: var(--radio);
 }
 
-.mosaico__pieza--0 { background: linear-gradient(160deg, #2a5d9f, #102240); }
-.mosaico__pieza--1 { background: linear-gradient(160deg, #8a3b5e, #2a1230); }
-.mosaico__pieza--2 { background: linear-gradient(160deg, #2f7a5f, #0e2a2a); }
-.mosaico__pieza--3 { background: linear-gradient(160deg, #9a6428, #33200f); }
-.mosaico__pieza--4 { background: linear-gradient(160deg, #5a47b8, #1a1440); }
-.mosaico__pieza--5 { background: linear-gradient(160deg, #a33f3f, #35121a); }
+.detalle__portada img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detalle__info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.detalle__titulo {
+  font-family: var(--display);
+  font-size: 2.1rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.detalle__nota {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.detalle__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0;
+}
+
+.detalle__fila {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: 0.75rem;
+}
+
+.detalle__fila dt {
+  padding-top: 0.15rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.detalle__fila dd {
+  margin: 0;
+}
+
+.detalle__anadir {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+/* Recuadro con lo que el usuario ha guardado de este juego */
+.detalle__biblioteca {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--superficie-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+.detalle__biblioteca-datos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.detalle__seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.75rem;
+}
+
+.detalle__texto {
+  white-space: pre-line; /* respeta los saltos de párrafo de IGDB */
+}
+
+.detalle__capturas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.detalle__capturas img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--superficie-2);
+  border-radius: var(--radio);
+}
+
+.detalle__pie {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .detalle {
+    padding: 1.25rem;
+  }
+
+  .detalle__cabecera {
+    flex-direction: column;
+    padding-right: 0;
+  }
+
+  .detalle__portada {
+    flex-basis: auto;
+    width: 150px;
+  }
+
+  .detalle__titulo {
+    font-size: 1.7rem;
+  }
+
+  .detalle__fila {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+}
 
 /* ---- Móvil --------------------------------------------------------------- */
 @media (max-width: 640px) {

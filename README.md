@@ -102,6 +102,7 @@ docker compose up -d --build
 | POST | `/auth/login` | No | Inicia sesión y devuelve un token JWT |
 | GET | `/auth/me` | Bearer token | Devuelve el usuario del token |
 | GET | `/games/search?q=<nombre>` | Bearer token | Busca juegos por nombre en IGDB |
+| GET | `/games/details/:igdbId` | Bearer token | Ficha completa de un juego desde IGDB: descripción, fecha de lanzamiento, desarrolladora, publishers, géneros, plataformas, nota, capturas (caché de 1 hora en memoria) |
 | POST | `/games` | Bearer token | Añade un juego a tu biblioteca (`igdb_id` y `name` obligatorios; 409 si ya lo tienes) |
 | GET | `/games` | Bearer token | Lista los juegos de tu biblioteca |
 | PATCH | `/games/:id` | Bearer token | Actualiza `status`, `rating`, `review` o `platform`. Los campos omitidos no cambian; enviar `null` borra `rating`, `review` o `platform` |

@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { apiFetch } from './api'
 import Marca from './Marca'
 import BotonTema from './BotonTema'
-import FondoMosaico from './FondoMosaico'
 
 function Registro() {
   const [username, setUsername] = useState("")
@@ -44,8 +43,6 @@ function Registro() {
 
   return (
     <main className="auth">
-      <FondoMosaico />
-
       <div className="auth__tema">
         <BotonTema />
       </div>
