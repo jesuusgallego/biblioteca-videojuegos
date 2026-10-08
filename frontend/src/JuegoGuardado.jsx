@@ -48,22 +48,26 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
           <button type="button" className="enlace-titulo" onClick={onVerDetalle}>{juego.name}</button>
         </h3>
 
-        <span className={`chip chip--${juego.status}`}>
-          {ETIQUETAS_ESTADO[juego.status] ?? juego.status}
-        </span>
-
         {juego.platform && <p className="tarjeta__meta">{juego.platform}</p>}
         {juego.review && <p className="tarjeta__resena">{juego.review}</p>}
 
         {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
 
-        <div className="tarjeta__acciones">
-          <button className="btn btn--secundario" onClick={() => setEditando(true)} disabled={ocupado}>
-            Editar
-          </button>
-          <button className="btn btn--peligro" onClick={() => setConfirmandoBorrar(true)} disabled={ocupado}>
-            Quitar
-          </button>
+        {/* El estado y los botones van siempre juntos y abajo del todo, así el chip
+            queda en el mismo sitio en todas las tarjetas */}
+        <div className="tarjeta__pie">
+          <span className={`chip chip--${juego.status}`}>
+            {ETIQUETAS_ESTADO[juego.status] ?? juego.status}
+          </span>
+
+          <div className="tarjeta__acciones">
+            <button className="btn btn--secundario" onClick={() => setEditando(true)} disabled={ocupado}>
+              Editar
+            </button>
+            <button className="btn btn--peligro" onClick={() => setConfirmandoBorrar(true)} disabled={ocupado}>
+              Quitar
+            </button>
+          </div>
         </div>
       </div>
 

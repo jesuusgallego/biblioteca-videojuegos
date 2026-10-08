@@ -5,6 +5,7 @@ import DetalleJuego from './DetalleJuego'
 import { ETIQUETAS_ESTADO } from './estados'
 import { apiFetch } from './api'
 import Cargando from './Cargando'
+import JugandoAhora from './JugandoAhora'
 
 // Muestro los juegos que el usuario ha guardado (GET /games).
 function Biblioteca({ setToken }) {
@@ -117,36 +118,7 @@ function Biblioteca({ setToken }) {
   return (
     <div className="biblioteca-pagina">
       {jugandoAhora.length > 0 && (
-        <section aria-labelledby="titulo-jugando">
-          <h2 id="titulo-jugando" className="titulo-seccion">Jugando ahora</h2>
-          <ul className="jugando">
-            {jugandoAhora.map((juego) => (
-              <li key={juego.id} className="jugando__tarjeta">
-                <div className="jugando__portada">
-                  <button
-                    type="button"
-                    className="boton-portada boton-portada--llena"
-                    onClick={() => abrirDetalle(juego)}
-                    aria-label={`Ver detalles de ${juego.name}`}
-                  >
-                    {juego.cover_url
-                      ? <img src={juego.cover_url} alt="" loading="lazy" />
-                      : <span className="portada__vacia">Sin portada</span>}
-                  </button>
-                </div>
-                <div className="jugando__cuerpo">
-                  <h3 className="jugando__titulo">
-                    <button type="button" className="enlace-titulo" onClick={() => abrirDetalle(juego)}>
-                      {juego.name}
-                    </button>
-                  </h3>
-                  {juego.platform && <p className="tarjeta__meta">{juego.platform}</p>}
-                  <span className="chip chip--jugando">{ETIQUETAS_ESTADO.jugando}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <JugandoAhora juegos={jugandoAhora} onVerDetalle={abrirDetalle} />
       )}
 
       <div className="biblioteca">

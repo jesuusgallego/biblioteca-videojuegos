@@ -31,6 +31,10 @@
   --resplandor: rgba(91, 61, 245, 0.28);
   --sombra: 0 10px 30px rgba(0, 0, 0, 0.45);
 
+  /* Texto sobre el rojo sólido: oscuro, porque el blanco solo llega a 2.5:1 sobre
+     este rojo claro del tema oscuro */
+  --sobre-peligro: #0b121c;
+
   --estado-jugando: #4ade80;
   --estado-completado: #60a5fa;
   --estado-abandonado: #f87171;
@@ -62,6 +66,8 @@
 
   --resplandor: rgba(91, 61, 245, 0.16);
   --sombra: 0 10px 28px rgba(31, 52, 80, 0.14);
+
+  --sobre-peligro: #ffffff;
 
   --estado-jugando: #15803d;
   --estado-completado: #1d4ed8;
