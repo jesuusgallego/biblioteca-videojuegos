@@ -3,11 +3,13 @@ import { useNavigate, Link } from 'react-router-dom'
 import { apiFetch } from './api'
 import Marca from './Marca'
 import BotonTema from './BotonTema'
+import Cargando from './Cargando'
 
 function Login({ setToken }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [enviando, setEnviando] = useState(false)
   const navigate = useNavigate()
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -26,6 +28,7 @@ function Login({ setToken }) {
       return
     }
 
+    setEnviando(true)
     apiFetch('/auth/login', { method: 'POST', body: { email, password } })
       .then(data => {
         setToken(data.token)
@@ -33,6 +36,7 @@ function Login({ setToken }) {
         navigate('/biblioteca')
       })
       .catch(err => setError(err.message))
+      .finally(() => setEnviando(false))
   }
 
   return (
@@ -69,8 +73,8 @@ function Login({ setToken }) {
 
           {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
 
-          <button type="submit" className="btn btn--primario btn--block">
-            Iniciar sesión
+          <button type="submit" className="btn btn--primario btn--block" disabled={enviando}>
+            {enviando ? <><Cargando tamano="pequeno" /> Entrando...</> : "Iniciar sesión"}
           </button>
         </form>
 

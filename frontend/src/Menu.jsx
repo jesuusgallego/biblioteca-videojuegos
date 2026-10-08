@@ -63,7 +63,7 @@ function Menu({ setToken }) {
   return (
     <header className="barra">
       <div className="barra__interior">
-        <Marca />
+        <Marca to="/biblioteca" />
 
         <nav className="barra__nav" ref={navRef}>
           <NavLink to="/biblioteca">Mi biblioteca</NavLink>

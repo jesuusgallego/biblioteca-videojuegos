@@ -1,4 +1,4 @@
-# Biblioteca de Videojuegos
+# GameHub
 
 Aplicación web para registrarte, iniciar sesión, buscar videojuegos y gestionar tu biblioteca personal (estado, puntuación y reseña). El frontend aún no usa el CRUD de la biblioteca: de momento solo está la búsqueda. Los datos de juegos se consultan a la API de IGDB (Twitch).
 

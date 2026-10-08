@@ -4,6 +4,7 @@ import JuegoGuardado from './JuegoGuardado'
 import DetalleJuego from './DetalleJuego'
 import { ETIQUETAS_ESTADO } from './estados'
 import { apiFetch } from './api'
+import Cargando from './Cargando'
 
 // Muestro los juegos que el usuario ha guardado (GET /games).
 function Biblioteca({ setToken }) {
@@ -74,7 +75,7 @@ function Biblioteca({ setToken }) {
     setToken("")
   }
 
-  if (cargando) return <p className="estado">Cargando tu biblioteca...</p>
+  if (cargando) return <Cargando texto="Cargando tu biblioteca..." tamano="grande" centrado />
 
   if (error) return <p className="mensaje mensaje--error" role="alert">{error}</p>
 

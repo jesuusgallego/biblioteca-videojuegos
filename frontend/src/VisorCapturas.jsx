@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import Cargando from './Cargando'
 
 // El backend manda las capturas en tamaño medio (t_screenshot_big, 889x500), pensado
 // para la rejilla. Para verlas grandes pido a IGDB la misma imagen en 1080p
@@ -13,6 +14,9 @@ function ampliar(url) {
 //  - onCambiar(nuevoIndice) / onCerrar(): los gestiona quien lo abre
 function VisorCapturas({ urls, indice, onCambiar, onCerrar }) {
   const dialogRef = useRef(null)
+  // URL de la última imagen que ha terminado de cargar. Si no coincide con la que
+  // toca ver, todavía estoy cargando (así se reinicia sola al cambiar de captura).
+  const [urlCargada, setUrlCargada] = useState(null)
 
   // Igual que la ficha, un <dialog> modal nativo. Al abrirse encima de otro modal,
   // Esc cierra solo el de arriba (este) y no la ficha.
@@ -22,6 +26,8 @@ function VisorCapturas({ urls, indice, onCambiar, onCerrar }) {
   }, [])
 
   const hayVarias = urls.length > 1
+  const urlActual = ampliar(urls[indice])
+  const cargada = urlCargada === urlActual
 
   // Uso el módulo para que tras la última se vuelva a la primera y viceversa
   function mover(paso) {
@@ -48,7 +54,22 @@ function VisorCapturas({ urls, indice, onCambiar, onCerrar }) {
       onMouseDown={cerrarSiEsElFondo}
       onKeyDown={alPulsarTecla}
     >
-      <img className="visor__imagen" src={ampliar(urls[indice])} alt="" />
+      {/* El marco tiene desde el principio el tamaño final (16:9): así el diálogo no
+          se encoge mientras llega la imagen y los botones no se descolocan */}
+      <div className="visor__marco">
+        {!cargada && (
+          <div className="visor__cargando">
+            <Cargando tamano="grande" />
+          </div>
+        )}
+        <img
+          className={cargada ? "visor__imagen visor__imagen--lista" : "visor__imagen"}
+          src={urlActual}
+          alt=""
+          onLoad={() => setUrlCargada(urlActual)}
+          onError={() => setUrlCargada(urlActual)} // si falla no dejo el indicador para siempre
+        />
+      </div>
 
       <button
         type="button"

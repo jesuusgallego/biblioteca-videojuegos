@@ -1,4 +1,8 @@
+import { Link } from 'react-router-dom'
+
 // Logo de la app: un mando que a la vez es un libro abierto (la biblioteca).
+// IconoMando es el dibujo; lo uso también en el indicador de carga (Cargando.jsx)
+// y en los dos lo anima el CSS.
 //  - El cuerpo se hunde en el centro como las páginas de un libro.
 //  - Cruceta a la izquierda y cuatro botones a la derecha, recortados en el
 //    cuerpo (se ve el fondo a través de ellos).
@@ -8,57 +12,79 @@
 //
 // Uso una cuadrícula de 64x64. Los id (marca-...) son fijos: si la marca sale dos
 // veces en la misma página, las dos definen lo mismo y no pasa nada.
-function Marca({ grande = false }) {
+export function IconoMando() {
   return (
-    <span className={grande ? "marca marca--grande" : "marca"}>
-      <svg className="marca__icono" viewBox="0 0 64 64" aria-hidden="true">
-        <defs>
-          <linearGradient id="marca-degradado" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="64" y2="64">
-            <stop offset="0" stopColor="#5b3df5" />
-            <stop offset="1" stopColor="#1b74c8" />
-          </linearGradient>
+    <svg className="marca__icono" viewBox="0 0 64 64" aria-hidden="true">
+      <defs>
+        <linearGradient id="marca-degradado" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="64" y2="64">
+          <stop offset="0" stopColor="#5b3df5" />
+          <stop offset="1" stopColor="#1b74c8" />
+        </linearGradient>
 
-          {/* La silueta del mando/libro: la defino una vez y la uso dos veces */}
-          <path
-            id="marca-cuerpo"
-            d="M16 14H27Q32 20 37 14H48C55 14 59 19 60.5 28L62 42C62.6 48 59 52 54 52C50 52 48 50 45 46L43 43H21L19 46C16 50 14 52 10 52C5 52 1.4 48 2 42L3.5 28C5 19 9 14 16 14Z"
-          />
+        {/* La silueta del mando/libro: la defino una vez y la uso dos veces */}
+        <path
+          id="marca-cuerpo"
+          d="M16 14H27Q32 20 37 14H48C55 14 59 19 60.5 28L62 42C62.6 48 59 52 54 52C50 52 48 50 45 46L43 43H21L19 46C16 50 14 52 10 52C5 52 1.4 48 2 42L3.5 28C5 19 9 14 16 14Z"
+        />
 
-          {/* Mitades izquierda y derecha: recortan el cuerpo para darle opacidad distinta a cada una */}
-          <clipPath id="marca-izquierda"><rect x="0" y="0" width="32" height="64" /></clipPath>
-          <clipPath id="marca-derecha"><rect x="32" y="0" width="32" height="64" /></clipPath>
+        {/* Mitades izquierda y derecha: recortan el cuerpo para darle opacidad distinta a cada una */}
+        <clipPath id="marca-izquierda"><rect x="0" y="0" width="32" height="64" /></clipPath>
+        <clipPath id="marca-derecha"><rect x="32" y="0" width="32" height="64" /></clipPath>
 
-          {/* Máscara: lo blanco se pinta, lo negro queda hueco */}
-          <mask id="marca-huecos" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
-            <rect width="64" height="64" fill="#fff" />
-            <g fill="#000">
-              {/* cruceta */}
-              <rect x="13.5" y="24" width="5" height="14" rx="1.2" />
-              <rect x="9" y="28.5" width="14" height="5" rx="1.2" />
-              {/* cuatro botones */}
+        {/* Máscara: lo blanco se pinta, lo negro queda hueco */}
+        <mask id="marca-huecos" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+          <rect width="64" height="64" fill="#fff" />
+          <g fill="#000">
+            {/* cruceta */}
+            <rect x="13.5" y="24" width="5" height="14" rx="1.2" />
+            <rect x="9" y="28.5" width="14" height="5" rx="1.2" />
+            {/* cuatro botones (arriba, abajo, izquierda, derecha); el CSS los anima en ese orden */}
+            <g className="marca__botones">
               <circle cx="51.5" cy="26.2" r="2.2" />
               <circle cx="51.5" cy="35.8" r="2.2" />
               <circle cx="46.7" cy="31" r="2.2" />
               <circle cx="56.3" cy="31" r="2.2" />
-              {/* hueco del lomo, donde va la cinta */}
-              <rect x="28.6" y="16" width="6.8" height="28" />
             </g>
-          </mask>
-        </defs>
+            {/* hueco del lomo, donde va la cinta */}
+            <rect x="28.6" y="16" width="6.8" height="28" />
+          </g>
+        </mask>
+      </defs>
 
-        <g clipPath="url(#marca-izquierda)">
-          <use href="#marca-cuerpo" fill="url(#marca-degradado)" mask="url(#marca-huecos)" />
-        </g>
-        <g clipPath="url(#marca-derecha)" opacity="0.7">
-          <use href="#marca-cuerpo" fill="url(#marca-degradado)" mask="url(#marca-huecos)" />
-        </g>
+      <g clipPath="url(#marca-izquierda)">
+        <use href="#marca-cuerpo" fill="url(#marca-degradado)" mask="url(#marca-huecos)" />
+      </g>
+      <g clipPath="url(#marca-derecha)" opacity="0.7">
+        <use href="#marca-cuerpo" fill="url(#marca-degradado)" mask="url(#marca-huecos)" />
+      </g>
 
-        {/* El marcapáginas */}
-        <path d="M29.7 17.5V57L32 53.8L34.3 57V17.5Z" fill="currentColor" />
-      </svg>
-      <span className="marca__texto">Biblioteca</span>
-    </span>
+      {/* El marcapáginas */}
+      <path className="marca__cinta" d="M29.7 17.5V57L32 53.8L34.3 57V17.5Z" fill="currentColor" />
+    </svg>
   )
+}
+
+function Marca({ grande = false, to }) {
+  const clase = grande ? "marca marca--grande" : "marca"
+
+  const contenido = (
+    <>
+      <IconoMando />
+      <span className="marca__texto">GameHub</span>
+    </>
+  )
+
+  // Con "to" el logo es un enlace (en la barra lleva a Mi biblioteca). Sin "to"
+  // es solo decoración, como en el login, donde no hay a dónde ir todavía.
+  if (to) {
+    return (
+      <Link to={to} className={clase} aria-label="GameHub, ir a Mi biblioteca">
+        {contenido}
+      </Link>
+    )
+  }
+
+  return <span className={clase}>{contenido}</span>
 }
 
 export default Marca

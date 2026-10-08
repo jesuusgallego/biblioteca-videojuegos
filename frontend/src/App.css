@@ -29,6 +29,190 @@
   text-decoration: none;
 }
 
+/* Animación al pasar el ratón (o al enfocar con el teclado). Cada pieza del
+   logo reacciona: el mando salta, los botones se pulsan en cadena, la cinta se
+   balancea como un marcapáginas y un destello recorre el nombre. */
+.marca__icono {
+  transition: filter 0.3s ease;
+}
+
+.marca:is(:hover, :focus-visible) .marca__icono {
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--acento) 60%, transparent));
+  animation: marca-salto 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes marca-salto {
+  0% {
+    transform: translateY(0) rotate(0);
+  }
+  35% {
+    transform: translateY(-3px) rotate(-10deg) scale(1.08);
+  }
+  70% {
+    transform: translateY(0) rotate(5deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+}
+
+/* Los botones son huecos de la máscara del SVG: al agrandarse el hueco, el
+   botón "se hunde". transform-box: fill-box hace que escalen desde su centro
+   y no desde la esquina del dibujo. */
+.marca__botones circle,
+.marca__cinta {
+  transform-box: fill-box;
+}
+
+.marca__botones circle {
+  transform-origin: center;
+}
+
+.marca:is(:hover, :focus-visible) .marca__botones circle,
+.cargando .marca__botones circle {
+  animation: marca-boton 1s ease-in-out infinite;
+}
+
+/* Orden de pulsación en el sentido de las agujas del reloj:
+   arriba (1), derecha (4), abajo (2), izquierda (3) */
+.marca:is(:hover, :focus-visible) .marca__botones circle,
+.cargando .marca__botones circle:nth-child(4) {
+  animation-delay: 0.12s;
+}
+
+.marca:is(:hover, :focus-visible) .marca__botones circle,
+.cargando .marca__botones circle:nth-child(2) {
+  animation-delay: 0.24s;
+}
+
+.marca:is(:hover, :focus-visible) .marca__botones circle,
+.cargando .marca__botones circle:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes marca-boton {
+  0%, 35%, 100% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.9);
+  }
+}
+
+.marca__cinta {
+  transform-origin: top center;
+}
+
+.marca:is(:hover, :focus-visible) .marca__cinta,
+.cargando .marca__cinta {
+  animation: marca-cinta 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes marca-cinta {
+  from {
+    transform: rotate(-7deg);
+  }
+  to {
+    transform: rotate(7deg);
+  }
+}
+
+/* El destello: el texto pasa a tener un degradado tres veces más ancho que él,
+   con una franja de acento en el centro, y lo desplazo de derecha a izquierda
+   (la franja cruza el texto de izquierda a derecha). Fuera de la franja el
+   color es el normal, así que al empezar y al acabar no se nota el cambio. */
+.marca:is(:hover, :focus-visible) .marca__texto {
+  color: transparent;
+  background-image: linear-gradient(
+    100deg,
+    var(--texto-h) 0 40%,
+    var(--acento) 50%,
+    var(--texto-h) 60% 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: marca-destello 0.9s ease-out;
+}
+
+@keyframes marca-destello {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+/* ---- Indicador de carga (Cargando.jsx) ------------------------------------ */
+/* Es el mismo mando del logo. Los botones y la cinta se animan con las reglas de
+   arriba (por eso aparece ".cargando" junto a ".marca:hover"); aquí solo añado
+   el salto y el destello en bucle y los tamaños. */
+.cargando {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--texto-suave);
+}
+
+.cargando--centrado {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.cargando .marca__icono {
+  width: 2.2rem;
+  height: 2.2rem;
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--acento) 60%, transparent));
+  animation: marca-salto 1.4s ease-in-out infinite;
+}
+
+.cargando__texto {
+  color: transparent;
+  background-image: linear-gradient(
+    100deg,
+    var(--texto-suave) 0 40%,
+    var(--acento) 50%,
+    var(--texto-suave) 60% 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: marca-destello 1.6s ease-in-out infinite;
+}
+
+.cargando--grande {
+  gap: 1rem;
+  font-size: 1.1rem;
+}
+
+.cargando--grande .marca__icono {
+  width: 4rem;
+  height: 4rem;
+}
+
+/* Dentro de un botón: pequeño y sin brillo */
+.cargando--pequeno {
+  gap: 0.4rem;
+}
+
+.cargando--pequeno .marca__icono {
+  width: 1.3em;
+  height: 1.3em;
+  filter: none;
+}
+
+/* El mando tiene el mismo degradado que los botones primarios y allí se
+   perdería; en ellos lo pinto en blanco. */
+.btn--primario .marca__icono {
+  color: #fff;
+}
+
+.btn--primario .marca__icono use {
+  fill: #fff;
+}
+
 /* Versión grande (login y registro): el logo encima del nombre */
 .marca--grande {
   flex-direction: column;
@@ -103,6 +287,16 @@
 
 .btn--peligro:hover:not(:disabled) {
   background: color-mix(in srgb, var(--peligro) 14%, transparent);
+}
+
+.btn--peligro-solido {
+  color: #fff;
+  background: var(--peligro);
+  border-color: var(--peligro);
+}
+
+.btn--peligro-solido:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
 /* "✓ En tu biblioteca": botón desactivado pero con aspecto de confirmación */
@@ -471,31 +665,6 @@
   margin-top: auto;
 }
 
-/* Tarjeta en modo edición: ocupa toda la fila y pone la portada a un lado */
-.tarjeta--editando {
-  grid-column: 1 / -1;
-  flex-direction: row;
-  border-color: var(--acento);
-}
-
-.tarjeta--editando:hover {
-  transform: none;
-}
-
-.tarjeta--editando .portada {
-  flex: 0 0 160px;
-}
-
-.tarjeta--editando .tarjeta__cuerpo {
-  align-items: stretch;
-  padding: 1.25rem;
-}
-
-.tarjeta--editando .tarjeta__titulo {
-  font-size: 1.15rem;
-  display: block;
-}
-
 /* ---- Chips de estado ----------------------------------------------------- */
 .chip {
   --color: var(--texto-suave);
@@ -582,9 +751,9 @@
   transform: rotate(180deg);
 }
 
-/* Esta lista cuelga de <body> con position: fixed (top, left y width los pone el
-   componente). Entra y sale con un fundido y un pequeño desplazamiento hacia o
-   desde el botón. */
+/* Esta lista cuelga de <body> (o del <dialog> en el que esté) con position:
+   fixed (top, left y width los pone el componente). Entra y sale con un fundido
+   y un pequeño desplazamiento hacia o desde el botón. */
 .desplegable__lista {
   --desplazamiento: -6px;
   position: fixed;
@@ -640,7 +809,7 @@
   color: var(--acento);
 }
 
-/* Formulario de edición: campos en rejilla, la reseña ocupa todo el ancho */
+/* Formulario de edición (EditarJuego.jsx): campos en rejilla, la reseña ocupa todo el ancho */
 .formulario--edicion {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -944,11 +1113,15 @@
   box-shadow: var(--sombra);
 }
 
-.detalle[open] {
+.detalle[open],
+.dialogo[open],
+.editar[open] {
   animation: detalle-entrada 0.2s ease;
 }
 
-.detalle::backdrop {
+.detalle::backdrop,
+.dialogo::backdrop,
+.editar::backdrop {
   background: rgba(5, 10, 18, 0.72);
   backdrop-filter: blur(3px);
 }
@@ -1127,12 +1300,36 @@ body:has(dialog[open]) {
   background: rgba(0, 0, 0, 0.88);
 }
 
-.visor__imagen {
-  display: block;
-  max-width: min(94vw, 1600px);
-  max-height: 86svh;
+/* Marco 16:9 que cabe en pantalla: el ancho es el menor entre 94% de la ventana,
+   1600px y lo que dejaría el 86% del alto. Las capturas de IGDB son 16:9. */
+.visor__marco {
+  position: relative;
+  width: min(94vw, 1600px, calc(86svh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--superficie);
   border-radius: var(--radio);
   box-shadow: var(--sombra);
+}
+
+.visor__cargando {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.visor__imagen {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.visor__imagen--lista {
+  opacity: 1;
 }
 
 .visor__boton {
@@ -1197,6 +1394,105 @@ body:has(dialog[open]) {
   }
 }
 
+/* ---- Ventana de edición (EditarJuego.jsx) --------------------------------- */
+/* Un <dialog> modal sale centrado en la pantalla, no importa en qué punto de la
+   página esté la tarjeta del juego. Comparte fondo y animación con .detalle. */
+.editar {
+  width: min(640px, calc(100% - 2rem));
+  max-height: calc(100svh - 2rem);
+  padding: 1.75rem;
+  overflow-y: auto;
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra);
+}
+
+.editar__cerrar {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.editar__cabecera {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-right: 2.5rem; /* deja sitio al botón de cerrar */
+  margin-bottom: 1.5rem;
+}
+
+.editar__portada {
+  position: relative; /* para el "Sin portada", que va en absolute */
+  flex: 0 0 64px;
+  aspect-ratio: 264 / 374;
+  overflow: hidden;
+  background: var(--superficie-2);
+  border-radius: 6px;
+}
+
+.editar__portada img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.editar__etiqueta {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.editar__titulo {
+  font-family: var(--display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  color: var(--texto-h);
+}
+
+.editar__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+/* ---- Ventana de confirmación (DialogoConfirmar.jsx) ---------------------- */
+/* Comparte fondo y animación de entrada con .detalle (ver más arriba) */
+.dialogo {
+  width: min(420px, calc(100% - 2rem));
+  padding: 1.5rem;
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra);
+}
+
+.dialogo__titulo {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-h);
+}
+
+.dialogo__mensaje {
+  margin-top: 0.6rem;
+}
+
+.dialogo__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}
+
 /* ---- Móvil --------------------------------------------------------------- */
 @media (max-width: 640px) {
   .barra__interior {
@@ -1237,15 +1533,5 @@ body:has(dialog[open]) {
   .rejilla {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 0.9rem;
-  }
-
-  .tarjeta--editando {
-    flex-direction: column;
-  }
-
-  .tarjeta--editando .portada {
-    flex-basis: auto;
-    max-height: 220px;
-    aspect-ratio: auto;
   }
 }

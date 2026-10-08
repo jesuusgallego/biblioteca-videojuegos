@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useId } from 'react'
 import { createPortal } from 'react-dom'
+import Cargando from './Cargando'
 
 // Desplegable propio en lugar del <select> nativo: la lista de un <select> la
 // dibuja el navegador a su manera y no se puede animar ni ajustar a los colores
@@ -10,12 +11,13 @@ import { createPortal } from 'react-dom'
 //  - opciones: [{ valor, etiqueta }, ...]
 //  - valor: el "valor" de la opción elegida
 //  - onChange(nuevoValor)
+//  - cargando: cambia la flecha por el indicador de carga (la lista aún no está)
 
 const DURACION_SALIDA_MS = 160 // debe coincidir con la animación de salida del CSS
 const ALTO_MAX = 240 // px
 const SEPARACION = 4 // px entre el botón y la lista
 
-// Calculo dónde colocar la lista según el botón. La pinto en <body> con
+// Calculo dónde colocar la lista según el botón. La pinto fuera de su sitio con
 // position: fixed porque las tarjetas tienen overflow: hidden y la recortarían.
 // Si abajo no hay sitio y arriba sí, la abro hacia arriba.
 function medir(boton) {
@@ -35,7 +37,7 @@ function medir(boton) {
   }
 }
 
-function Desplegable({ opciones, valor, onChange, disabled = false }) {
+function Desplegable({ opciones, valor, onChange, disabled = false, cargando = false }) {
   const idLista = useId()
   const botonRef = useRef(null)
   const listaRef = useRef(null)
@@ -45,6 +47,9 @@ function Desplegable({ opciones, valor, onChange, disabled = false }) {
   const [fase, setFase] = useState('cerrado') // 'cerrado' | 'abierto' | 'cerrando'
   const [activo, setActivo] = useState(0) // índice de la opción resaltada
   const [posicion, setPosicion] = useState(null)
+  // Dónde cuelga la lista: dentro del <dialog> si el botón está en una ventana modal
+  // (detrás de ella, en <body>, no se vería ni se podría pulsar); si no, en <body>
+  const [contenedor, setContenedor] = useState(null)
 
   const abierto = fase === 'abierto'
   const visible = fase !== 'cerrado'
@@ -54,6 +59,7 @@ function Desplegable({ opciones, valor, onChange, disabled = false }) {
   function abrir(indiceInicial = indiceElegido) {
     if (disabled) return
     setPosicion(medir(botonRef.current))
+    setContenedor(botonRef.current.closest('dialog') ?? document.body)
     setActivo(Math.max(0, indiceInicial))
     setFase('abierto')
   }
@@ -182,9 +188,13 @@ function Desplegable({ opciones, valor, onChange, disabled = false }) {
         onKeyDown={alPulsarTecla}
       >
         <span>{elegida?.etiqueta ?? ""}</span>
-        <svg className="desplegable__flecha" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
+        {cargando ? (
+          <Cargando tamano="pequeno" />
+        ) : (
+          <svg className="desplegable__flecha" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        )}
       </button>
 
       {visible && createPortal(
@@ -220,7 +230,7 @@ function Desplegable({ opciones, valor, onChange, disabled = false }) {
             </li>
           ))}
         </ul>,
-        document.body,
+        contenedor,
       )}
     </>
   )

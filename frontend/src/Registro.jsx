@@ -3,12 +3,14 @@ import { useNavigate, Link } from 'react-router-dom'
 import { apiFetch } from './api'
 import Marca from './Marca'
 import BotonTema from './BotonTema'
+import Cargando from './Cargando'
 
 function Registro() {
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [enviando, setEnviando] = useState(false)
   const navigate = useNavigate()
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -33,12 +35,14 @@ function Registro() {
       return
     }
 
+    setEnviando(true)
     apiFetch('/auth/register', {
       method: 'POST',
       body: { username: username.trim(), email, password }
     })
       .then(() => navigate('/login'))
       .catch(err => setError(err.message))
+      .finally(() => setEnviando(false))
   }
 
   return (
@@ -86,8 +90,8 @@ function Registro() {
 
           {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
 
-          <button type="submit" className="btn btn--primario btn--block">
-            Registrarse
+          <button type="submit" className="btn btn--primario btn--block" disabled={enviando}>
+            {enviando ? <><Cargando tamano="pequeno" /> Registrando...</> : "Registrarse"}
           </button>
         </form>
 

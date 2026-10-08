@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import GameCard from './GameCard'
 import DetalleJuego from './DetalleJuego'
 import { apiFetch } from './api'
+import Cargando from './Cargando'
 
 const RETARDO_BUSQUEDA_MS = 400
 
@@ -9,6 +10,10 @@ function Buscar({ setToken }) {
   const [nombreJuego, setNombreJuego] = useState("")
   const [resultados, setResultados] = useState([])
   const [error, setError] = useState("")
+  // Último término cuya búsqueda ya terminó (bien o mal). Mientras sea distinto
+  // del que hay escrito, estoy buscando; así lo calculo sin un estado más que
+  // tenga que poner a true dentro del efecto.
+  const [terminoResuelto, setTerminoResuelto] = useState("")
   // Juegos que ya tengo guardados, en un Map (igdb_id -> fila de la biblioteca) y
   // no en un Set: así, además de saber si uno está guardado, tengo su nota y su
   // reseña para la ficha.
@@ -17,6 +22,7 @@ function Buscar({ setToken }) {
   const [detalle, setDetalle] = useState(null)
 
   const termino = nombreJuego.trim()
+  const buscando = termino !== "" && termino !== terminoResuelto
 
   // Al entrar cargo mi biblioteca para marcar los juegos ya guardados. Si falla no
   // es grave: los botones salen como "Añadir" y el 409 del backend cubre el caso
@@ -54,6 +60,7 @@ function Buscar({ setToken }) {
 
         setResultados(data.results ?? [])
         setError("")
+        setTerminoResuelto(termino)
       } catch (err) {
         if (err.name === "AbortError") return
 
@@ -66,6 +73,7 @@ function Buscar({ setToken }) {
 
         setResultados([])
         setError(err.message)
+        setTerminoResuelto(termino)
       }
     }, RETARDO_BUSQUEDA_MS)
 
@@ -122,11 +130,13 @@ function Buscar({ setToken }) {
         <p className="estado">Escribe el nombre de un juego para buscarlo en IGDB.</p>
       )}
 
-      {termino && error && (
+      {buscando && <Cargando texto="Buscando..." tamano="grande" centrado />}
+
+      {termino && !buscando && error && (
         <p className="mensaje mensaje--error" role="alert">{error}</p>
       )}
 
-      {termino && !error && (
+      {termino && !buscando && !error && (
         <div className="resultados__cabecera">
           <h2 className="titulo-seccion">Resultados para “{termino}”</h2>
           <span className="estado">Los que ya tienes aparecen marcados</span>
@@ -134,7 +144,7 @@ function Buscar({ setToken }) {
       )}
 
       <ul className="rejilla">
-        {termino && resultados.map((juego) => (
+        {termino && !buscando && resultados.map((juego) => (
           <GameCard
             key={juego.igdb_id}
             nombre={juego.name}

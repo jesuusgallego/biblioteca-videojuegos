@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Cargando from './Cargando'
 
 // Botón "Añadir a mi biblioteca" con sus estados. Lo uso en la tarjeta de la
 // búsqueda (GameCard) y en la ficha (DetalleJuego) para que se comporte igual
@@ -43,7 +44,12 @@ function BotonAnadir({ yaGuardado, onAnadir, bloque = true }) {
         onClick={handleAnadir}
         disabled={estado === "guardando" || estado === "anadido"}
       >
-        {estado === "guardando" && "Guardando..."}
+        {estado === "guardando" && (
+          <>
+            <Cargando tamano="pequeno" />
+            Guardando...
+          </>
+        )}
         {estado === "anadido" && "✓ En tu biblioteca"}
         {(estado === "idle" || estado === "error") && "Añadir a mi biblioteca"}
       </button>

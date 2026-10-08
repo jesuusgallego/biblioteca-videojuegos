@@ -3,6 +3,7 @@ import { apiFetch } from './api'
 import { ETIQUETAS_ESTADO } from './estados'
 import BotonAnadir from './BotonAnadir'
 import VisorCapturas from './VisorCapturas'
+import Cargando from './Cargando'
 
 // "2015-05-19" -> "19 de mayo de 2015". Con timeZone UTC evito que, según la zona
 // horaria del usuario, la fecha salga un día antes.
@@ -112,7 +113,7 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
             </div>
           )}
 
-          {cargando && <p className="estado">Cargando información...</p>}
+          {cargando && <Cargando texto="Cargando información..." />}
 
           {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
 
