@@ -20,7 +20,6 @@ function BotonTema() {
       className="btn-icono"
       onClick={alternar}
       aria-label={etiqueta}
-      title={etiqueta}
     >
       <svg
         viewBox="0 0 24 24"
