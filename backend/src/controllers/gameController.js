@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const { searchGames, getGameDetails } = require('../services/igdbService');
+const { searchGames, getGameDetails, getArtworks } = require('../services/igdbService');
 
 // Monto la URL de una imagen de IGDB. "tamano" es una plantilla de IGDB:
 // t_cover_big (portada), t_screenshot_big (captura), t_1080p (captura grande)...
@@ -227,4 +227,35 @@ async function details(req, res) {
   }
 }
 
-module.exports = { addGame, listGames, updateGame, deleteGame, search, details };
+// GET /games/artworks — ilustraciones oficiales de los juegos de mi biblioteca
+// (para elegir una como foto de perfil). Solo salen los juegos que tienen alguna.
+async function artworks(req, res) {
+  try {
+    const guardados = await pool.query(
+      'SELECT igdb_id, name FROM user_games WHERE user_id = $1 ORDER BY name',
+      [req.user.id]
+    );
+
+    const porJuego = await getArtworks(guardados.rows.map((j) => j.igdb_id));
+
+    const games = guardados.rows
+      .map((j) => ({
+        igdb_id: j.igdb_id,
+        name: j.name,
+        // Máximo 12 por juego. La miniatura es para la rejilla y "url" es la
+        // imagen grande que el frontend recorta para hacer el avatar.
+        artworks: (porJuego.get(j.igdb_id) ?? []).slice(0, 12).map((imageId) => ({
+          thumb_url: urlImagen(imageId, 't_screenshot_med'),
+          url: urlImagen(imageId, 't_720p'),
+        })),
+      }))
+      .filter((j) => j.artworks.length > 0);
+
+    res.json({ games });
+  } catch (err) {
+    console.error('Error en artworks:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Error al obtener las ilustraciones en IGDB' });
+  }
+}
+
+module.exports = { addGame, listGames, updateGame, deleteGame, search, details, artworks };

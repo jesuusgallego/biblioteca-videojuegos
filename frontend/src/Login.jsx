@@ -4,6 +4,7 @@ import { apiFetch } from './api'
 import Marca from './Marca'
 import BotonTema from './BotonTema'
 import Cargando from './Cargando'
+import Mensaje from './Mensaje'
 
 function Login({ setToken }) {
   const [email, setEmail] = useState("")
@@ -71,7 +72,7 @@ function Login({ setToken }) {
             />
           </label>
 
-          {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
+          <Mensaje texto={error} />
 
           <button type="submit" className="btn btn--primario btn--block" disabled={enviando}>
             {enviando ? <><Cargando tamano="pequeno" /> Entrando...</> : "Iniciar sesión"}

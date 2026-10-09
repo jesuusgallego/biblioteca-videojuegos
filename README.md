@@ -103,6 +103,7 @@ docker compose up -d --build
 | GET | `/auth/me` | Bearer token | Devuelve el usuario del token |
 | GET | `/games/search?q=<nombre>` | Bearer token | Busca juegos por nombre en IGDB |
 | GET | `/games/details/:igdbId` | Bearer token | Ficha completa de un juego desde IGDB: descripción, fecha de lanzamiento, desarrolladora, publishers, géneros, plataformas, nota, capturas (caché de 1 hora en memoria) |
+| GET | `/games/artworks` | Bearer token | Ilustraciones oficiales (artworks) de IGDB de los juegos de tu biblioteca, agrupadas por juego (máx. 12 por juego, caché de 1 hora en memoria). Sirven para elegir la foto de perfil |
 | POST | `/games` | Bearer token | Añade un juego a tu biblioteca (`igdb_id` y `name` obligatorios; 409 si ya lo tienes) |
 | GET | `/games` | Bearer token | Lista los juegos de tu biblioteca |
 | PATCH | `/games/:id` | Bearer token | Actualiza `status`, `rating`, `review` o `platform`. Los campos omitidos no cambian; enviar `null` borra `rating`, `review` o `platform` |
@@ -126,6 +127,6 @@ docker compose up -d --build
 - Todas las llamadas al backend pasan por `frontend/src/api.js` (`apiFetch`). La URL base es `http://localhost:4000` por defecto; para otro host define `VITE_API_URL` en `frontend/.env`.
 - La columna `user_games.igdb_id` guarda el ID del juego en **IGDB**.
 - El token JWT se guarda en `localStorage`.
-- La foto de perfil se guarda como texto (data URL en base64) en `users.avatar`; el navegador la reduce a 256 px antes de enviarla. Si tu base de datos es anterior al perfil, añade las columnas con `docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT; ALTER TABLE users ADD COLUMN IF NOT EXISTS bio VARCHAR(300);"` (o vuelve a ejecutar `schema.sql`, que es idempotente).
+- La foto de perfil se guarda como texto (data URL en base64) en `users.avatar`; el navegador la recorta en cuadrado y la reduce a 256 px antes de enviarla. Puede ser una foto subida o una ilustración de IGDB de un juego de tu biblioteca: en el segundo caso el navegador descarga la ilustración (IGDB permite leer sus imágenes desde otras webs), te deja ajustar el encuadre y guarda el recorte, igual que una foto subida; el backend no guarda ninguna URL de IGDB como avatar. Si tu base de datos es anterior al perfil, añade las columnas con `docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT; ALTER TABLE users ADD COLUMN IF NOT EXISTS bio VARCHAR(300);"` (o vuelve a ejecutar `schema.sql`, que es idempotente).
 - Las credenciales de `docker-compose.yml` son solo para desarrollo; cámbialas en cualquier otro entorno.
 - `backend/.env` contiene secretos: asegúrate de que esté en `.gitignore`.

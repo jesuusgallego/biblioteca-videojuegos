@@ -4,6 +4,7 @@ import { apiFetch } from './api'
 import Marca from './Marca'
 import BotonTema from './BotonTema'
 import Cargando from './Cargando'
+import Mensaje from './Mensaje'
 
 function Registro() {
   const [username, setUsername] = useState("")
@@ -88,7 +89,7 @@ function Registro() {
             <small>Mínimo 8 caracteres, con mayúscula, minúscula y número.</small>
           </label>
 
-          {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
+          <Mensaje texto={error} />
 
           <button type="submit" className="btn btn--primario btn--block" disabled={enviando}>
             {enviando ? <><Cargando tamano="pequeno" /> Registrando...</> : "Registrarse"}

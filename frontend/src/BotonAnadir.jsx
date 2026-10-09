@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Cargando from './Cargando'
+import Mensaje from './Mensaje'
 
 // Botón "Añadir a mi biblioteca" con sus estados. Lo uso en la tarjeta de la
 // búsqueda (GameCard) y en la ficha (DetalleJuego) para que se comporte igual
@@ -54,9 +55,7 @@ function BotonAnadir({ yaGuardado, onAnadir, bloque = true }) {
         {(estado === "idle" || estado === "error") && "Añadir a mi biblioteca"}
       </button>
 
-      {estado === "error" && (
-        <p className="mensaje mensaje--error" role="alert">{mensaje}</p>
-      )}
+      <Mensaje texto={estado === "error" ? mensaje : ""} />
     </>
   )
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { apiFetch } from './api'
 import Cargando from './Cargando'
 import DialogoConfirmar from './DialogoConfirmar'
+import Mensaje from './Mensaje'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
@@ -65,8 +66,8 @@ function FormularioEmail({ perfil, onGuardado, cerrarSesion }) {
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
       </label>
 
-      {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
-      {guardado && <p className="mensaje mensaje--ok" role="status">Email actualizado</p>}
+      <Mensaje texto={error} />
+      <Mensaje tipo="ok" texto={guardado ? "Email actualizado" : ""} />
 
       <div className="formulario__acciones">
         <button type="submit" className="btn btn--secundario" disabled={ocupado || email === perfil.email}>
@@ -134,8 +135,8 @@ function FormularioContrasena({ cerrarSesion }) {
         <input type="password" value={repetida} onChange={(e) => setRepetida(e.target.value)} autoComplete="new-password" required />
       </label>
 
-      {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
-      {guardado && <p className="mensaje mensaje--ok" role="status">Contraseña actualizada</p>}
+      <Mensaje texto={error} />
+      <Mensaje tipo="ok" texto={guardado ? "Contraseña actualizada" : ""} />
 
       <div className="formulario__acciones">
         <button type="submit" className="btn btn--secundario" disabled={ocupado}>
@@ -185,7 +186,7 @@ function ZonaPeligro({ cerrarSesion }) {
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
       </label>
 
-      {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
+      <Mensaje texto={error} />
 
       <div className="formulario__acciones">
         <button type="submit" className="btn btn--peligro" disabled={ocupado || password === ""}>

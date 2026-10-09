@@ -4,6 +4,7 @@ import { ETIQUETAS_ESTADO } from './estados'
 import Desplegable from './Desplegable'
 import Cargando from './Cargando'
 import { useVentana } from './useVentana'
+import Mensaje from './Mensaje'
 
 const OPCIONES_ESTADO = Object.entries(ETIQUETAS_ESTADO).map(([valor, etiqueta]) => ({ valor, etiqueta }))
 
@@ -161,9 +162,7 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
           <textarea value={review} onChange={(e) => setReview(e.target.value)} />
         </label>
 
-        {error && (
-          <p className="mensaje mensaje--error campo--ancho" role="alert">{error}</p>
-        )}
+        <Mensaje texto={error} className="campo--ancho" />
 
         <div className="editar__acciones campo--ancho">
           <button type="button" className="btn btn--secundario" onClick={() => cerrar()} disabled={ocupado}>

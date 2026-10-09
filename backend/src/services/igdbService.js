@@ -75,4 +75,50 @@ async function getGameDetails(igdbId) {
   return game;
 }
 
-module.exports = { searchGames, getGameDetails };
+// Ilustraciones oficiales (artworks) de varios juegos a la vez. Una sola consulta
+// con "where id = (1,2,3)" en vez de una por juego, porque IGDB limita a 4
+// peticiones por segundo. Devuelve un Map igdbId -> lista de image_id (vacía si
+// el juego no tiene ilustraciones). Cacheo cada juego una hora, como las fichas.
+// Las ids se interpolan en la consulta: el controlador tiene que pasarlas ya como
+// enteros.
+const cacheArtworks = new Map(); // igdbId -> { imageIds, caducaEn }
+const MAX_CACHE_ARTWORKS = 1000;
+const LOTE_ARTWORKS = 500; // IGDB devuelve como máximo 500 resultados por consulta
+
+async function getArtworks(igdbIds) {
+  const resultado = new Map();
+  const pendientes = [];
+
+  for (const id of igdbIds) {
+    const guardado = cacheArtworks.get(id);
+    if (guardado && Date.now() < guardado.caducaEn) {
+      resultado.set(id, guardado.imageIds);
+    } else {
+      pendientes.push(id);
+    }
+  }
+
+  for (let i = 0; i < pendientes.length; i += LOTE_ARTWORKS) {
+    const lote = pendientes.slice(i, i + LOTE_ARTWORKS);
+    const juegos = await igdbPost(
+      'games',
+      `fields artworks.image_id; where id = (${lote.join(',')}); limit ${LOTE_ARTWORKS};`
+    );
+
+    // IGDB no devuelve la clave "artworks" si el juego no tiene: lo trato como []
+    const porId = new Map(juegos.map((j) => [j.id, (j.artworks ?? []).map((a) => a.image_id)]));
+
+    for (const id of lote) {
+      const imageIds = porId.get(id) ?? [];
+      if (cacheArtworks.size >= MAX_CACHE_ARTWORKS) {
+        cacheArtworks.delete(cacheArtworks.keys().next().value);
+      }
+      cacheArtworks.set(id, { imageIds, caducaEn: Date.now() + DURACION_CACHE_MS });
+      resultado.set(id, imageIds);
+    }
+  }
+
+  return resultado;
+}
+
+module.exports = { searchGames, getGameDetails, getArtworks };

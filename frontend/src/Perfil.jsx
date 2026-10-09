@@ -6,6 +6,7 @@ import Cargando from './Cargando'
 import EstadisticasPerfil from './EstadisticasPerfil'
 import EditarPerfil from './EditarPerfil'
 import CuentaPerfil from './CuentaPerfil'
+import Mensaje from './Mensaje'
 
 // Página del perfil: cabecera, estadísticas de la biblioteca, edición del perfil
 // (foto, nombre, bio) y ajustes de cuenta (email, contraseña, borrar cuenta).
@@ -67,7 +68,7 @@ function Perfil({ setToken }) {
 
       <section className="panel" aria-labelledby="perfil-estadisticas">
         <h2 id="perfil-estadisticas" className="titulo-seccion">Estadísticas</h2>
-        {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
+        <Mensaje texto={error} />
         {!error && !datos && <Cargando texto="Calculando estadísticas..." centrado />}
         {datos && <EstadisticasPerfil stats={datos.stats} mejores={datos.mejores} />}
       </section>

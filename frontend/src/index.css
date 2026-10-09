@@ -130,13 +130,17 @@ p {
   margin: 0;
 }
 
+/* El subrayado existe siempre pero transparente: al pasar el ratón solo cambia
+   su color, y así aparece con un fundido en vez de saltar */
 a {
   color: var(--acento);
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: color var(--transicion), text-decoration-color var(--transicion);
 }
 
 a:hover {
-  text-decoration: underline;
+  text-decoration-color: currentColor;
 }
 
 img {

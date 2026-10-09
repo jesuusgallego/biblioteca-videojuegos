@@ -3,6 +3,7 @@ import GameCard from './GameCard'
 import DetalleJuego from './DetalleJuego'
 import { apiFetch } from './api'
 import Cargando from './Cargando'
+import Mensaje from './Mensaje'
 
 const RETARDO_BUSQUEDA_MS = 400
 
@@ -132,9 +133,7 @@ function Buscar({ setToken }) {
 
       {buscando && <Cargando texto="Buscando..." tamano="grande" centrado />}
 
-      {termino && !buscando && error && (
-        <p className="mensaje mensaje--error" role="alert">{error}</p>
-      )}
+      <Mensaje texto={termino && !buscando ? error : ""} />
 
       {termino && !buscando && !error && (
         <div className="resultados__cabecera">

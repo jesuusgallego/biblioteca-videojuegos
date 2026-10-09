@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ETIQUETAS_ESTADO } from './estados'
 import DialogoConfirmar from './DialogoConfirmar'
 import EditarJuego from './EditarJuego'
+import Mensaje from './Mensaje'
 
 // Tarjeta de un juego que ya está en mi biblioteca. "Editar" abre la ventana
 // EditarJuego y "Quitar" pide confirmación antes de borrar. onActualizar y
@@ -51,7 +52,7 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
         {juego.platform && <p className="tarjeta__meta">{juego.platform}</p>}
         {juego.review && <p className="tarjeta__resena">{juego.review}</p>}
 
-        {error && <p className="mensaje mensaje--error" role="alert">{error}</p>}
+        <Mensaje texto={error} />
 
         {/* El estado y los botones van siempre juntos y abajo del todo, así el chip
             queda en el mismo sitio en todas las tarjetas */}

@@ -323,7 +323,7 @@
   border: 1px solid var(--borde);
   border-radius: 6px;
   cursor: pointer;
-  transition: color var(--transicion), border-color var(--transicion);
+  transition: color var(--transicion), border-color var(--transicion), scale var(--transicion);
 }
 
 .btn-icono:hover {
@@ -552,6 +552,30 @@
   padding: 0.6rem 0.8rem;
   font-size: 0.875rem;
   border-radius: var(--radio);
+}
+
+/* Entrada y salida de los mensajes que pasan por Mensaje.jsx */
+.mensaje--animado {
+  animation: mensaje-entrada 0.2s ease both;
+}
+
+.mensaje--saliendo {
+  pointer-events: none;
+  animation: mensaje-salida 0.2s ease both;
+}
+
+@keyframes mensaje-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes mensaje-salida {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 }
 
 .mensaje--error {
@@ -784,7 +808,7 @@
   background: var(--campo);
   border: 1px solid var(--borde);
   border-radius: var(--radio);
-  transition: border-color var(--transicion), box-shadow var(--transicion);
+  transition: border-color var(--transicion), box-shadow var(--transicion), scale var(--transicion);
 }
 
 .desplegable__boton:focus-visible,
@@ -855,7 +879,7 @@
   padding: 0.5rem 0.7rem;
   cursor: pointer;
   border-radius: 6px;
-  transition: background-color var(--transicion), color var(--transicion);
+  transition: background-color var(--transicion), color var(--transicion), scale var(--transicion);
 }
 
 .desplegable__opcion--activa {
@@ -1135,7 +1159,7 @@
   border: 0;
   border-left: 3px solid transparent;
   cursor: pointer;
-  transition: background-color var(--transicion), color var(--transicion);
+  transition: background-color var(--transicion), color var(--transicion), scale var(--transicion);
 }
 
 .filtro:hover {
@@ -1216,6 +1240,7 @@
   background: none;
   border: 0;
   cursor: pointer;
+  transition: scale var(--transicion);
 }
 
 /* Llena toda la portada; la nota (position: absolute, más abajo en el HTML)
@@ -1734,7 +1759,7 @@ body:has(dialog[open]) {
   background: none;
   border: 0;
   border-radius: 50%;
-  transition: box-shadow var(--transicion);
+  transition: box-shadow var(--transicion), scale var(--transicion);
 }
 
 .menu-usuario__boton:hover,
@@ -1827,7 +1852,7 @@ body:has(dialog[open]) {
   background: none;
   border: 0;
   border-radius: 6px;
-  transition: background-color var(--transicion), color var(--transicion);
+  transition: background-color var(--transicion), color var(--transicion), scale var(--transicion);
 }
 
 .menu-usuario__opcion:hover {
@@ -2087,6 +2112,222 @@ body:has(dialog[open]) {
 
 .cuenta__bloque--peligro .cuenta__titulo {
   color: var(--peligro);
+}
+
+/* Elegir ilustración como foto de perfil (EditarPerfil.jsx y SelectorArtwork.jsx) */
+/* Panel desplegable. Truco para animar a "altura automática": una rejilla de una
+   fila que pasa de 0fr (altura 0) a 1fr (la altura del contenido). Como abrir y
+   cerrar son la misma transición, cerrar es abrir al revés. Cerrado va oculto
+   con `visibility`, que cambia al final del plegado (su transición espera 0,3 s);
+   así no se puede tabular a sus botones. El margin-top negativo anula el hueco que
+   el formulario deja entre elementos, para que cerrado no ocupe sitio. */
+.selector-avatar {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: -1rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease,
+    visibility 0s linear 0.3s;
+}
+
+.selector-avatar--abierto {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  opacity: 1;
+  visibility: visible;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease,
+    visibility 0s;
+}
+
+.selector-avatar__interior {
+  min-height: 0; /* sin esto la fila no se puede encoger por debajo de su contenido */
+  overflow: hidden;
+}
+
+.selector-avatar__caja {
+  padding: 1rem;
+  background: var(--superficie-2);
+  border-radius: var(--radio);
+}
+
+/* La flecha del botón gira al abrir (y vuelve al cerrar) */
+.btn__flecha {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[aria-expanded="true"] > .btn__flecha {
+  transform: rotate(180deg);
+}
+
+/* Cambio entre la lista y el encuadre: la vista que sale se desvanece (la clase
+   la pone SelectorArtwork) y la nueva entra con la animación de entrada */
+.vista {
+  animation: vista-entrada 0.2s ease both;
+}
+
+.vista--saliendo {
+  pointer-events: none;
+  animation: vista-salida 0.16s ease both;
+}
+
+@keyframes vista-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes vista-salida {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* Lista de ilustraciones, agrupadas por juego, con su propio scroll */
+.selector-artwork {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 340px;
+  padding: 3px; /* deja sitio al aro de las miniaturas, que si no se recortaría */
+  overflow-y: auto;
+}
+
+.selector-artwork__juego {
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.selector-artwork__fila {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+/* Las miniaturas aparecen una detrás de otra: cada una espera 30 ms por la
+   posición que ocupa (--i), con un máximo de 0,4 s para que no tarde si hay muchas */
+.selector-artwork__fila li {
+  animation: miniatura-entrada 0.3s ease both;
+  animation-delay: min(calc(var(--i) * 30ms), 400ms);
+}
+
+@keyframes miniatura-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+}
+
+.selector-artwork__imagen {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+  background: var(--campo);
+  border: 0;
+  border-radius: 6px;
+  transition: box-shadow var(--transicion), scale var(--transicion);
+}
+
+/* La imagen entra con un fundido al terminar de cargar y se acerca al pasar el
+   ratón; mientras carga, el fondo late como un esqueleto */
+.selector-artwork__imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s ease, transform 0.4s ease;
+}
+
+.selector-artwork__imagen--cargando {
+  animation: esqueleto 1.2s ease-in-out infinite;
+}
+
+.selector-artwork__imagen--cargando img {
+  opacity: 0;
+}
+
+@keyframes esqueleto {
+  50% {
+    background: var(--superficie);
+  }
+}
+
+.selector-artwork__imagen:hover {
+  box-shadow: 0 0 0 2px var(--acento);
+}
+
+.selector-artwork__imagen:hover img {
+  transform: scale(1.08);
+}
+
+/* Ajuste del encuadre: el círculo enseña cómo quedará el avatar */
+.encuadre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.encuadre__vista {
+  flex: none;
+  width: 160px;
+  height: 160px;
+  overflow: hidden;
+  background: var(--campo);
+  border-radius: 50%;
+}
+
+.encuadre__vista img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* con object-position (lo pone el componente) elige la parte visible */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.encuadre__vista--lista img {
+  opacity: 1;
+}
+
+.encuadre__controles {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* El deslizador: sin la caja de los demás campos */
+.encuadre input[type="range"] {
+  padding: 0;
+  background: none;
+  border: 0;
+  accent-color: var(--acento);
+}
+
+/* ---- Respuesta al pulsar ------------------------------------------------- */
+/* Todo lo que se puede pulsar se encoge un poco mientras se mantiene pulsado.
+   Uso `scale` y no `transform`: son propiedades independientes, así que no pisa
+   los transform que ya usan algunos elementos (los botones del visor se centran
+   con translateY). Cada uno lleva `scale` en su `transition`, por eso el cambio
+   es suave. Los botones .btn ya bajan 1px al pulsarse. */
+.btn-icono:active:not(:disabled),
+.filtro:active,
+.menu-usuario__boton:active,
+.menu-usuario__opcion:active,
+.desplegable__boton:active:not(:disabled),
+.desplegable__opcion:active,
+.boton-portada:active,
+.selector-artwork__imagen:active {
+  scale: 0.96;
 }
 
 /* ---- Móvil --------------------------------------------------------------- */
