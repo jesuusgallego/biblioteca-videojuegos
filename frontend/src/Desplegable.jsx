@@ -8,8 +8,9 @@ import Cargando from './Cargando'
 //
 // Sigue el patrón accesible "select-only combobox": el foco se queda siempre en
 // el botón y la opción resaltada se indica con aria-activedescendant.
-//  - opciones: [{ valor, etiqueta, punto? }, ...]; "punto" (opcional) pinta delante
-//    el puntito de color de ese estado (clase punto--<punto>)
+//  - opciones: [{ valor, etiqueta, punto?, icono? }, ...]; "punto" (opcional) pinta
+//    delante el puntito de color de ese estado (clase punto--<punto>); "icono"
+//    (opcional) es un elemento React que se pinta delante, en la lista y en el botón
 //  - valor: el "valor" de la opción elegida
 //  - onChange(nuevoValor)
 //  - cargando: cambia la flecha por el indicador de carga (la lista aún no está)
@@ -197,7 +198,10 @@ function Desplegable({ opciones, valor, onChange, disabled = false, cargando = f
         onClick={alPulsarBoton}
         onKeyDown={alPulsarTecla}
       >
-        <span>{elegida?.etiqueta ?? ""}</span>
+        <span className="desplegable__valor">
+          {elegida?.icono}
+          <span className="desplegable__texto">{elegida?.etiqueta ?? ""}</span>
+        </span>
         {cargando ? (
           <Cargando tamano="pequeno" />
         ) : (
@@ -237,6 +241,7 @@ function Desplegable({ opciones, valor, onChange, disabled = false, cargando = f
               onClick={() => elegir(i)}
             >
               {o.punto && <span className={`punto punto--${o.punto}`} aria-hidden="true" />}
+              {o.icono}
               {o.etiqueta}
             </li>
           ))}

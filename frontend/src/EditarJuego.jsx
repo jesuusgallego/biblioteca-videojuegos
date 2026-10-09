@@ -6,6 +6,7 @@ import Desplegable from './Desplegable'
 import Cargando from './Cargando'
 import { useVentana } from './useVentana'
 import Mensaje from './Mensaje'
+import IconoPlataforma from './IconoPlataforma'
 
 // Ventana (centrada en la pantalla) para editar un juego de mi biblioteca, con
 // los campos que admite PATCH /games/:id.
@@ -82,7 +83,8 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
     if (e.target === e.currentTarget && !ocupado) cerrar()
   }
 
-  // Si el juego ya tiene una plataforma que no está en la lista (por ejemplo,
+  // Solo se ofrecen las plataformas que IGDB da para este juego. Si el juego ya
+  // tiene una que no está en la lista (por ejemplo, "Steam" en los importados, o
   // escrita a mano antes de existir el desplegable), la añado para no perderla
   // al guardar.
   const cargandoPlataformas = !plataformas && !errorPlataformas
@@ -92,7 +94,11 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
   }
   const opcionesPlataforma = [
     { valor: "", etiqueta: cargandoPlataformas ? t('editar.cargando') : t('editar.sinEspecificar') },
-    ...nombresPlataforma.map((nombre) => ({ valor: nombre, etiqueta: nombre })),
+    ...nombresPlataforma.map((nombre) => ({
+      valor: nombre,
+      etiqueta: nombre,
+      icono: <IconoPlataforma nombre={nombre} tamano={16} decorativo />,
+    })),
   ]
 
   return (

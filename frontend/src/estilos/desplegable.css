@@ -31,6 +31,28 @@
   cursor: not-allowed;
 }
 
+/* Lo que dice el botón: el icono opcional (plataformas) y el texto */
+.desplegable__valor {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+/* Una sola línea: si el nombre no cabe, se corta con "…" y el campo no se agranda */
+.desplegable__texto {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* El icono de plataforma sigue el color del texto (también el acento de la elegida) */
+.desplegable__valor .icono-plataforma,
+.desplegable__opcion .icono-plataforma {
+  color: inherit;
+}
+
 .desplegable__flecha {
   flex-shrink: 0;
   color: var(--texto-suave);
@@ -146,6 +168,14 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   align-items: start;
+}
+
+/* Con sitio, la plataforma (la más larga: "Xbox Series X|S" con su icono) es más
+   ancha que la nota; en pantallas estrechas las tres se apilan como antes */
+@media (min-width: 560px) {
+  .formulario--edicion {
+    grid-template-columns: 1fr 0.55fr 1.45fr;
+  }
 }
 
 .campo--ancho {
