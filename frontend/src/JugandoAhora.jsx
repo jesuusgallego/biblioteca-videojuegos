@@ -1,9 +1,11 @@
 import { useIdioma } from './IdiomaContext'
 import IconoResena from './IconoResena'
 import InsigniaSteam from './InsigniaSteam'
+import IconoPlataforma from './IconoPlataforma'
+import { esDeSteam } from './steam'
 
 // Fila "Jugando ahora" de Mi biblioteca: una tarjeta ancha por cada juego con
-// estado "jugando". Solo enseño lo que guardo en la BD (portada, plataforma,
+// estado "jugando". Solo enseño lo que guardo en la BD (portada, icono de la plataforma,
 // nota y la insignia si viene de Steam); no dibujo horas ni progreso. La reseña no se
 // escribe aquí: un icono junto al estado avisa de que existe y se lee en la ficha.
 // Toda la tarjeta es clicable, pero solo hay UN botón de verdad (el del título):
@@ -58,7 +60,7 @@ function JugandoAhora({ juegos, onVerDetalle }) {
               </h3>
 
               <div className="jugando__datos">
-                {juego.platform && <span className="tarjeta__meta">{juego.platform}</span>}
+                <IconoPlataforma nombre={juego.platform} tamano={18} className="icono-plataforma--fila" ocultarSteam={esDeSteam(juego)} />
                 {juego.rating && <span className="contador">★ {juego.rating}/10</span>}
               </div>
             </div>

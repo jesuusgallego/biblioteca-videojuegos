@@ -8,6 +8,8 @@ import Desplegable from './Desplegable'
 import IconoResena from './IconoResena'
 import ProgresoSteam from './ProgresoSteam'
 import InsigniaSteam from './InsigniaSteam'
+import IconoPlataforma from './IconoPlataforma'
+import { esDeSteam } from './steam'
 
 // Tarjeta de un juego que ya está en mi biblioteca. "Editar" abre la ventana
 // EditarJuego y "Quitar" pide confirmación antes de borrar. onActualizar y
@@ -73,14 +75,13 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
         </button>
         <InsigniaSteam juego={juego} />
         {juego.rating && <span className="nota">★ {juego.rating}</span>}
+        <IconoPlataforma nombre={juego.platform} tamano={16} className="icono-plataforma--portada" ocultarSteam={esDeSteam(juego)} />
       </div>
 
       <div className="tarjeta__cuerpo">
         <h3 className="tarjeta__titulo">
           <button type="button" className="enlace-titulo" onClick={onVerDetalle}>{juego.name}</button>
         </h3>
-
-        {juego.platform && <p className="tarjeta__meta">{juego.platform}</p>}
 
         <ProgresoSteam juego={juego} />
 

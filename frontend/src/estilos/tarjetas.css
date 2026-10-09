@@ -98,6 +98,44 @@
   height: 20px;
 }
 
+/* Icono de la plataforma (IconoPlataforma.jsx). Dos sitios:
+   - --portada: círculo oscuro translúcido sobre la portada, abajo a la izquierda
+     (la insignia de Steam va arriba a la izquierda y la nota arriba a la derecha).
+     Medidas en px enteros: con el aro de 1 px, 28 - 2 - 16 = 10, el icono queda
+     5 px a cada lado sin subpíxeles.
+   - --fila: sin fondo, en gris suave, dentro de una fila de datos ("Jugando ahora") */
+.icono-plataforma {
+  display: inline-flex;
+  flex: none;
+  color: var(--texto-suave);
+  transition: color var(--transicion);
+}
+
+.icono-plataforma svg {
+  display: block;
+}
+
+.icono-plataforma--portada {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 2; /* por encima del destello de la portada */
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: #fff;
+  background: rgba(11, 18, 28, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+}
+
+.jugando__tarjeta:hover .icono-plataforma--fila {
+  color: var(--acento);
+}
+
 .tarjeta__cuerpo {
   display: flex;
   flex-direction: column;
