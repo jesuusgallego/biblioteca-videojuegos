@@ -24,6 +24,7 @@ docker compose up -d --build
 | Frontend (nginx) | `biblioteca_frontend` | http://localhost:5173 |
 | Backend (Express) | `biblioteca_backend` | http://localhost:4000 |
 | PostgreSQL | `biblioteca_db` | `localhost:5432` |
+| Traductor (LibreTranslate) | `biblioteca_traductor` | http://localhost:5000 |
 
 - `up` crea y arranca los contenedores; `-d` los deja en segundo plano; `--build` reconstruye las imágenes si cambiaste código. Si no tocaste nada, puedes omitirlo.
 - **Los cambios de código no se ven solos:** el código se copia dentro de la imagen al construirla. Tras editar, vuelve a ejecutar `docker compose up -d --build` (o solo `docker compose up -d --build backend`).
@@ -48,7 +49,7 @@ Necesitas **tres terminales** (en VS Code: `` Ctrl+` `` y el botón `+`).
 
 | # | Qué | Comando | Resultado esperado |
 |---|-----|---------|--------------------|
-| 1 | Base de datos | `docker compose up -d postgres` | Contenedor `biblioteca_db` en `localhost:5432` |
+| 1 | Base de datos y traductor | `docker compose up -d postgres traductor` | Contenedores `biblioteca_db` en `localhost:5432` y `biblioteca_traductor` en `localhost:5000` |
 | 2 | Backend | `cd backend && npm run dev` | `Servidor corriendo en http://localhost:4000` |
 | 3 | Frontend | `cd frontend && npm run dev` | App en http://localhost:5173 |
 
@@ -60,14 +61,14 @@ En este modo el `DATABASE_URL` de `backend/.env` usa `localhost` (el backend cor
 
 ### Paso a paso
 
-#### 1. Base de datos
+#### 1. Base de datos y traductor
 
 ```bash
-docker compose up -d postgres
+docker compose up -d postgres traductor
 docker compose ps
 ```
 
-Debe aparecer `biblioteca_db` con estado `Up (healthy)`.
+Debe aparecer `biblioteca_db` con estado `Up (healthy)`. El traductor (`biblioteca_traductor`) tarda más en estar listo: la primera vez descarga los modelos de traducción (unos minutos). Mientras no esté listo, las descripciones de los juegos salen en inglés.
 
 #### 2. Backend (Express)
 
@@ -100,6 +101,7 @@ Abre http://localhost:5173. Vite recarga la página al guardar (HMR).
 | Servicio | Puerto | URL |
 |----------|--------|-----|
 | PostgreSQL | 5432 | `postgresql://biblioteca_user:biblioteca_pass@localhost:5432/biblioteca_db` |
+| Traductor | 5000 | http://localhost:5000 |
 | Backend | 4000 | http://localhost:4000 |
 | Frontend | 5173 | http://localhost:5173 |
 
@@ -184,6 +186,7 @@ npm run build    # comprueba que compila para producción
 |---------|----------------|----------|
 | `Cannot connect to the Docker daemon` | Docker no está arrancado | Abre Docker Desktop y espera a que indique que está listo |
 | `/health` devuelve error de base de datos | El contenedor está parado | `docker compose up -d postgres` y `docker compose ps` |
+| Las descripciones salen en inglés | No hay `AZURE_TRANSLATOR_KEY` y el traductor local está apagado o aún descargando los modelos (la primera vez tarda unos minutos) | `docker compose up -d traductor` y `docker compose logs -f traductor` hasta que diga que escucha en el puerto 5000 |
 | `EADDRINUSE: address already in use :::4000` (o `port is already allocated` en 4000/5173) | Ya hay un backend o frontend corriendo: el modo A encendido mientras usas el modo B, o al revés | `docker compose stop backend frontend`, o cierra la otra terminal. También: `lsof -i :4000` y `kill <PID>` |
 | Edité código y en Docker no cambia nada | La imagen se construyó con el código antiguo | `docker compose up -d --build` |
 | El backend en Docker no conecta a la BD | Se está usando `localhost` en vez de `postgres` | No toques `DATABASE_URL` en el compose; mira `docker compose logs backend` |

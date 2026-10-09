@@ -59,7 +59,8 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
   useEffect(() => {
     let cancelado = false
 
-    apiFetch(`/games/details/${juego.igdb_id}`)
+    // lang=es: el backend traduce la descripción (IGDB solo la da en inglés)
+    apiFetch(`/games/details/${juego.igdb_id}?lang=es`)
       .then((data) => {
         if (!cancelado) setDatos(data.game)
       })
@@ -170,7 +171,11 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
         <section className="detalle__seccion">
           <h3 className="titulo-seccion">Descripción</h3>
           <p className="detalle__texto">{datos.summary}</p>
-          <small className="estado">Descripción original de IGDB, en inglés.</small>
+          <small className="estado">
+            {datos.summary_lang === "es"
+              ? "Traducida automáticamente del inglés. Descripción original de IGDB."
+              : "Descripción original de IGDB, en inglés."}
+          </small>
         </section>
       )}
 

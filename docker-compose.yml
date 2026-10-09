@@ -20,6 +20,30 @@ services:
       timeout: 3s
       retries: 10
 
+  # Traductor automático (LibreTranslate) para las descripciones de los juegos, que
+  # IGDB solo da en inglés. Es un servidor de traducción que corre en local: sin
+  # cuenta, sin claves y sin límite de uso.
+  traductor:
+    image: libretranslate/libretranslate:latest
+    container_name: biblioteca_traductor
+    environment:
+      # Solo cargo el inglés y el español: cada idioma ocupa memoria y se descarga
+      # al arrancar. Para añadir idiomas a la app, añádelos aquí (ej. en,es,fr).
+      LT_LOAD_ONLY: en,es
+      LT_DISABLE_WEB_UI: "true"
+    ports:
+      - "5000:5000"   # el backend en modo desarrollo (fuera de Docker) lo usa en localhost:5000
+    volumes:
+      # Los modelos de traducción se descargan la primera vez (cientos de MB);
+      # con el volumen se conservan y los siguientes arranques son rápidos.
+      - lt_models:/home/libretranslate/.local
+    healthcheck:
+      test: ["CMD", "./venv/bin/python", "scripts/healthcheck.py"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+
   backend:
     build: ./backend
     container_name: biblioteca_backend
@@ -29,6 +53,7 @@ services:
       # Dentro de la red de Docker la BD se llama "postgres" (nombre del servicio),
       # no "localhost". Esto pisa el DATABASE_URL del .env.
       DATABASE_URL: postgresql://biblioteca_user:biblioteca_pass@postgres:5432/biblioteca_db
+      TRANSLATE_URL: http://traductor:5000
     ports:
       - "4000:4000"
     depends_on:
@@ -45,3 +70,4 @@ services:
 
 volumes:
   pgdata:
+  lt_models:

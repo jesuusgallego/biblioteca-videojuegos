@@ -35,3 +35,32 @@ CREATE TABLE IF NOT EXISTS user_games (
 -- Un usuario no puede tener el mismo juego dos veces (el controlador lo devuelve como 409)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_game_unique
     ON user_games (user_id, igdb_id);
+
+-- Caché de traducciones automáticas (las descripciones de IGDB vienen en inglés).
+-- Traducir con LibreTranslate tarda unos segundos, así que cada texto se traduce
+-- una sola vez por idioma y se guarda. La clave es el SHA-256 del texto original
+-- (más corto y rápido de comparar que el texto) y el idioma de destino.
+CREATE TABLE IF NOT EXISTS translations (
+    text_hash CHAR(64) NOT NULL,
+    target VARCHAR(5) NOT NULL,
+    translated_text TEXT NOT NULL,
+    -- Quién tradujo: 'azure' o 'libretranslate'. Si una traducción es de
+    -- LibreTranslate y luego hay clave de Azure, se rehace con Azure (más calidad).
+    provider VARCHAR(20) NOT NULL DEFAULT 'libretranslate',
+    created_at TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY (text_hash, target)
+);
+
+-- Para una BD creada antes de existir Azure (la tabla ya existe sin esta columna)
+ALTER TABLE translations ADD COLUMN IF NOT EXISTS provider VARCHAR(20) NOT NULL DEFAULT 'libretranslate';
+
+-- Cuántos caracteres se han enviado a un traductor externo cada mes. El plan
+-- gratuito de Azure Translator da 2 millones al mes; la app se pone un tope propio
+-- por debajo y, al llegar, deja de usarlo hasta el mes siguiente. Así nunca
+-- depende de lo que haga Microsoft al pasarse del límite.
+CREATE TABLE IF NOT EXISTS translation_usage (
+    provider VARCHAR(20) NOT NULL,
+    month CHAR(7) NOT NULL, -- 'AAAA-MM' (UTC)
+    characters INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (provider, month)
+);

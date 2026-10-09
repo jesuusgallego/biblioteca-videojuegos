@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const { searchGames, getGameDetails, getArtworks } = require('../services/igdbService');
+const { traducir, IDIOMAS, IDIOMA_ORIGINAL } = require('../services/traduccionService');
 
 // Monto la URL de una imagen de IGDB. "tamano" es una plantilla de IGDB:
 // t_cover_big (portada), t_screenshot_big (captura), t_1080p (captura grande)...
@@ -172,12 +173,19 @@ async function search(req, res) {
   }
 }
 
-// GET /games/details/:igdbId — ficha completa de un juego, sacada de IGDB
+// GET /games/details/:igdbId?lang=es — ficha completa de un juego, sacada de IGDB.
+// Con ?lang=es la descripción se traduce al idioma pedido (IGDB solo la da en
+// inglés). Sin ?lang, o con lang=en, se devuelve el original.
 async function details(req, res) {
   const igdbId = Number(req.params.igdbId);
 
   if (!Number.isInteger(igdbId) || igdbId <= 0) {
     return res.status(400).json({ error: 'igdbId debe ser un número entero positivo' });
+  }
+
+  const lang = req.query.lang ?? IDIOMA_ORIGINAL;
+  if (typeof lang !== 'string' || !IDIOMAS.includes(lang)) {
+    return res.status(400).json({ error: `lang debe ser uno de: ${IDIOMAS.join(', ')}` });
   }
 
   try {
@@ -196,11 +204,24 @@ async function details(req, res) {
         .filter((ic) => ic[rol] && ic.company)
         .map((ic) => ic.company.name);
 
+    // Traduzco la descripción si hace falta. Si el traductor falla, traducir()
+    // devuelve null y enseño el original en inglés (summary_lang lo indica).
+    let summary = game.summary ?? null;
+    let summaryLang = IDIOMA_ORIGINAL;
+    if (summary && lang !== IDIOMA_ORIGINAL) {
+      const traducido = await traducir(summary, lang);
+      if (traducido) {
+        summary = traducido;
+        summaryLang = lang;
+      }
+    }
+
     res.json({
       game: {
         igdb_id: game.id,
         name: game.name,
-        summary: game.summary ?? null,
+        summary,
+        summary_lang: summaryLang,
         // IGDB da la fecha en segundos Unix; la paso a "AAAA-MM-DD"
         release_date: game.first_release_date
           ? new Date(game.first_release_date * 1000).toISOString().slice(0, 10)
