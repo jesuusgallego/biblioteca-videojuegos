@@ -174,13 +174,6 @@
   margin-top: auto;
 }
 
-.tarjeta__acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: auto;
-}
-
 /* Toda la tarjeta es clicable: el ::after del botón del título la cubre (el <li>
    es position: relative). Lo que se puede pulsar dentro (estado, Editar, Quitar,
    Añadir) va por encima con z-index y conserva su propio clic. */

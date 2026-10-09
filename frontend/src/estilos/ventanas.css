@@ -178,6 +178,20 @@ body:has(dialog[open]) {
   border-radius: var(--radio);
 }
 
+/* Título del recuadro a la izquierda y Editar / Quitar a la derecha */
+.detalle__biblioteca-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+}
+
+.detalle__acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .detalle__biblioteca-datos {
   display: flex;
   flex-wrap: wrap;

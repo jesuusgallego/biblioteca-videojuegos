@@ -71,6 +71,7 @@ export default {
   'juego.tieneResena': 'Has a review',
   'juego.editar': 'Edit',
   'juego.quitar': 'Remove',
+  'juego.accionesDe': 'Actions for {nombre}',
   'juego.quitarTitulo': 'Remove game',
   'juego.quitarMensaje': 'Remove "{nombre}" from your library? Its status, rating and review will be lost.',
   'editar.etiqueta': 'Edit game',

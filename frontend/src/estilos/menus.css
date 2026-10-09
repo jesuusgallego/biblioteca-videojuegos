@@ -143,6 +143,63 @@
   color: var(--peligro);
 }
 
+/* ---- Menú contextual de las tarjetas (MenuContextual.jsx) ---------------- */
+/* Sale en el punto del clic derecho; las opciones reutilizan el aspecto de las del
+   menú de usuario (.menu-usuario__opcion). Entra y sale con un fundido y un pequeño
+   zoom desde la esquina donde nació, igual que el resto de menús. La duración de
+   la salida debe coincidir con DURACION_SALIDA_MS de useVentana.js (200 ms). */
+.menu-contextual {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  min-width: 170px;
+  padding: 0.3rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  transform-origin: top left;
+  animation: menu-contextual-entrada 0.2s ease both;
+}
+
+.menu-contextual--saliendo {
+  pointer-events: none;
+  animation: menu-contextual-salida 0.2s ease both;
+}
+
+@keyframes menu-contextual-entrada {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes menu-contextual-salida {
+  to {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+.menu-contextual__opcion {
+  justify-content: flex-start;
+  gap: 0.6rem;
+  cursor: pointer;
+}
+
+/* El teclado resalta la opción igual que el ratón */
+.menu-contextual__opcion:focus-visible {
+  outline: none;
+  color: var(--texto-h);
+  background: var(--superficie-2);
+}
+
+.menu-contextual__opcion--peligro:hover,
+.menu-contextual__opcion--peligro:focus-visible {
+  color: var(--peligro);
+}
+
 /* ---- Menú de ajustes (MenuAjustes.jsx) ------------------------------------ */
 /* Reutiliza el panel y las opciones del menú de usuario (.menu-usuario__*). El
    botón es un .btn-icono de tres líneas del mismo tamaño que la foto. */

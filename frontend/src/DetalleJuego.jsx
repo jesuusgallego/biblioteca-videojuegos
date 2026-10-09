@@ -7,6 +7,8 @@ import Cargando from './Cargando'
 import { useVentana } from './useVentana'
 import Mensaje from './Mensaje'
 import ProgresoSteam from './ProgresoSteam'
+import VentanasJuego from './VentanasJuego'
+import { useAccionesJuego } from './useAccionesJuego'
 
 // "2015-05-19" -> "19 de mayo de 2015" (o "19 May 2015", según el idioma). Con
 // timeZone UTC evito que, según la zona horaria del usuario, la fecha salga un
@@ -40,7 +42,10 @@ function Fila({ etiqueta, valores }) {
 //    Si existe, enseño su estado, nota, plataforma y reseña.
 //  - onAnadir: si se pasa, la ficha muestra el botón "Añadir a mi biblioteca"
 //    (lo usa la búsqueda; en Mi biblioteca el juego ya está guardado).
-function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
+//  - onActualizar(cambios) / onBorrar(): si se pasan (Mi biblioteca), el recuadro
+//    "En mi biblioteca" lleva los botones Editar y Quitar. Son funciones async que
+//    lanzan un Error si el backend falla. Al quitar el juego la ficha se cierra.
+function DetalleJuego({ juego, guardado, onAnadir, onActualizar, onBorrar, onCerrar }) {
   const { t, idioma, locale } = useIdioma()
   const dialogRef = useRef(null)
   // Cierre con animación de salida (ver useVentana.js)
@@ -49,6 +54,12 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
   const [error, setError] = useState("")
   // Índice de la captura que se ve en grande, o null si el visor está cerrado
   const [capturaAbierta, setCapturaAbierta] = useState(null)
+  // Editar y quitar el juego desde la ficha. Tras quitarlo ya no hay nada que
+  // enseñar: la ficha se cierra con su animación de salida.
+  const acciones = useAccionesJuego(async () => {
+    await onBorrar()
+    cerrar()
+  })
 
   // <dialog> es la ventana modal nativa del navegador: showModal() la abre encima
   // de todo, oscurece el fondo, atrapa el foco y la cierra con Esc, sin librerías.
@@ -155,7 +166,22 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
 
       {guardado && (
         <section className="detalle__biblioteca" aria-labelledby="detalle-mi-biblioteca">
-          <h3 id="detalle-mi-biblioteca" className="titulo-seccion">{t('detalle.enBiblioteca')}</h3>
+          <div className="detalle__biblioteca-cabecera">
+            <h3 id="detalle-mi-biblioteca" className="titulo-seccion">{t('detalle.enBiblioteca')}</h3>
+
+            {onActualizar && onBorrar && (
+              <div className="detalle__acciones">
+                <button type="button" className="btn btn--secundario" onClick={acciones.editar} disabled={acciones.borrando}>
+                  {t('juego.editar')}
+                </button>
+                <button type="button" className="btn btn--peligro" onClick={acciones.quitar} disabled={acciones.borrando}>
+                  {t('juego.quitar')}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <Mensaje texto={acciones.error} />
 
           <div className="detalle__biblioteca-datos">
             <span className={`chip chip--${guardado.status}`}>
@@ -215,6 +241,10 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
         <p className="detalle__pie">
           <a href={datos.igdb_url} target="_blank" rel="noreferrer">{t('detalle.verIgdb')}</a>
         </p>
+      )}
+
+      {guardado && onActualizar && (
+        <VentanasJuego juego={guardado} acciones={acciones} onActualizar={onActualizar} />
       )}
 
       {capturaAbierta !== null && (

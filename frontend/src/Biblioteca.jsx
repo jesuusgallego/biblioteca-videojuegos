@@ -96,6 +96,10 @@ function Biblioteca({ setToken }) {
     setDetalle({ igdb_id: juego.igdb_id, name: juego.name, cover_url: juego.cover_url })
   }
 
+  // La fila de mi biblioteca del juego cuya ficha está abierta (undefined si no hay
+  // ninguna o si acaba de quitarse)
+  const guardadoDelDetalle = detalle && juegos.find((j) => j.igdb_id === detalle.igdb_id)
+
   // Valores derivados: los calculo en cada render a partir del estado para que
   // nunca queden desactualizados (así no necesitan su propio useState).
   const jugandoAhora = juegos.filter((j) => j.status === "jugando")
@@ -120,7 +124,12 @@ function Biblioteca({ setToken }) {
   return (
     <div className="biblioteca-pagina">
       {jugandoAhora.length > 0 && (
-        <JugandoAhora juegos={jugandoAhora} onVerDetalle={abrirDetalle} />
+        <JugandoAhora
+          juegos={jugandoAhora}
+          onVerDetalle={abrirDetalle}
+          onActualizar={actualizarJuego}
+          onBorrar={borrarJuego}
+        />
       )}
 
       <div className="biblioteca">
@@ -193,7 +202,9 @@ function Biblioteca({ setToken }) {
         <DetalleJuego
           key={detalle.igdb_id}
           juego={detalle}
-          guardado={juegos.find((j) => j.igdb_id === detalle.igdb_id)}
+          guardado={guardadoDelDetalle}
+          onActualizar={guardadoDelDetalle && ((cambios) => actualizarJuego(guardadoDelDetalle.id, cambios))}
+          onBorrar={guardadoDelDetalle && (() => borrarJuego(guardadoDelDetalle.id))}
           onCerrar={() => setDetalle(null)}
         />
       )}

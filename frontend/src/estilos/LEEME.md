@@ -19,7 +19,7 @@ a su vez importa el resto de archivos con `@import`.
 | `login.css` | Inicio de sesión y registro | `Login`, `Registro` |
 | `biblioteca.css` | Mi biblioteca: fila "Jugando ahora", filtros laterales, portadas pulsables | `Biblioteca`, `JugandoAhora` |
 | `ventanas.css` | Ventanas modales: ficha del juego, visor de capturas, edición, confirmación | `DetalleJuego`, `VisorCapturas`, `EditarJuego`, `DialogoConfirmar` |
-| `menus.css` | Avatar, menú de usuario y menú de ajustes (idioma y tema) | `Avatar`, `MenuUsuario`, `MenuAjustes` |
+| `menus.css` | Avatar, menú de usuario, menú de ajustes (idioma y tema) y menú contextual de las tarjetas | `Avatar`, `MenuUsuario`, `MenuAjustes`, `MenuContextual` |
 | `perfil.css` | Base del perfil, estadísticas, edición de foto/nombre/bio y el cambio animado `.vista` | `EstadisticasPerfil`, `EditarPerfil`, `SelectorArtwork`, `RecortadorFoto` |
 | `respuesta-al-pulsar.css` | Lo pulsable se encoge un poco mientras se mantiene pulsado | varios |
 | `perfil-cabecera-y-pestanas.css` | Banner del perfil con cifras, pestañas con indicador deslizante y paneles | `CabeceraPerfil`, `PestanasPerfil`, `Perfil` |

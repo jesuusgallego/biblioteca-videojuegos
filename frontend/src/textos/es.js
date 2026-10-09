@@ -73,6 +73,7 @@ export default {
   'juego.tieneResena': 'Tiene reseña',
   'juego.editar': 'Editar',
   'juego.quitar': 'Quitar',
+  'juego.accionesDe': 'Acciones de {nombre}',
   'juego.quitarTitulo': 'Quitar juego',
   'juego.quitarMensaje': '¿Quitar "{nombre}" de tu biblioteca? Se perderán su estado, nota y reseña.',
   'editar.etiqueta': 'Editar juego',

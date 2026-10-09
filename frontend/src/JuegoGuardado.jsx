@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { ESTADOS } from './estados'
 import { useIdioma } from './IdiomaContext'
-import DialogoConfirmar from './DialogoConfirmar'
-import EditarJuego from './EditarJuego'
+import VentanasJuego from './VentanasJuego'
+import { useAccionesJuego } from './useAccionesJuego'
+import { useMenuJuego } from './useMenuJuego'
 import Mensaje from './Mensaje'
 import Desplegable from './Desplegable'
 import IconoResena from './IconoResena'
@@ -11,23 +12,24 @@ import InsigniaSteam from './InsigniaSteam'
 import IconoPlataforma from './IconoPlataforma'
 import { esDeSteam } from './steam'
 
-// Tarjeta de un juego que ya está en mi biblioteca. "Editar" abre la ventana
-// EditarJuego y "Quitar" pide confirmación antes de borrar. onActualizar y
-// onBorrar son funciones async del padre que lanzan un Error si el backend falla.
+// Tarjeta de un juego que ya está en mi biblioteca. onActualizar y onBorrar son
+// funciones async del padre que lanzan un Error si el backend falla.
 // El chip de estado es un desplegable: cambiar el estado guarda al momento, sin
 // pasar por la ventana de edición.
+// "Editar" y "Quitar" no tienen botón en la tarjeta (se veían en todas y repetidos):
+// salen con el clic derecho (useMenuJuego) y en la ficha que abre un clic normal.
 // Toda la tarjeta es clicable, pero solo hay UN botón de verdad (el del título):
-// su ::after (ver estilos/tarjetas.css) se estira por toda la tarjeta. Los controles de dentro
-// (estado, Editar, Quitar) van por encima con z-index, así no anido botones.
+// su ::after (ver estilos/tarjetas.css) se estira por toda la tarjeta. El control de
+// dentro (el estado) va por encima con z-index, así no anido botones.
 
 function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
   const { t } = useIdioma()
   const opcionesEstado = ESTADOS.map((valor) => ({ valor, etiqueta: t(`estado.${valor}`), punto: valor }))
-  const [editando, setEditando] = useState(false)
-  const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState("")
-  // true mientras se enseña la ventana de "¿Quitar este juego?"
-  const [confirmandoBorrar, setConfirmandoBorrar] = useState(false)
+  // Editar y quitar (las ventanas y su estado) y el menú del clic derecho que las abre
+  const acciones = useAccionesJuego(onBorrar)
+  const { abrirMenu, menu } = useMenuJuego(juego, acciones, acciones.borrando)
+  const ocupado = acciones.borrando
   // Estado elegido en el chip mientras se guarda (null = no hay cambio en curso).
   // Lo enseño ya en el chip y, si el backend falla, vuelvo al que tenía.
   const [estadoPendiente, setEstadoPendiente] = useState(null)
@@ -45,21 +47,8 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
     }
   }
 
-  async function handleBorrar() {
-    setConfirmandoBorrar(false)
-    setOcupado(true)
-    setError("")
-    try {
-      await onBorrar()
-      // La tarjeta desaparece sola al quitarse el juego de la lista del padre
-    } catch (err) {
-      setError(err.message)
-      setOcupado(false)
-    }
-  }
-
   return (
-    <li className="tarjeta">
+    <li className="tarjeta" onContextMenu={abrirMenu}>
       <div className="portada">
         {/* La portada no lleva foco propio: el botón del título ya abre la ficha */}
         <button
@@ -85,10 +74,10 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
 
         <ProgresoSteam juego={juego} />
 
-        <Mensaje texto={error} />
+        <Mensaje texto={error || acciones.error} />
 
-        {/* El estado y los botones van siempre juntos y abajo del todo, así el chip
-            queda en el mismo sitio en todas las tarjetas */}
+        {/* El estado va siempre abajo del todo, así el chip queda en el mismo sitio
+            en todas las tarjetas */}
         <div className="tarjeta__pie">
           <div className="tarjeta__estado">
             <Desplegable
@@ -103,35 +92,12 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
 
             {juego.review && <IconoResena />}
           </div>
-
-          <div className="tarjeta__acciones">
-            <button className="btn btn--secundario" onClick={() => setEditando(true)} disabled={ocupado}>
-              {t('juego.editar')}
-            </button>
-            <button className="btn btn--peligro" onClick={() => setConfirmandoBorrar(true)} disabled={ocupado}>
-              {t('juego.quitar')}
-            </button>
-          </div>
         </div>
       </div>
 
-      {editando && (
-        <EditarJuego
-          juego={juego}
-          onActualizar={onActualizar}
-          onCerrar={() => setEditando(false)}
-        />
-      )}
+      <VentanasJuego juego={juego} acciones={acciones} onActualizar={onActualizar} />
 
-      {confirmandoBorrar && (
-        <DialogoConfirmar
-          titulo={t('juego.quitarTitulo')}
-          mensaje={t('juego.quitarMensaje', { nombre: juego.name })}
-          textoConfirmar={t('juego.quitar')}
-          onConfirmar={handleBorrar}
-          onCancelar={() => setConfirmandoBorrar(false)}
-        />
-      )}
+      {menu}
     </li>
   )
 }
