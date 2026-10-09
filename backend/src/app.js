@@ -7,6 +7,7 @@ const verifyToken = require('./middleware/authMiddleware');
 const gameRoutes = require('./routes/gameRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const accountRoutes = require('./routes/accountRoutes');
+const { iniciarSincronizacionAutomatica } = require('./services/sincronizacionAutomatica');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -42,4 +43,5 @@ app.use('/auth', authRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  iniciarSincronizacionAutomatica();
 });

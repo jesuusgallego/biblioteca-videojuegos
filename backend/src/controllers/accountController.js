@@ -138,16 +138,17 @@ async function unlinkSteam(req, res) {
   }
 }
 
-// POST /accounts/steam/sync — traer de Steam las horas y los logros.
+// Trae de Steam las horas y los logros de un usuario. La usan el botón (POST
+// /accounts/steam/sync) y la sincronización automática (services/sincronizacionAutomatica.js).
 //  1. Pido a Steam los juegos de la cuenta.
 //  2. Los emparejo con IGDB (mi biblioteca usa ids de IGDB, no de Steam).
 //  3. A los que ya están en mi biblioteca les actualizo el progreso.
 //  4. Si al vincular se eligió importar (import_games), añado también los que me faltan.
-async function syncSteam(req, res) {
-  const userId = req.user.id;
-
+// Devuelve { account, resumen }. Si no se puede (sin cuenta, ya hay una en curso,
+// perfil privado...) lanza un ErrorSteam con su código HTTP.
+async function sincronizarSteam(userId) {
   if (sincronizando.has(userId)) {
-    return res.status(409).json({ error: 'Ya hay una sincronización en curso' });
+    throw new ErrorSteam('Ya hay una sincronización en curso', 409);
   }
   sincronizando.add(userId);
 
@@ -157,7 +158,7 @@ async function syncSteam(req, res) {
       [userId]
     );
     if (cuenta.rows.length === 0) {
-      return res.status(404).json({ error: 'No tienes ninguna cuenta de Steam vinculada' });
+      throw new ErrorSteam('No tienes ninguna cuenta de Steam vinculada', 404);
     }
     const steamId = cuenta.rows[0].external_id;
     const importar = cuenta.rows[0].import_games;
@@ -258,7 +259,7 @@ async function syncSteam(req, res) {
       [userId]
     );
 
-    res.json({
+    return {
       account: cuentaActualizada.rows[0],
       resumen: {
         poseidos: poseidos.length,
@@ -266,12 +267,19 @@ async function syncSteam(req, res) {
         anadidos,
         sin_emparejar: sinEmparejar,
       },
-    });
-  } catch (err) {
-    responderError(err, res, 'syncSteam');
+    };
   } finally {
     sincronizando.delete(userId);
   }
 }
 
-module.exports = { listAccounts, linkSteam, unlinkSteam, syncSteam };
+// POST /accounts/steam/sync — el botón "Sincronizar ahora"
+async function syncSteam(req, res) {
+  try {
+    res.json(await sincronizarSteam(req.user.id));
+  } catch (err) {
+    responderError(err, res, 'syncSteam');
+  }
+}
+
+module.exports = { listAccounts, linkSteam, unlinkSteam, syncSteam, sincronizarSteam };

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { apiFetch } from './api'
 import Cargando from './Cargando'
 import ConexionSteam from './ConexionSteam'
@@ -17,6 +17,9 @@ import { usePresencia } from './usePresencia'
 //  - disponible: si el servidor tiene la clave de Steam (si no, no se puede vincular)
 //  - onSincronizado(): avisa a la página de que la biblioteca ha cambiado (al
 //    sincronizar o al desvincular, que borra los juegos importados)
+// La sincronización es automática: el servidor la hace cada cierto tiempo (ver
+// backend/src/services/sincronizacionAutomatica.js) y, además, SteamVinculada la
+// lanza sola al abrirse si los datos están viejos. El botón queda para forzarla.
 function CuentaSteam({ inicial, disponible, cerrarSesion, onSincronizado }) {
   const { t } = useIdioma()
   const { saliendo, cambiar } = useCambioVista()
@@ -154,18 +157,29 @@ function SteamVincular({ disponible, cerrarSesion, onVinculada }) {
   )
 }
 
+// A partir de cuántos minutos sin sincronizar lo hago sola al abrir el perfil
+const MINUTOS_PARA_AUTOSINCRONIZAR = 10
+
+// ¿Hace falta sincronizar sola al abrir? Si nunca se hizo o hace tiempo
+function hayQueAutosincronizar(cuenta) {
+  const ultima = cuenta.last_sync_at ? new Date(cuenta.last_sync_at).getTime() : 0
+  return Date.now() - ultima > MINUTOS_PARA_AUTOSINCRONIZAR * 60 * 1000
+}
+
 function SteamVinculada({ cuenta, privado, cerrarSesion, onSincronizada, onDesvinculada }) {
   const { t, locale } = useIdioma()
-  const [sincronizando, setSincronizando] = useState(false)
+  // Si va a sincronizarse sola al abrirse, ya nace "sincronizando": el botón se ve
+  // ocupado desde el primer pintado y no hay un parpadeo
+  const [sincronizando, setSincronizando] = useState(() => !privado && hayQueAutosincronizar(cuenta))
   const [desvinculando, setDesvinculando] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
   const [error, setError] = useState("")
   const [resultado, setResultado] = useState("")
 
-  async function handleSincronizar() {
-    setError("")
-    setResultado("")
-    setSincronizando(true)
+  // Pide la sincronización y enseña el resultado. automatica: la lanza el propio
+  // componente, no el usuario; si ya había otra en marcha (409: la del servidor, por
+  // ejemplo) no es un error que enseñar.
+  async function sincronizar(automatica) {
     try {
       const data = await apiFetch('/accounts/steam/sync', { method: 'POST' })
       setResultado(t('steam.resumen', {
@@ -176,11 +190,33 @@ function SteamVinculada({ cuenta, privado, cerrarSesion, onSincronizada, onDesvi
       onSincronizada(data.account)
     } catch (err) {
       if (err.status === 401) return cerrarSesion()
+      if (automatica && err.status === 409) return
       setError(err.message)
     } finally {
       setSincronizando(false)
     }
   }
+
+  // El botón
+  function handleSincronizar() {
+    setError("")
+    setResultado("")
+    setSincronizando(true)
+    sincronizar(false)
+  }
+
+  // Al abrirse, si la cuenta nunca se ha sincronizado (recién vinculada) o hace
+  // más de MINUTOS_PARA_AUTOSINCRONIZAR, sincronizo sin que nadie pulse nada. Con el
+  // perfil privado no: fallaría seguro y ya hay un aviso. La ref evita que el modo
+  // estricto de React (que monta dos veces en desarrollo) lance dos peticiones.
+  const autoLanzada = useRef(false)
+  useEffect(() => {
+    if (autoLanzada.current || !sincronizando) return
+    autoLanzada.current = true
+    sincronizar(true)
+    // Solo al montarse: no quiero que vuelva a sincronizar cada vez que cambie algo
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleDesvincular() {
     setConfirmando(false)
@@ -238,6 +274,8 @@ function SteamVinculada({ cuenta, privado, cerrarSesion, onSincronizada, onDesvi
           <dd className={cuenta.import_games ? "dato-cuenta__valor--ok" : undefined}>{importacion}</dd>
         </div>
       </dl>
+
+      <p className="plataforma__ayuda">{t('steam.autoSync')}</p>
 
       <Mensaje tipo="aviso" texto={privado ? t('steam.perfilPrivado') : ""} />
       <Mensaje texto={error} />
