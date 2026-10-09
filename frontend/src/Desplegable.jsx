@@ -8,28 +8,35 @@ import Cargando from './Cargando'
 //
 // Sigue el patrón accesible "select-only combobox": el foco se queda siempre en
 // el botón y la opción resaltada se indica con aria-activedescendant.
-//  - opciones: [{ valor, etiqueta }, ...]
+//  - opciones: [{ valor, etiqueta, punto? }, ...]; "punto" (opcional) pinta delante
+//    el puntito de color de ese estado (clase punto--<punto>)
 //  - valor: el "valor" de la opción elegida
 //  - onChange(nuevoValor)
 //  - cargando: cambia la flecha por el indicador de carga (la lista aún no está)
+//  - variante: "campo" (por defecto, ocupa todo el ancho como un campo de formulario)
+//    o "chip" (pequeño, con el aspecto y el color del chip de estado)
+//  - etiqueta: nombre accesible del botón; hace falta cuando no hay una <label> alrededor
 
 const DURACION_SALIDA_MS = 160 // debe coincidir con la animación de salida del CSS
 const ALTO_MAX = 240 // px
 const SEPARACION = 4 // px entre el botón y la lista
+const ANCHO_MIN_CHIP = 160 // px; un chip es más estrecho que su lista de opciones
 
 // Calculo dónde colocar la lista según el botón. La pinto fuera de su sitio con
 // position: fixed porque las tarjetas tienen overflow: hidden y la recortarían.
 // Si abajo no hay sitio y arriba sí, la abro hacia arriba.
-function medir(boton) {
+function medir(boton, anchoMin = 0) {
   const r = boton.getBoundingClientRect()
+  const width = Math.max(r.width, anchoMin)
   const abajo = window.innerHeight - r.bottom - 8
   const arriba = r.top - 8
   const haciaArriba = abajo < 180 && arriba > abajo
 
   return {
     haciaArriba,
-    left: r.left,
-    width: r.width,
+    // Si la lista es más ancha que el botón, evito que se salga por la derecha
+    left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)),
+    width,
     maxHeight: Math.min(ALTO_MAX, (haciaArriba ? arriba : abajo) - SEPARACION),
     ...(haciaArriba
       ? { bottom: window.innerHeight - r.top + SEPARACION }
@@ -37,7 +44,7 @@ function medir(boton) {
   }
 }
 
-function Desplegable({ opciones, valor, onChange, disabled = false, cargando = false }) {
+function Desplegable({ opciones, valor, onChange, disabled = false, cargando = false, variante = 'campo', etiqueta }) {
   const idLista = useId()
   const botonRef = useRef(null)
   const listaRef = useRef(null)
@@ -55,10 +62,12 @@ function Desplegable({ opciones, valor, onChange, disabled = false, cargando = f
   const visible = fase !== 'cerrado'
   const indiceElegido = opciones.findIndex((o) => o.valor === valor)
   const elegida = opciones[indiceElegido]
+  const esChip = variante === 'chip'
+  const anchoMin = esChip ? ANCHO_MIN_CHIP : 0
 
   function abrir(indiceInicial = indiceElegido) {
     if (disabled) return
-    setPosicion(medir(botonRef.current))
+    setPosicion(medir(botonRef.current, anchoMin))
     setContenedor(botonRef.current.closest('dialog') ?? document.body)
     setActivo(Math.max(0, indiceInicial))
     setFase('abierto')
@@ -93,7 +102,7 @@ function Desplegable({ opciones, valor, onChange, disabled = false, cargando = f
     }
     function recolocar(e) {
       if (listaRef.current?.contains(e.target)) return // scroll de la propia lista
-      setPosicion(medir(botonRef.current))
+      setPosicion(medir(botonRef.current, anchoMin))
     }
 
     window.addEventListener('mousedown', clicFuera)
@@ -104,7 +113,7 @@ function Desplegable({ opciones, valor, onChange, disabled = false, cargando = f
       window.removeEventListener('scroll', recolocar, true)
       window.removeEventListener('resize', recolocar)
     }
-  }, [abierto])
+  }, [abierto, anchoMin])
 
   // Mantengo a la vista la opción resaltada cuando la lista tiene scroll
   useEffect(() => {
@@ -177,7 +186,8 @@ function Desplegable({ opciones, valor, onChange, disabled = false, cargando = f
       <button
         ref={botonRef}
         type="button"
-        className="desplegable__boton"
+        className={esChip ? `desplegable__boton desplegable__boton--chip chip chip--${valor}` : 'desplegable__boton'}
+        aria-label={etiqueta}
         role="combobox"
         aria-haspopup="listbox"
         aria-expanded={abierto}
@@ -226,6 +236,7 @@ function Desplegable({ opciones, valor, onChange, disabled = false, cargando = f
               onMouseDown={(e) => e.preventDefault()} // el foco no se va del botón
               onClick={() => elegir(i)}
             >
+              {o.punto && <span className={`punto punto--${o.punto}`} aria-hidden="true" />}
               {o.etiqueta}
             </li>
           ))}

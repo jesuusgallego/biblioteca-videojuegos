@@ -3,10 +3,19 @@ import { ETIQUETAS_ESTADO } from './estados'
 import DialogoConfirmar from './DialogoConfirmar'
 import EditarJuego from './EditarJuego'
 import Mensaje from './Mensaje'
+import Desplegable from './Desplegable'
+import IconoResena from './IconoResena'
+
+const OPCIONES_ESTADO = Object.entries(ETIQUETAS_ESTADO).map(([valor, etiqueta]) => ({ valor, etiqueta, punto: valor }))
 
 // Tarjeta de un juego que ya está en mi biblioteca. "Editar" abre la ventana
 // EditarJuego y "Quitar" pide confirmación antes de borrar. onActualizar y
 // onBorrar son funciones async del padre que lanzan un Error si el backend falla.
+// El chip de estado es un desplegable: cambiar el estado guarda al momento, sin
+// pasar por la ventana de edición.
+// Toda la tarjeta es clicable, pero solo hay UN botón de verdad (el del título):
+// su ::after (ver App.css) se estira por toda la tarjeta. Los controles de dentro
+// (estado, Editar, Quitar) van por encima con z-index, así no anido botones.
 
 function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
   const [editando, setEditando] = useState(false)
@@ -14,6 +23,22 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
   const [error, setError] = useState("")
   // true mientras se enseña la ventana de "¿Quitar este juego?"
   const [confirmandoBorrar, setConfirmandoBorrar] = useState(false)
+  // Estado elegido en el chip mientras se guarda (null = no hay cambio en curso).
+  // Lo enseño ya en el chip y, si el backend falla, vuelvo al que tenía.
+  const [estadoPendiente, setEstadoPendiente] = useState(null)
+
+  async function handleCambiarEstado(status) {
+    if (status === juego.status) return
+    setEstadoPendiente(status)
+    setError("")
+    try {
+      await onActualizar({ status })
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setEstadoPendiente(null)
+    }
+  }
 
   async function handleBorrar() {
     setConfirmandoBorrar(false)
@@ -31,11 +56,13 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
   return (
     <li className="tarjeta">
       <div className="portada">
+        {/* La portada no lleva foco propio: el botón del título ya abre la ficha */}
         <button
           type="button"
           className="boton-portada boton-portada--llena"
           onClick={onVerDetalle}
-          aria-label={`Ver detalles de ${juego.name}`}
+          tabIndex={-1}
+          aria-hidden="true"
         >
           {juego.cover_url
             ? <img src={juego.cover_url} alt="" loading="lazy" />
@@ -50,16 +77,25 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
         </h3>
 
         {juego.platform && <p className="tarjeta__meta">{juego.platform}</p>}
-        {juego.review && <p className="tarjeta__resena">{juego.review}</p>}
 
         <Mensaje texto={error} />
 
         {/* El estado y los botones van siempre juntos y abajo del todo, así el chip
             queda en el mismo sitio en todas las tarjetas */}
         <div className="tarjeta__pie">
-          <span className={`chip chip--${juego.status}`}>
-            {ETIQUETAS_ESTADO[juego.status] ?? juego.status}
-          </span>
+          <div className="tarjeta__estado">
+            <Desplegable
+              variante="chip"
+              etiqueta={`Estado de ${juego.name}`}
+              opciones={OPCIONES_ESTADO}
+              valor={estadoPendiente ?? juego.status}
+              onChange={handleCambiarEstado}
+              disabled={ocupado}
+              cargando={estadoPendiente !== null}
+            />
+
+            {juego.review && <IconoResena />}
+          </div>
 
           <div className="tarjeta__acciones">
             <button className="btn btn--secundario" onClick={() => setEditando(true)} disabled={ocupado}>

@@ -1,8 +1,10 @@
 import { ETIQUETAS_ESTADO } from './estados'
+import IconoResena from './IconoResena'
 
 // Fila "Jugando ahora" de Mi biblioteca: una tarjeta ancha por cada juego con
-// estado "jugando". Solo enseño lo que guardo en la BD (portada, plataforma,
-// nota y reseña); no hay horas ni progreso, así que no los dibujo.
+// estado "jugando". Solo enseño lo que guardo en la BD (portada, plataforma y
+// nota); no hay horas ni progreso, así que no los dibujo. La reseña no se
+// escribe aquí: un icono junto al estado avisa de que existe y se lee en la ficha.
 // Toda la tarjeta es clicable, pero solo hay UN botón de verdad (el del título):
 // su ::after (ver App.css) se estira por toda la tarjeta. Así no anido botones
 // y el teclado y los lectores de pantalla ven un único enlace por juego.
@@ -40,7 +42,10 @@ function JugandoAhora({ juegos, onVerDetalle }) {
             </div>
 
             <div className="jugando__cuerpo">
-              <span className="chip chip--jugando">{ETIQUETAS_ESTADO.jugando}</span>
+              <div className="tarjeta__estado">
+                <span className="chip chip--jugando">{ETIQUETAS_ESTADO.jugando}</span>
+                {juego.review && <IconoResena />}
+              </div>
 
               <h3 className="jugando__titulo">
                 <button type="button" className="enlace-titulo" onClick={() => onVerDetalle(juego)}>
@@ -52,8 +57,6 @@ function JugandoAhora({ juegos, onVerDetalle }) {
                 {juego.platform && <span className="tarjeta__meta">{juego.platform}</span>}
                 {juego.rating && <span className="contador">★ {juego.rating}/10</span>}
               </div>
-
-              {juego.review && <p className="tarjeta__resena jugando__resena">{juego.review}</p>}
             </div>
           </li>
         ))}

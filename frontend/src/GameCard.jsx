@@ -2,6 +2,8 @@ import BotonAnadir from './BotonAnadir'
 
 // Tarjeta de un resultado de la búsqueda. El botón de añadir vive en BotonAnadir
 // y el padre (Buscar) me pasa yaGuardado y onAnadir.
+// Toda la tarjeta abre la ficha: el ::after del botón del título se estira por
+// ella (ver App.css) y el botón de añadir va por encima.
 function GameCard({ nombre, portada, yaGuardado, onAnadir, onVerDetalle }) {
   return (
     <li className="tarjeta">
@@ -10,7 +12,8 @@ function GameCard({ nombre, portada, yaGuardado, onAnadir, onVerDetalle }) {
           type="button"
           className="boton-portada boton-portada--llena"
           onClick={onVerDetalle}
-          aria-label={`Ver detalles de ${nombre}`}
+          tabIndex={-1}
+          aria-hidden="true"
         >
           {portada
             ? <img src={portada} alt="" loading="lazy" />

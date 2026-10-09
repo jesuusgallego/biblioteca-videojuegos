@@ -15,6 +15,9 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--texto-h);
+  /* Sin subrayado en ningún estado: el de los enlaces (index.css) parte de
+     transparente y al quitar el ratón se veía un instante al desvanecerse */
+  text-decoration: none;
 }
 
 /* El color del icono lo usa la cinta del logo (currentColor): celeste en el
@@ -592,6 +595,8 @@
 }
 
 .tarjeta {
+  position: relative; /* el ::after del título se estira por toda la tarjeta */
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -672,16 +677,6 @@
   color: var(--texto-suave);
 }
 
-.tarjeta__resena {
-  font-size: 0.85rem;
-  color: var(--texto);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
 /* Estado + botones, pegados al fondo de la tarjeta */
 .tarjeta__pie {
   display: flex;
@@ -696,6 +691,51 @@
   flex-wrap: wrap;
   gap: 0.4rem;
   margin-top: auto;
+}
+
+/* Toda la tarjeta es clicable: el ::after del botón del título la cubre (el <li>
+   es position: relative). Lo que se puede pulsar dentro (estado, Editar, Quitar,
+   Añadir) va por encima con z-index y conserva su propio clic. */
+.tarjeta__titulo .enlace-titulo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.tarjeta .btn,
+.tarjeta .desplegable__boton {
+  position: relative;
+  z-index: 2;
+}
+
+/* El anillo de foco va en la tarjeta entera, no solo alrededor del texto */
+.tarjeta__titulo .enlace-titulo:focus-visible {
+  outline: none;
+}
+
+.tarjeta:has(.enlace-titulo:focus-visible) {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+/* Chip de estado + icono de "tiene reseña", en una fila */
+.tarjeta__estado {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tarjeta__icono-resena {
+  flex: none;
+  color: var(--texto-suave);
+  transition: color var(--transicion), scale var(--transicion);
+}
+
+.tarjeta:hover .tarjeta__icono-resena,
+.jugando__tarjeta:hover .tarjeta__icono-resena {
+  color: var(--acento);
+  scale: 1.12;
 }
 
 /* Botones más pequeños dentro de las tarjetas */
@@ -889,6 +929,48 @@
 .desplegable__opcion[aria-selected="true"] {
   font-weight: 600;
   color: var(--acento);
+}
+
+/* Variante "chip": el botón se ve como el chip de estado (.chip) pero abre la
+   lista. Lleva también las clases chip chip--<estado>, que ponen --color. */
+.desplegable__boton.desplegable__boton--chip {
+  width: auto;
+  gap: 0.3rem;
+  padding: 0.15rem 0.45rem 0.15rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color);
+  background: color-mix(in srgb, var(--color) 16%, transparent);
+  border-color: color-mix(in srgb, var(--color) 35%, transparent);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color var(--transicion), box-shadow var(--transicion), scale var(--transicion),
+    background-color var(--transicion), color var(--transicion);
+}
+
+.desplegable__boton--chip:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color) 28%, transparent);
+  border-color: var(--color);
+}
+
+.desplegable__boton--chip .desplegable__flecha {
+  width: 12px;
+  height: 12px;
+  color: inherit;
+}
+
+.desplegable__boton--chip:disabled {
+  opacity: 1; /* mientras guarda, el chip no se apaga: ya enseña el indicador de carga */
+  cursor: progress;
+}
+
+/* Puntito de color delante de cada opción de la lista */
+.desplegable__opcion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* Formulario de edición (EditarJuego.jsx): campos en rejilla, la reseña ocupa todo el ancho */
@@ -1109,12 +1191,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.6rem;
-}
-
-.jugando__resena {
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  max-width: 46ch;
 }
 
 /* ---- Mi biblioteca: barra lateral de filtros + contenido ----------------- */
