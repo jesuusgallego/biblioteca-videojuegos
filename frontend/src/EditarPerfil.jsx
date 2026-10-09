@@ -1,16 +1,18 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { apiFetch } from './api'
-import { reducirImagen } from './imagen'
 import Avatar from './Avatar'
 import Cargando from './Cargando'
 import SelectorArtwork from './SelectorArtwork'
+import RecortadorFoto from './RecortadorFoto'
+import { useCambioVista } from './useCambioVista'
 import Mensaje from './Mensaje'
 
 const BIO_MAX = 300
 
 // Formulario de foto, nombre de usuario y bio.
 // La foto puede ser una imagen subida o una ilustración de uno de los juegos de la
-// biblioteca. En los dos casos acaba siendo un cuadrado de 256 px en base64.
+// biblioteca. En los dos casos se encuadra en el RecortadorFoto y acaba siendo un
+// cuadrado de 256 px en base64.
 //  - perfil: los datos guardados ahora mismo
 //  - onGuardado(usuario): el padre actualiza el perfil compartido con la barra
 //  - cerrarSesion(): para cuando el backend dice 401 (sesión caducada)
@@ -22,9 +24,16 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState("")
   const [guardado, setGuardado] = useState(false)
-  // Selector de ilustraciones: abierto o no, y las de mis juegos (null = aún sin
-  // pedir; se piden la primera vez que se abre)
+  // Panel de debajo de la foto: abierto o no, y qué enseña: las ilustraciones de
+  // mis juegos o el recortador de una foto subida. Al cambiar de uno a otro con el
+  // panel abierto, el que sale se desvanece (useCambioVista).
   const [eligiendo, setEligiendo] = useState(false)
+  const [modo, setModo] = useState("ilustraciones") // "ilustraciones" o "subida"
+  const { saliendo, cambiar } = useCambioVista()
+  // La foto subida, como URL temporal (blob:) para poder enseñarla al recortarla
+  const [subida, setSubida] = useState(null)
+  // Las ilustraciones de mis juegos (null = aún sin pedir; se piden la primera vez
+  // que se abre el selector)
   const [juegos, setJuegos] = useState(null)
   const [errorJuegos, setErrorJuegos] = useState("")
   // Sube cada vez que abro el selector: como es su `key`, así empieza siempre en
@@ -39,26 +48,55 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
   if (avatar !== perfil.avatar) cambios.avatar = avatar
   const hayCambios = Object.keys(cambios).length > 0
 
-  async function elegirFoto(e) {
+  // Al cambiar de foto subida (o al irme) libero la URL temporal anterior, que si
+  // no se queda ocupando memoria hasta cerrar la pestaña
+  useEffect(() => {
+    return () => { if (subida) URL.revokeObjectURL(subida) }
+  }, [subida])
+
+  // Enseña `nuevoModo` en el panel: lo abre si está cerrado y, si está abierto con
+  // el otro modo, hace el cambio animado. `preparar` deja listo lo del modo nuevo.
+  function mostrar(nuevoModo, preparar) {
+    const cambio = () => {
+      preparar()
+      setModo(nuevoModo)
+      setAperturas((n) => n + 1)
+    }
+
+    if (eligiendo && modo !== nuevoModo) {
+      cambiar(cambio)
+    } else {
+      cambio()
+      setEligiendo(true)
+    }
+  }
+
+  function elegirFoto(e) {
     const archivo = e.target.files[0]
     // Vacío el input para poder volver a elegir el mismo archivo más tarde
     e.target.value = ""
     if (!archivo) return
 
-    setError("")
     setGuardado(false)
-    try {
-      setAvatar(await reducirImagen(archivo))
-    } catch (err) {
-      setError(err.message)
+    if (!archivo.type.startsWith('image/')) {
+      setError("El archivo elegido no es una imagen")
+      return
     }
+
+    setError("")
+    const url = URL.createObjectURL(archivo)
+    mostrar("subida", () => setSubida(url))
   }
 
   async function alternarSelector() {
-    const abrir = !eligiendo
-    setEligiendo(abrir)
-    if (abrir) setAperturas((n) => n + 1)
-    if (!abrir || juegos) return
+    // Si ya enseña las ilustraciones, el botón las cierra
+    if (eligiendo && modo === "ilustraciones") {
+      setEligiendo(false)
+      return
+    }
+
+    mostrar("ilustraciones", () => {})
+    if (juegos) return
 
     setErrorJuegos("")
     try {
@@ -70,7 +108,8 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
     }
   }
 
-  function usarIlustracion(foto) {
+  // La foto ya recortada, venga de donde venga
+  function usarFoto(foto) {
     setAvatar(foto)
     setEligiendo(false)
     setGuardado(false)
@@ -118,7 +157,7 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
           <button
             type="button"
             className="btn btn--secundario"
-            aria-expanded={eligiendo}
+            aria-expanded={eligiendo && modo === "ilustraciones"}
             onClick={alternarSelector}
           >
             Elegir ilustración de mis juegos
@@ -131,7 +170,7 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
               Quitar foto
             </button>
           )}
-          <small>Sube un JPG, PNG o WebP (se recorta en cuadrado) o usa una ilustración de uno de tus juegos.</small>
+          <small>Sube un JPG, PNG o WebP o usa una ilustración de uno de tus juegos. Después eliges el encuadre.</small>
         </div>
       </div>
 
@@ -141,14 +180,31 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
       <div className={eligiendo ? "selector-avatar selector-avatar--abierto" : "selector-avatar"}>
         <div className="selector-avatar__interior">
           <div className="selector-avatar__caja">
-            <Mensaje texto={errorJuegos} />
-            {!errorJuegos && !juegos && <Cargando texto="Buscando ilustraciones de tus juegos..." />}
-            {juegos?.length === 0 && (
-              <p className="estado">
-                Ninguno de tus juegos tiene ilustraciones en IGDB todavía. Añade más desde Buscar.
-              </p>
-            )}
-            {juegos?.length > 0 && <SelectorArtwork key={aperturas} juegos={juegos} onUsar={usarIlustracion} />}
+            {/* key: al cambiar de modo (o reabrir) la vista nueva entra con su animación */}
+            <div key={modo} className={saliendo ? "vista vista--saliendo" : "vista"}>
+              {modo === "subida" ? (
+                subida && (
+                  <RecortadorFoto
+                    key={aperturas}
+                    url={subida}
+                    onUsar={usarFoto}
+                    onVolver={() => setEligiendo(false)}
+                    etiquetaVolver="Cancelar"
+                  />
+                )
+              ) : (
+                <>
+                  <Mensaje texto={errorJuegos} />
+                  {!errorJuegos && !juegos && <Cargando texto="Buscando ilustraciones de tus juegos..." />}
+                  {juegos?.length === 0 && (
+                    <p className="estado">
+                      Ninguno de tus juegos tiene ilustraciones en IGDB todavía. Añade más desde Buscar.
+                    </p>
+                  )}
+                  {juegos?.length > 0 && <SelectorArtwork key={aperturas} juegos={juegos} onUsar={usarFoto} />}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
