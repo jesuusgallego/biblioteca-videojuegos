@@ -2,13 +2,12 @@ import Avatar from './Avatar'
 import { useIdioma } from './IdiomaContext'
 
 // Banner del perfil: foto, nombre, bio y tres cifras de la biblioteca.
-// El fondo es un collage borroso con las portadas de los juegos mejor valorados del
-// usuario (si no tiene ninguno, un degradado de la marca). Es decorativo.
+// El fondo es siempre el mismo (una aurora con los colores de la marca, solo CSS):
+// no depende del usuario ni de sus juegos. Es decorativo.
 //  - perfil: { username, avatar, bio, created_at }
 //  - stats: lo que calcula GET /profile/stats, o null mientras carga
-//  - portadas: lista de URLs de portada para el fondo
 //  - onEditar(): salta a la pestaña de edición
-function CabeceraPerfil({ perfil, stats, portadas, onEditar }) {
+function CabeceraPerfil({ perfil, stats, onEditar }) {
   const { t, locale } = useIdioma()
 
   const miembroDesde = new Date(perfil.created_at).toLocaleDateString(locale, {
@@ -28,9 +27,7 @@ function CabeceraPerfil({ perfil, stats, portadas, onEditar }) {
 
   return (
     <header className="banner-perfil">
-      <div className="banner-perfil__fondo" aria-hidden="true">
-        {portadas.map((url) => <img key={url} src={url} alt="" />)}
-      </div>
+      <div className="banner-perfil__fondo" aria-hidden="true" />
 
       <button type="button" className="banner-perfil__editar" onClick={onEditar}>
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

@@ -83,9 +83,6 @@ function Perfil({ setToken }) {
   // Hasta que llegue el perfil no hay nada que enseñar
   if (!perfil) return <Cargando texto={t('perfil.cargando')} tamano="grande" centrado />
 
-  // Portadas de los mejor valorados para el fondo del banner (sin repetir)
-  const portadas = [...new Set((datos?.mejores ?? []).map((j) => j.cover_url).filter(Boolean))]
-
   const paneles = [
     {
       id: 'resumen',
@@ -124,7 +121,6 @@ function Perfil({ setToken }) {
       <CabeceraPerfil
         perfil={perfil}
         stats={datos?.stats ?? null}
-        portadas={portadas}
         onEditar={() => irA('editar')}
       />
 

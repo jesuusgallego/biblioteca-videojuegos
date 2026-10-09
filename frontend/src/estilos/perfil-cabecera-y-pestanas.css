@@ -1,14 +1,14 @@
 /* Perfil: banner con las cifras, pestañas y paneles. */
 
 /* ---- Perfil: banner (CabeceraPerfil.jsx) ------------------------------------ */
-/* El banner es oscuro en los dos temas: su fondo son portadas con una capa negra
+/* El banner es oscuro en los dos temas: su fondo es una aurora con una capa oscura
    encima, así el texto blanco se lee siempre */
 .banner-perfil {
   position: relative;
   overflow: hidden;
   isolation: isolate;
   color: #fff;
-  background: linear-gradient(135deg, #1c2f4a, #192536 55%, #2a1f5c);
+  background: #0e1724;
   border: 1px solid var(--borde);
   border-radius: var(--radio-grande);
   animation: banner-entrada 0.5s ease both;
@@ -21,31 +21,41 @@
   }
 }
 
-/* Collage de portadas: cada una ocupa lo mismo, borrosa y oscurecida. El scale
-   evita que el desenfoque deje un borde claro en los lados. */
+/* Fondo fijo, igual para todos: manchas suaves con los colores de la marca (el
+   violeta y el azul del degradado de la app y el cian de acento) sobre un azul
+   marino. Los radial-gradient ya son difuminados, no hace falta blur. */
 .banner-perfil__fondo {
   position: absolute;
   inset: 0;
   z-index: -1;
-  display: flex;
+  background:
+    radial-gradient(ellipse 55% 140% at 4% -20%, rgba(110, 80, 255, 0.95), transparent 70%),
+    radial-gradient(ellipse 50% 120% at 48% 135%, rgba(27, 116, 200, 0.95), transparent 68%),
+    radial-gradient(ellipse 42% 110% at 98% 10%, rgba(76, 201, 240, 0.6), transparent 70%),
+    linear-gradient(135deg, #1a2d4a, #101a2b 55%, #231a5e);
 }
 
-.banner-perfil__fondo img {
-  flex: 1 1 0;
-  min-width: 0;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(10px) saturate(1.5) brightness(0.78);
-  transform: scale(1.25);
+/* Rejilla muy tenue (guiño a un mapa de juego) que se desvanece hacia la izquierda,
+   donde está el texto */
+.banner-perfil__fondo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: linear-gradient(90deg, transparent 15%, #000 85%);
 }
 
+/* Capa oscura: más fuerte a la izquierda (nombre y bio) y abajo */
 .banner-perfil__fondo::after {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(8, 13, 22, 0.82), rgba(8, 13, 22, 0.28) 55%, rgba(8, 13, 22, 0.5)),
-    linear-gradient(0deg, rgba(8, 13, 22, 0.45), transparent 55%);
+    linear-gradient(90deg, rgba(8, 13, 22, 0.4), rgba(8, 13, 22, 0.05) 60%, rgba(8, 13, 22, 0.15)),
+    linear-gradient(0deg, rgba(8, 13, 22, 0.3), transparent 50%);
 }
 
 .banner-perfil__contenido {
