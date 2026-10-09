@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { apiFetch } from './api'
 import Marca from './Marca'
-import BotonTema from './BotonTema'
+import MenuAjustes from './MenuAjustes'
+import { useIdioma } from './IdiomaContext'
 import Cargando from './Cargando'
 import Mensaje from './Mensaje'
 
 function Login({ setToken }) {
+  const { t } = useIdioma()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -20,12 +22,12 @@ function Login({ setToken }) {
     setError("")
 
     if (!emailRegex.test(email)) {
-      setError("El email no tiene un formato válido")
+      setError(t('validacion.emailInvalido'))
       return
     }
 
     if (password === "") {
-      setError("Introduce tu contraseña")
+      setError(t('auth.login.passwordVacia'))
       return
     }
 
@@ -43,16 +45,16 @@ function Login({ setToken }) {
   return (
     <main className="auth">
       <div className="auth__tema">
-        <BotonTema />
+        <MenuAjustes />
       </div>
 
       <div className="auth__tarjeta">
         <Marca grande />
-        <h1 className="auth__titulo">Iniciar sesión</h1>
+        <h1 className="auth__titulo">{t('auth.login.titulo')}</h1>
 
         <form className="formulario" onSubmit={handleLogin}>
           <label className="campo">
-            <span>Email</span>
+            <span>{t('auth.email')}</span>
             <input
               type="email"
               value={email}
@@ -62,7 +64,7 @@ function Login({ setToken }) {
             />
           </label>
           <label className="campo">
-            <span>Contraseña</span>
+            <span>{t('auth.password')}</span>
             <input
               type="password"
               value={password}
@@ -75,12 +77,12 @@ function Login({ setToken }) {
           <Mensaje texto={error} />
 
           <button type="submit" className="btn btn--primario btn--block" disabled={enviando}>
-            {enviando ? <><Cargando tamano="pequeno" /> Entrando...</> : "Iniciar sesión"}
+            {enviando ? <><Cargando tamano="pequeno" /> {t('auth.login.entrando')}</> : t('auth.login.titulo')}
           </button>
         </form>
 
         <p className="auth__pie">
-          ¿No tienes cuenta? <Link to="/registro">Regístrate</Link>
+          {t('auth.login.sinCuenta')} <Link to="/registro">{t('auth.login.registrate')}</Link>
         </p>
       </div>
     </main>

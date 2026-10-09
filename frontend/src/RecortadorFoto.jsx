@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { recortarImagen } from './imagen'
 import Mensaje from './Mensaje'
+import { useIdioma } from './IdiomaContext'
 
 const ZOOM_MAX = 4 // veces el tamaño en que la imagen justo cubre el cuadro
 const PASO_FLECHAS = 0.05 // lo que mueven las flechas, como fracción del cuadro
@@ -66,8 +67,9 @@ const puntoMedio = (puntos) => ({
 //  - url: la imagen (una URL de IGDB o un blob: de un archivo del equipo)
 //  - onUsar(dataUrl): recibe la foto ya recortada y reducida
 //  - onVolver(): cancelar
-//  - etiquetaVolver: lo que pone el botón de cancelar
-function RecortadorFoto({ url, onUsar, onVolver, etiquetaVolver = "Volver" }) {
+//  - etiquetaVolver: lo que pone el botón de cancelar (por defecto, "Volver")
+function RecortadorFoto({ url, onUsar, onVolver, etiquetaVolver }) {
+  const { t } = useIdioma()
   const vistaRef = useRef(null)
   const [imagen, setImagen] = useState(null) // el <img> cuando ya ha cargado
   const [lado, setLado] = useState(0) // lo que mide el cuadro en pantalla, en px
@@ -235,7 +237,7 @@ function RecortadorFoto({ url, onUsar, onVolver, etiquetaVolver = "Volver" }) {
     try {
       onUsar(recortarImagen(imagen, sx, sy, lado / escala))
     } catch {
-      setError("No se pudo preparar la imagen. Prueba con otra")
+      setError(t('recortador.errorPreparar'))
     }
   }
 
@@ -252,7 +254,7 @@ function RecortadorFoto({ url, onUsar, onVolver, etiquetaVolver = "Volver" }) {
         className={arrastrando ? "recortador__vista recortador__vista--arrastrando" : "recortador__vista"}
         tabIndex={0}
         role="group"
-        aria-label="Encuadre de la foto. Arrastra para mover, usa la rueda o las teclas más y menos para ampliar o reducir."
+        aria-label={t('recortador.encuadre')}
         onPointerDown={alPulsar}
         onPointerMove={alMover}
         onPointerUp={alSoltar}
@@ -273,7 +275,7 @@ function RecortadorFoto({ url, onUsar, onVolver, etiquetaVolver = "Volver" }) {
             transform: `translate(-50%, -50%) translate(${centroVisible.x * lado}px, ${centroVisible.y * lado}px)`,
           } : undefined}
           onLoad={(e) => setImagen(e.currentTarget)}
-          onError={() => setError("No se pudo cargar la imagen. Prueba con otra")}
+          onError={() => setError(t('recortador.errorCargar'))}
         />
         {/* El círculo: oscurece lo que quedará fuera del avatar */}
         <span className="recortador__guia" aria-hidden="true" />
@@ -281,12 +283,12 @@ function RecortadorFoto({ url, onUsar, onVolver, etiquetaVolver = "Volver" }) {
 
       <div className="recortador__controles">
         <div className="campo">
-          <span>Zoom</span>
+          <span>{t('recortador.zoom')}</span>
           <div className="recortador__zoom">
             <button
               type="button"
               className="btn-icono"
-              aria-label="Reducir"
+              aria-label={t('recortador.reducir')}
               disabled={!listo}
               onClick={() => animado(() => cambiarZoom(zoom - PASO_ZOOM))}
             >
@@ -296,7 +298,7 @@ function RecortadorFoto({ url, onUsar, onVolver, etiquetaVolver = "Volver" }) {
             </button>
             <input
               type="range"
-              aria-label="Zoom"
+              aria-label={t('recortador.zoom')}
               min={listo ? zoomMinimo(imagen) : 0}
               max={ZOOM_MAX}
               step="0.01"
@@ -307,7 +309,7 @@ function RecortadorFoto({ url, onUsar, onVolver, etiquetaVolver = "Volver" }) {
             <button
               type="button"
               className="btn-icono"
-              aria-label="Ampliar"
+              aria-label={t('recortador.ampliar')}
               disabled={!listo}
               onClick={() => animado(() => cambiarZoom(zoom + PASO_ZOOM))}
             >
@@ -316,18 +318,18 @@ function RecortadorFoto({ url, onUsar, onVolver, etiquetaVolver = "Volver" }) {
               </svg>
             </button>
           </div>
-          <small>Arrastra la imagen para moverla. Amplía y reduce con la rueda, el deslizador o pellizcando.</small>
+          <small>{t('recortador.ayuda')}</small>
         </div>
 
         <Mensaje texto={error} />
 
         <div className="formulario__acciones">
           <button type="button" className="btn btn--secundario" onClick={restablecer} disabled={!listo}>
-            Restablecer
+            {t('recortador.restablecer')}
           </button>
-          <button type="button" className="btn btn--secundario" onClick={onVolver}>{etiquetaVolver}</button>
+          <button type="button" className="btn btn--secundario" onClick={onVolver}>{etiquetaVolver ?? t('recortador.volver')}</button>
           <button type="button" className="btn btn--primario" onClick={usar} disabled={!listo}>
-            Usar como foto
+            {t('recortador.usar')}
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { ETIQUETAS_ESTADO } from './estados'
+import { useIdioma } from './IdiomaContext'
 import IconoResena from './IconoResena'
 
 // Fila "Jugando ahora" de Mi biblioteca: una tarjeta ancha por cada juego con
@@ -11,11 +11,13 @@ import IconoResena from './IconoResena'
 //  - juegos: los juegos con estado "jugando"
 //  - onVerDetalle(juego): abre la ficha del juego
 function JugandoAhora({ juegos, onVerDetalle }) {
+  const { t } = useIdioma()
+
   return (
     <section aria-labelledby="titulo-jugando">
       <h2 id="titulo-jugando" className="titulo-seccion jugando__encabezado">
         <span className="pulso" aria-hidden="true" />
-        Jugando ahora
+        {t('jugando.titulo')}
         <span className="contador">{juegos.length}</span>
       </h2>
 
@@ -37,13 +39,13 @@ function JugandoAhora({ juegos, onVerDetalle }) {
               >
                 {juego.cover_url
                   ? <img src={juego.cover_url} alt="" loading="lazy" />
-                  : <span className="portada__vacia">Sin portada</span>}
+                  : <span className="portada__vacia">{t('comun.sinPortada')}</span>}
               </button>
             </div>
 
             <div className="jugando__cuerpo">
               <div className="tarjeta__estado">
-                <span className="chip chip--jugando">{ETIQUETAS_ESTADO.jugando}</span>
+                <span className="chip chip--jugando">{t('estado.jugando')}</span>
                 {juego.review && <IconoResena />}
               </div>
 

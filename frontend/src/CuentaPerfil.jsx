@@ -3,6 +3,7 @@ import { apiFetch } from './api'
 import Cargando from './Cargando'
 import DialogoConfirmar from './DialogoConfirmar'
 import Mensaje from './Mensaje'
+import { useIdioma } from './IdiomaContext'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
@@ -21,6 +22,7 @@ function CuentaPerfil({ perfil, onGuardado, cerrarSesion }) {
 }
 
 function FormularioEmail({ perfil, onGuardado, cerrarSesion }) {
+  const { t } = useIdioma()
   const [email, setEmail] = useState(perfil.email)
   const [password, setPassword] = useState("")
   const [ocupado, setOcupado] = useState(false)
@@ -33,7 +35,7 @@ function FormularioEmail({ perfil, onGuardado, cerrarSesion }) {
     setGuardado(false)
 
     if (!emailRegex.test(email)) {
-      setError("El email no tiene un formato válido")
+      setError(t('validacion.emailInvalido'))
       return
     }
 
@@ -56,22 +58,22 @@ function FormularioEmail({ perfil, onGuardado, cerrarSesion }) {
 
   return (
     <form className="formulario cuenta__bloque" onSubmit={handleEmail}>
-      <h3 className="cuenta__titulo">Email</h3>
+      <h3 className="cuenta__titulo">{t('cuenta.emailTitulo')}</h3>
       <label className="campo">
-        <span>Email</span>
+        <span>{t('cuenta.email')}</span>
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
       </label>
       <label className="campo">
-        <span>Contraseña actual</span>
+        <span>{t('cuenta.passwordActual')}</span>
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
       </label>
 
       <Mensaje texto={error} />
-      <Mensaje tipo="ok" texto={guardado ? "Email actualizado" : ""} />
+      <Mensaje tipo="ok" texto={guardado ? t('cuenta.emailActualizado') : ""} />
 
       <div className="formulario__acciones">
         <button type="submit" className="btn btn--secundario" disabled={ocupado || email === perfil.email}>
-          {ocupado ? <><Cargando tamano="pequeno" /> Guardando...</> : "Cambiar email"}
+          {ocupado ? <><Cargando tamano="pequeno" /> {t('comun.guardando')}</> : t('cuenta.cambiarEmail')}
         </button>
       </div>
     </form>
@@ -79,6 +81,7 @@ function FormularioEmail({ perfil, onGuardado, cerrarSesion }) {
 }
 
 function FormularioContrasena({ cerrarSesion }) {
+  const { t } = useIdioma()
   const [actual, setActual] = useState("")
   const [nueva, setNueva] = useState("")
   const [repetida, setRepetida] = useState("")
@@ -92,12 +95,12 @@ function FormularioContrasena({ cerrarSesion }) {
     setGuardado(false)
 
     if (!passwordRegex.test(nueva)) {
-      setError("La nueva contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número")
+      setError(t('cuenta.passwordNuevaRequisitos'))
       return
     }
 
     if (nueva !== repetida) {
-      setError("Las contraseñas nuevas no coinciden")
+      setError(t('cuenta.passwordNoCoinciden'))
       return
     }
 
@@ -121,26 +124,26 @@ function FormularioContrasena({ cerrarSesion }) {
 
   return (
     <form className="formulario cuenta__bloque" onSubmit={handlePassword}>
-      <h3 className="cuenta__titulo">Contraseña</h3>
+      <h3 className="cuenta__titulo">{t('cuenta.passwordTitulo')}</h3>
       <label className="campo">
-        <span>Contraseña actual</span>
+        <span>{t('cuenta.passwordActual')}</span>
         <input type="password" value={actual} onChange={(e) => setActual(e.target.value)} autoComplete="current-password" required />
       </label>
       <label className="campo">
-        <span>Nueva contraseña</span>
+        <span>{t('cuenta.passwordNueva')}</span>
         <input type="password" value={nueva} onChange={(e) => setNueva(e.target.value)} autoComplete="new-password" required />
       </label>
       <label className="campo">
-        <span>Repite la nueva contraseña</span>
+        <span>{t('cuenta.passwordRepite')}</span>
         <input type="password" value={repetida} onChange={(e) => setRepetida(e.target.value)} autoComplete="new-password" required />
       </label>
 
       <Mensaje texto={error} />
-      <Mensaje tipo="ok" texto={guardado ? "Contraseña actualizada" : ""} />
+      <Mensaje tipo="ok" texto={guardado ? t('cuenta.passwordActualizada') : ""} />
 
       <div className="formulario__acciones">
         <button type="submit" className="btn btn--secundario" disabled={ocupado}>
-          {ocupado ? <><Cargando tamano="pequeno" /> Guardando...</> : "Cambiar contraseña"}
+          {ocupado ? <><Cargando tamano="pequeno" /> {t('comun.guardando')}</> : t('cuenta.cambiarPassword')}
         </button>
       </div>
     </form>
@@ -150,6 +153,7 @@ function FormularioContrasena({ cerrarSesion }) {
 // Borrar la cuenta: escribo la contraseña y, además, una ventana de confirmación
 // avisa de que no hay vuelta atrás.
 function ZonaPeligro({ cerrarSesion }) {
+  const { t } = useIdioma()
   const [password, setPassword] = useState("")
   const [confirmando, setConfirmando] = useState(false)
   const [ocupado, setOcupado] = useState(false)
@@ -177,12 +181,12 @@ function ZonaPeligro({ cerrarSesion }) {
 
   return (
     <form className="formulario cuenta__bloque cuenta__bloque--peligro" onSubmit={pedirConfirmacion}>
-      <h3 className="cuenta__titulo">Borrar cuenta</h3>
+      <h3 className="cuenta__titulo">{t('cuenta.borrarTitulo')}</h3>
       <p className="cuenta__aviso">
-        Se eliminarán tu cuenta y toda tu biblioteca. No se puede deshacer.
+        {t('cuenta.borrarAviso')}
       </p>
       <label className="campo">
-        <span>Contraseña actual</span>
+        <span>{t('cuenta.passwordActual')}</span>
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
       </label>
 
@@ -190,15 +194,15 @@ function ZonaPeligro({ cerrarSesion }) {
 
       <div className="formulario__acciones">
         <button type="submit" className="btn btn--peligro" disabled={ocupado || password === ""}>
-          {ocupado ? <><Cargando tamano="pequeno" /> Borrando...</> : "Borrar mi cuenta"}
+          {ocupado ? <><Cargando tamano="pequeno" /> {t('cuenta.borrando')}</> : t('cuenta.borrarBoton')}
         </button>
       </div>
 
       {confirmando && (
         <DialogoConfirmar
-          titulo="¿Borrar tu cuenta?"
-          mensaje="Perderás tu perfil y todos los juegos de tu biblioteca. Esta acción no se puede deshacer."
-          textoConfirmar="Borrar para siempre"
+          titulo={t('cuenta.borrarConfirmarTitulo')}
+          mensaje={t('cuenta.borrarConfirmarMensaje')}
+          textoConfirmar={t('cuenta.borrarConfirmar')}
           onConfirmar={borrarCuenta}
           onCancelar={() => setConfirmando(false)}
         />

@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { ETIQUETAS_ESTADO } from './estados'
+import { ESTADOS } from './estados'
+import { useIdioma } from './IdiomaContext'
 import DialogoConfirmar from './DialogoConfirmar'
 import EditarJuego from './EditarJuego'
 import Mensaje from './Mensaje'
 import Desplegable from './Desplegable'
 import IconoResena from './IconoResena'
-
-const OPCIONES_ESTADO = Object.entries(ETIQUETAS_ESTADO).map(([valor, etiqueta]) => ({ valor, etiqueta, punto: valor }))
 
 // Tarjeta de un juego que ya está en mi biblioteca. "Editar" abre la ventana
 // EditarJuego y "Quitar" pide confirmación antes de borrar. onActualizar y
@@ -18,6 +17,8 @@ const OPCIONES_ESTADO = Object.entries(ETIQUETAS_ESTADO).map(([valor, etiqueta])
 // (estado, Editar, Quitar) van por encima con z-index, así no anido botones.
 
 function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
+  const { t } = useIdioma()
+  const opcionesEstado = ESTADOS.map((valor) => ({ valor, etiqueta: t(`estado.${valor}`), punto: valor }))
   const [editando, setEditando] = useState(false)
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState("")
@@ -66,7 +67,7 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
         >
           {juego.cover_url
             ? <img src={juego.cover_url} alt="" loading="lazy" />
-            : <span className="portada__vacia">Sin portada</span>}
+            : <span className="portada__vacia">{t('comun.sinPortada')}</span>}
         </button>
         {juego.rating && <span className="nota">★ {juego.rating}</span>}
       </div>
@@ -86,8 +87,8 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
           <div className="tarjeta__estado">
             <Desplegable
               variante="chip"
-              etiqueta={`Estado de ${juego.name}`}
-              opciones={OPCIONES_ESTADO}
+              etiqueta={t('juego.estadoDe', { nombre: juego.name })}
+              opciones={opcionesEstado}
               valor={estadoPendiente ?? juego.status}
               onChange={handleCambiarEstado}
               disabled={ocupado}
@@ -99,10 +100,10 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
 
           <div className="tarjeta__acciones">
             <button className="btn btn--secundario" onClick={() => setEditando(true)} disabled={ocupado}>
-              Editar
+              {t('juego.editar')}
             </button>
             <button className="btn btn--peligro" onClick={() => setConfirmandoBorrar(true)} disabled={ocupado}>
-              Quitar
+              {t('juego.quitar')}
             </button>
           </div>
         </div>
@@ -118,9 +119,9 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
 
       {confirmandoBorrar && (
         <DialogoConfirmar
-          titulo="Quitar juego"
-          mensaje={`¿Quitar "${juego.name}" de tu biblioteca? Se perderán su estado, nota y reseña.`}
-          textoConfirmar="Quitar"
+          titulo={t('juego.quitarTitulo')}
+          mensaje={t('juego.quitarMensaje', { nombre: juego.name })}
+          textoConfirmar={t('juego.quitar')}
           onConfirmar={handleBorrar}
           onCancelar={() => setConfirmandoBorrar(false)}
         />

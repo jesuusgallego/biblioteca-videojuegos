@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useIdioma } from './IdiomaContext'
 
 // Logo de la app: un mando que a la vez es un libro abierto (la biblioteca).
 // IconoMando es el dibujo; lo uso también en el indicador de carga (Cargando.jsx)
@@ -65,6 +66,7 @@ export function IconoMando() {
 }
 
 function Marca({ grande = false, to }) {
+  const { t } = useIdioma()
   const clase = grande ? "marca marca--grande" : "marca"
 
   const contenido = (
@@ -78,7 +80,7 @@ function Marca({ grande = false, to }) {
   // es solo decoración, como en el login, donde no hay a dónde ir todavía.
   if (to) {
     return (
-      <Link to={to} className={clase} aria-label="GameHub, ir a Mi biblioteca">
+      <Link to={to} className={clase} aria-label={t('marca.irBiblioteca')}>
         {contenido}
       </Link>
     )

@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { apiFetch } from './api'
 import Marca from './Marca'
-import BotonTema from './BotonTema'
+import MenuAjustes from './MenuAjustes'
+import { useIdioma } from './IdiomaContext'
 import Cargando from './Cargando'
 import Mensaje from './Mensaje'
 
 function Registro() {
+  const { t } = useIdioma()
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -22,17 +24,17 @@ function Registro() {
     setError("")
 
     if (username.trim() === "") {
-      setError("El nombre de usuario es obligatorio")
+      setError(t('validacion.usernameObligatorio'))
       return
     }
 
     if (!emailRegex.test(email)) {
-      setError("El email no tiene un formato válido")
+      setError(t('validacion.emailInvalido'))
       return
     }
 
     if (!passwordRegex.test(password)) {
-      setError("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número")
+      setError(t('validacion.passwordRequisitos'))
       return
     }
 
@@ -49,16 +51,16 @@ function Registro() {
   return (
     <main className="auth">
       <div className="auth__tema">
-        <BotonTema />
+        <MenuAjustes />
       </div>
 
       <div className="auth__tarjeta">
         <Marca grande />
-        <h1 className="auth__titulo">Crear cuenta</h1>
+        <h1 className="auth__titulo">{t('auth.registro.titulo')}</h1>
 
         <form className="formulario" onSubmit={handleRegistro}>
           <label className="campo">
-            <span>Nombre de usuario</span>
+            <span>{t('auth.registro.username')}</span>
             <input
               type="text"
               value={username}
@@ -68,7 +70,7 @@ function Registro() {
             />
           </label>
           <label className="campo">
-            <span>Email</span>
+            <span>{t('auth.email')}</span>
             <input
               type="email"
               value={email}
@@ -78,7 +80,7 @@ function Registro() {
             />
           </label>
           <label className="campo">
-            <span>Contraseña</span>
+            <span>{t('auth.password')}</span>
             <input
               type="password"
               value={password}
@@ -86,18 +88,18 @@ function Registro() {
               autoComplete="new-password"
               required
             />
-            <small>Mínimo 8 caracteres, con mayúscula, minúscula y número.</small>
+            <small>{t('auth.registro.passwordAyuda')}</small>
           </label>
 
           <Mensaje texto={error} />
 
           <button type="submit" className="btn btn--primario btn--block" disabled={enviando}>
-            {enviando ? <><Cargando tamano="pequeno" /> Registrando...</> : "Registrarse"}
+            {enviando ? <><Cargando tamano="pequeno" /> {t('auth.registro.registrando')}</> : t('auth.registro.boton')}
           </button>
         </form>
 
         <p className="auth__pie">
-          ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+          {t('auth.registro.yaCuenta')} <Link to="/login">{t('auth.registro.iniciaSesion')}</Link>
         </p>
       </div>
     </main>

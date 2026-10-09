@@ -1,9 +1,6 @@
-// Los cuatro estados de un juego guardado y su texto en pantalla. Los uso en
-// JuegoGuardado (chip y desplegable de edición) y en Biblioteca (filtros).
-// La clave es el valor que guarda la BD en la columna "status".
-export const ETIQUETAS_ESTADO = {
-  jugando: "Jugando",
-  completado: "Completado",
-  abandonado: "Abandonado",
-  pendiente: "Pendiente",
-}
+// Los cuatro estados de un juego guardado. Los uso en JuegoGuardado (chip y
+// desplegable de edición), Biblioteca (filtros) y las estadísticas.
+// Cada valor es el que guarda la BD en la columna "status". Su texto en pantalla
+// está en textos/es.js y en.js, con la clave "estado.<valor>":
+//   t(`estado.${estado}`)
+export const ESTADOS = ['jugando', 'completado', 'abandonado', 'pendiente']

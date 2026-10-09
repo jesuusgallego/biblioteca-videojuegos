@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import RecortadorFoto from './RecortadorFoto'
 import { useCambioVista } from './useCambioVista'
+import { useIdioma } from './IdiomaContext'
 
 // Elegir una ilustración oficial (artwork) de IGDB como foto de perfil.
 //  - juegos: [{ igdb_id, name, artworks: [{ thumb_url, url }] }] (GET /games/artworks)
@@ -10,6 +11,7 @@ import { useCambioVista } from './useCambioVista'
 // avatar es un cuadrado. Entre las dos vistas la que sale se desvanece y después
 // entra la otra (useCambioVista).
 function SelectorArtwork({ juegos, onUsar }) {
+  const { t } = useIdioma()
   // null = se ve la lista; con una ilustración = se ve su encuadre
   const [elegida, setElegida] = useState(null)
   const { saliendo, cambiar } = useCambioVista()
@@ -38,7 +40,7 @@ function SelectorArtwork({ juegos, onUsar }) {
                 <li key={artwork.url} style={{ '--i': i }}>
                   <Miniatura
                     artwork={artwork}
-                    etiqueta={`Ilustración ${i + 1} de ${juego.name}`}
+                    etiqueta={t('artwork.ilustracion', { n: i + 1, nombre: juego.name })}
                     onElegir={() => cambiar(() => setElegida(artwork))}
                   />
                 </li>

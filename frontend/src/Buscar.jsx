@@ -4,10 +4,12 @@ import DetalleJuego from './DetalleJuego'
 import { apiFetch } from './api'
 import Cargando from './Cargando'
 import Mensaje from './Mensaje'
+import { useIdioma } from './IdiomaContext'
 
 const RETARDO_BUSQUEDA_MS = 400
 
 function Buscar({ setToken }) {
+  const { t } = useIdioma()
   const [nombreJuego, setNombreJuego] = useState("")
   const [resultados, setResultados] = useState([])
   const [error, setError] = useState("")
@@ -106,9 +108,9 @@ function Buscar({ setToken }) {
   return (
     <div className="buscar-pagina">
       <section className="banner">
-        <h1 className="banner__titulo">Añade tu juego a la biblioteca</h1>
+        <h1 className="banner__titulo">{t('buscar.titulo')}</h1>
         <p className="banner__texto">
-          Busca en el catálogo de IGDB y guarda lo que quieras jugar en tu biblioteca.
+          {t('buscar.texto')}
         </p>
 
         <div className="caja-busqueda caja-busqueda--grande">
@@ -120,25 +122,25 @@ function Buscar({ setToken }) {
             type="search"
             value={nombreJuego}
             onChange={(e) => setNombreJuego(e.target.value)}
-            placeholder="Busca un juego..."
-            aria-label="Buscar un juego"
+            placeholder={t('buscar.placeholder')}
+            aria-label={t('buscar.etiqueta')}
             autoFocus
           />
         </div>
       </section>
 
       {!termino && (
-        <p className="estado">Escribe el nombre de un juego para buscarlo en IGDB.</p>
+        <p className="estado">{t('buscar.vacio')}</p>
       )}
 
-      {buscando && <Cargando texto="Buscando..." tamano="grande" centrado />}
+      {buscando && <Cargando texto={t('buscar.buscando')} tamano="grande" centrado />}
 
       <Mensaje texto={termino && !buscando ? error : ""} />
 
       {termino && !buscando && !error && (
         <div className="resultados__cabecera">
-          <h2 className="titulo-seccion">Resultados para “{termino}”</h2>
-          <span className="estado">Los que ya tienes aparecen marcados</span>
+          <h2 className="titulo-seccion">{t('buscar.resultadosPara', { termino })}</h2>
+          <span className="estado">{t('buscar.marcados')}</span>
         </div>
       )}
 

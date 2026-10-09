@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { apiFetch } from './api'
-import { ETIQUETAS_ESTADO } from './estados'
+import { useIdioma } from './IdiomaContext'
 import BotonAnadir from './BotonAnadir'
 import VisorCapturas from './VisorCapturas'
 import Cargando from './Cargando'
 import { useVentana } from './useVentana'
 import Mensaje from './Mensaje'
 
-// "2015-05-19" -> "19 de mayo de 2015". Con timeZone UTC evito que, según la zona
-// horaria del usuario, la fecha salga un día antes.
-function formatearFecha(iso) {
-  return new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', {
+// "2015-05-19" -> "19 de mayo de 2015" (o "19 May 2015", según el idioma). Con
+// timeZone UTC evito que, según la zona horaria del usuario, la fecha salga un
+// día antes.
+function formatearFecha(iso, locale) {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -39,6 +40,7 @@ function Fila({ etiqueta, valores }) {
 //  - onAnadir: si se pasa, la ficha muestra el botón "Añadir a mi biblioteca"
 //    (lo usa la búsqueda; en Mi biblioteca el juego ya está guardado).
 function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
+  const { t, idioma, locale } = useIdioma()
   const dialogRef = useRef(null)
   // Cierre con animación de salida (ver useVentana.js)
   const { saliendo, cerrar, alCancelar } = useVentana(onCerrar)
@@ -59,8 +61,9 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
   useEffect(() => {
     let cancelado = false
 
-    // lang=es: el backend traduce la descripción (IGDB solo la da en inglés)
-    apiFetch(`/games/details/${juego.igdb_id}?lang=es`)
+    // lang: el backend traduce la descripción al idioma de la interfaz (IGDB solo
+    // la da en inglés). Si cambio de idioma con la ficha abierta se vuelve a pedir.
+    apiFetch(`/games/details/${juego.igdb_id}?lang=${idioma}`)
       .then((data) => {
         if (!cancelado) setDatos(data.game)
       })
@@ -70,7 +73,7 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
 
     // Si se cierra la ventana antes de que llegue la respuesta, la ignoro
     return () => { cancelado = true }
-  }, [juego.igdb_id])
+  }, [juego.igdb_id, idioma])
 
   // El fondo oscuro (::backdrop) cuenta como parte del <dialog>: un clic ahí tiene
   // como objetivo el propio dialog, no su contenido. Uso mousedown y no click para
@@ -95,7 +98,7 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
         type="button"
         className="btn-icono detalle__cerrar"
         onClick={() => cerrar()}
-        aria-label="Cerrar"
+        aria-label={t('comun.cerrar')}
       >
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
           <path d="M6 6l12 12M18 6 6 18" />
@@ -106,7 +109,7 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
         <div className="detalle__portada">
           {portada
             ? <img src={portada} alt="" />
-            : <span className="portada__vacia">Sin portada</span>}
+            : <span className="portada__vacia">{t('comun.sinPortada')}</span>}
         </div>
 
         <div className="detalle__info">
@@ -118,7 +121,7 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
             </div>
           )}
 
-          {cargando && <Cargando texto="Cargando información..." />}
+          {cargando && <Cargando texto={t('detalle.cargando')} />}
 
           <Mensaje texto={error} />
 
@@ -127,22 +130,22 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
               {datos.rating !== null && (
                 <p className="detalle__nota">
                   <span className="contador">IGDB {datos.rating}</span>
-                  <span className="estado">{datos.rating_count} valoraciones</span>
+                  <span className="estado">{t('detalle.valoraciones', { n: datos.rating_count })}</span>
                 </p>
               )}
 
               <dl className="detalle__datos">
                 {datos.release_date && (
                   <div className="detalle__fila">
-                    <dt>Lanzamiento</dt>
-                    <dd>{formatearFecha(datos.release_date)}</dd>
+                    <dt>{t('detalle.lanzamiento')}</dt>
+                    <dd>{formatearFecha(datos.release_date, locale)}</dd>
                   </div>
                 )}
-                <Fila etiqueta="Desarrolladora" valores={datos.developers} />
-                <Fila etiqueta="Publisher" valores={datos.publishers} />
-                <Fila etiqueta="Géneros" valores={datos.genres} />
-                <Fila etiqueta="Modos de juego" valores={datos.game_modes} />
-                <Fila etiqueta="Plataformas" valores={datos.platforms} />
+                <Fila etiqueta={t('detalle.desarrolladora')} valores={datos.developers} />
+                <Fila etiqueta={t('detalle.publisher')} valores={datos.publishers} />
+                <Fila etiqueta={t('detalle.generos')} valores={datos.genres} />
+                <Fila etiqueta={t('detalle.modos')} valores={datos.game_modes} />
+                <Fila etiqueta={t('detalle.plataformas')} valores={datos.platforms} />
               </dl>
             </>
           )}
@@ -151,11 +154,11 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
 
       {guardado && (
         <section className="detalle__biblioteca" aria-labelledby="detalle-mi-biblioteca">
-          <h3 id="detalle-mi-biblioteca" className="titulo-seccion">En tu biblioteca</h3>
+          <h3 id="detalle-mi-biblioteca" className="titulo-seccion">{t('detalle.enBiblioteca')}</h3>
 
           <div className="detalle__biblioteca-datos">
             <span className={`chip chip--${guardado.status}`}>
-              {ETIQUETAS_ESTADO[guardado.status] ?? guardado.status}
+              {t(`estado.${guardado.status}`)}
             </span>
             {guardado.rating && <span className="contador">★ {guardado.rating}/10</span>}
             {guardado.platform && <span className="tarjeta__meta">{guardado.platform}</span>}
@@ -163,25 +166,26 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
 
           {guardado.review
             ? <p className="detalle__texto">{guardado.review}</p>
-            : <p className="estado">Todavía no has escrito ninguna reseña.</p>}
+            : <p className="estado">{t('detalle.sinResena')}</p>}
         </section>
       )}
 
       {datos?.summary && (
         <section className="detalle__seccion">
-          <h3 className="titulo-seccion">Descripción</h3>
+          <h3 className="titulo-seccion">{t('detalle.descripcion')}</h3>
           <p className="detalle__texto">{datos.summary}</p>
           <small className="estado">
-            {datos.summary_lang === "es"
-              ? "Traducida automáticamente del inglés. Descripción original de IGDB."
-              : "Descripción original de IGDB, en inglés."}
+            {/* summary_lang es el idioma en que llegó el texto: "en" = el original */}
+            {datos.summary_lang === "en"
+              ? t('detalle.descripcionOriginal')
+              : t('detalle.descripcionTraducida')}
           </small>
         </section>
       )}
 
       {datos?.screenshots.length > 0 && (
         <section className="detalle__seccion">
-          <h3 className="titulo-seccion">Capturas</h3>
+          <h3 className="titulo-seccion">{t('detalle.capturas')}</h3>
           <ul className="detalle__capturas">
             {datos.screenshots.map((url, i) => (
               <li key={url}>
@@ -189,7 +193,7 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
                   type="button"
                   className="detalle__captura"
                   onClick={() => setCapturaAbierta(i)}
-                  aria-label={`Ampliar captura ${i + 1}`}
+                  aria-label={t('detalle.ampliarCaptura', { n: i + 1 })}
                 >
                   <img src={url} alt="" loading="lazy" />
                 </button>
@@ -201,7 +205,7 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
 
       {datos?.igdb_url && (
         <p className="detalle__pie">
-          <a href={datos.igdb_url} target="_blank" rel="noreferrer">Ver en IGDB</a>
+          <a href={datos.igdb_url} target="_blank" rel="noreferrer">{t('detalle.verIgdb')}</a>
         </p>
       )}
 

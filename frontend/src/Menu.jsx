@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import Marca from './Marca'
 import MenuUsuario from './MenuUsuario'
+import MenuAjustes from './MenuAjustes'
+import { useIdioma } from './IdiomaContext'
 
 // Coloco la línea bajo el enlace activo: mido dónde está y cuánto ocupa (en
 // píxeles, respecto a la barra de navegación) y se lo aplico a la línea.
@@ -29,9 +31,10 @@ function colocarLinea(nav, linea, conAnimacion) {
 }
 
 // Barra superior. NavLink añade la clase "active" al enlace de la página actual.
-// Perfil, tema claro/oscuro y cerrar sesión viven en el desplegable de la foto
-// (MenuUsuario).
+// Perfil y cerrar sesión viven en el desplegable de la foto (MenuUsuario); el
+// idioma y el tema claro/oscuro, en el de las tres líneas (MenuAjustes).
 function Menu({ setToken, perfil }) {
+  const { t } = useIdioma()
   const navRef = useRef(null)
   const lineaRef = useRef(null)
   // useLocation hace que este componente se vuelva a pintar cada vez que cambia la ruta
@@ -61,13 +64,14 @@ function Menu({ setToken, perfil }) {
         <Marca to="/biblioteca" />
 
         <nav className="barra__nav" ref={navRef}>
-          <NavLink to="/biblioteca">Mi biblioteca</NavLink>
-          <NavLink to="/buscar">Buscar</NavLink>
+          <NavLink to="/biblioteca">{t('menu.biblioteca')}</NavLink>
+          <NavLink to="/buscar">{t('menu.buscar')}</NavLink>
           <span className="barra__linea" ref={lineaRef} aria-hidden="true" />
         </nav>
 
         <div className="barra__acciones">
           <MenuUsuario perfil={perfil} setToken={setToken} />
+          <MenuAjustes />
         </div>
       </div>
     </header>

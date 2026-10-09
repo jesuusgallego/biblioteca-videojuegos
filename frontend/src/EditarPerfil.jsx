@@ -6,6 +6,7 @@ import SelectorArtwork from './SelectorArtwork'
 import RecortadorFoto from './RecortadorFoto'
 import { useCambioVista } from './useCambioVista'
 import Mensaje from './Mensaje'
+import { useIdioma } from './IdiomaContext'
 
 const BIO_MAX = 300
 
@@ -18,6 +19,7 @@ const BIO_MAX = 300
 //  - cerrarSesion(): para cuando el backend dice 401 (sesión caducada)
 // Los campos son copias locales: no se guarda nada hasta pulsar "Guardar".
 function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
+  const { t } = useIdioma()
   const [username, setUsername] = useState(perfil.username)
   const [bio, setBio] = useState(perfil.bio ?? "")
   const [avatar, setAvatar] = useState(perfil.avatar)
@@ -79,7 +81,7 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
 
     setGuardado(false)
     if (!archivo.type.startsWith('image/')) {
-      setError("El archivo elegido no es una imagen")
+      setError(t('editarPerfil.noImagen'))
       return
     }
 
@@ -122,7 +124,7 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
     setGuardado(false)
 
     if (username.trim() === "") {
-      setError("El nombre de usuario es obligatorio")
+      setError(t('validacion.usernameObligatorio'))
       return
     }
 
@@ -152,7 +154,7 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
             hidden
           />
           <button type="button" className="btn btn--secundario" onClick={() => archivoRef.current.click()}>
-            Subir foto
+            {t('editarPerfil.subir')}
           </button>
           <button
             type="button"
@@ -160,17 +162,17 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
             aria-expanded={eligiendo && modo === "ilustraciones"}
             onClick={alternarSelector}
           >
-            Elegir ilustración de mis juegos
+            {t('editarPerfil.elegirIlustracion')}
             <svg className="btn__flecha" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M6 9l6 6 6-6" />
             </svg>
           </button>
           {avatar && (
             <button type="button" className="btn btn--peligro" onClick={() => setAvatar(null)}>
-              Quitar foto
+              {t('editarPerfil.quitarFoto')}
             </button>
           )}
-          <small>Sube un JPG, PNG o WebP o usa una ilustración de uno de tus juegos. Después eliges el encuadre.</small>
+          <small>{t('editarPerfil.ayudaFoto')}</small>
         </div>
       </div>
 
@@ -189,16 +191,16 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
                     url={subida}
                     onUsar={usarFoto}
                     onVolver={() => setEligiendo(false)}
-                    etiquetaVolver="Cancelar"
+                    etiquetaVolver={t('comun.cancelar')}
                   />
                 )
               ) : (
                 <>
                   <Mensaje texto={errorJuegos} />
-                  {!errorJuegos && !juegos && <Cargando texto="Buscando ilustraciones de tus juegos..." />}
+                  {!errorJuegos && !juegos && <Cargando texto={t('editarPerfil.buscandoIlustraciones')} />}
                   {juegos?.length === 0 && (
                     <p className="estado">
-                      Ninguno de tus juegos tiene ilustraciones en IGDB todavía. Añade más desde Buscar.
+                      {t('editarPerfil.sinIlustraciones')}
                     </p>
                   )}
                   {juegos?.length > 0 && <SelectorArtwork key={aperturas} juegos={juegos} onUsar={usarFoto} />}
@@ -210,7 +212,7 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
       </div>
 
       <label className="campo">
-        <span>Nombre de usuario</span>
+        <span>{t('editarPerfil.username')}</span>
         <input
           type="text"
           value={username}
@@ -222,22 +224,22 @@ function EditarPerfil({ perfil, onGuardado, cerrarSesion }) {
       </label>
 
       <label className="campo">
-        <span>Sobre mí</span>
+        <span>{t('editarPerfil.bio')}</span>
         <textarea
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           maxLength={BIO_MAX}
-          placeholder="Qué te gusta jugar, tu género favorito..."
+          placeholder={t('editarPerfil.bioPlaceholder')}
         />
         <small>{bio.length}/{BIO_MAX}</small>
       </label>
 
       <Mensaje texto={error} />
-      <Mensaje tipo="ok" texto={guardado && !hayCambios ? "Perfil actualizado" : ""} />
+      <Mensaje tipo="ok" texto={guardado && !hayCambios ? t('editarPerfil.actualizado') : ""} />
 
       <div className="formulario__acciones">
         <button type="submit" className="btn btn--primario" disabled={ocupado || !hayCambios}>
-          {ocupado ? <><Cargando tamano="pequeno" /> Guardando...</> : "Guardar cambios"}
+          {ocupado ? <><Cargando tamano="pequeno" /> {t('comun.guardando')}</> : t('editarPerfil.guardar')}
         </button>
       </div>
     </form>

@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import JuegoGuardado from './JuegoGuardado'
 import DetalleJuego from './DetalleJuego'
-import { ETIQUETAS_ESTADO } from './estados'
+import { ESTADOS } from './estados'
+import { useIdioma } from './IdiomaContext'
 import { apiFetch } from './api'
 import Cargando from './Cargando'
 import JugandoAhora from './JugandoAhora'
 
 // Muestro los juegos que el usuario ha guardado (GET /games).
 function Biblioteca({ setToken }) {
+  const { t } = useIdioma()
   const [juegos, setJuegos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState("")
@@ -76,16 +78,16 @@ function Biblioteca({ setToken }) {
     setToken("")
   }
 
-  if (cargando) return <Cargando texto="Cargando tu biblioteca..." tamano="grande" centrado />
+  if (cargando) return <Cargando texto={t('biblioteca.cargando')} tamano="grande" centrado />
 
   if (error) return <p className="mensaje mensaje--error" role="alert">{error}</p>
 
   if (juegos.length === 0) {
     return (
       <div className="estado-vacio">
-        <h1>Tu biblioteca está vacía</h1>
-        <p>Aún no has guardado ningún juego.</p>
-        <Link to="/buscar" className="btn btn--primario">Buscar juegos</Link>
+        <h1>{t('biblioteca.vaciaTitulo')}</h1>
+        <p>{t('biblioteca.vaciaTexto')}</p>
+        <Link to="/buscar" className="btn btn--primario">{t('comun.buscarJuegos')}</Link>
       </div>
     )
   }
@@ -107,10 +109,10 @@ function Biblioteca({ setToken }) {
 
   // Un botón por filtro con su contador. Ojo: "todos" no existe como estado en la BD.
   const filtros = [
-    { id: "todos", etiqueta: "Todos", cuenta: juegos.length },
-    ...Object.entries(ETIQUETAS_ESTADO).map(([id, etiqueta]) => ({
+    { id: "todos", etiqueta: t('biblioteca.todos'), cuenta: juegos.length },
+    ...ESTADOS.map((id) => ({
       id,
-      etiqueta,
+      etiqueta: t(`estado.${id}`),
       cuenta: juegos.filter((j) => j.status === id).length,
     })),
   ]
@@ -122,8 +124,8 @@ function Biblioteca({ setToken }) {
       )}
 
       <div className="biblioteca">
-        <aside className="filtros" aria-label="Filtrar por estado">
-          <p className="filtros__titulo">Estado</p>
+        <aside className="filtros" aria-label={t('biblioteca.filtrarPorEstado')}>
+          <p className="filtros__titulo">{t('biblioteca.estado')}</p>
           {filtros.map((f) => (
             <button
               key={f.id}
@@ -144,7 +146,7 @@ function Biblioteca({ setToken }) {
         <section className="biblioteca__contenido" aria-labelledby="titulo-biblioteca">
           <div className="biblioteca__cabecera">
             <h1 id="titulo-biblioteca" className="titulo-pagina">
-              Mi biblioteca <span className="contador">{juegos.length}</span>
+              {t('biblioteca.titulo')} <span className="contador">{juegos.length}</span>
             </h1>
 
             <div className="caja-busqueda caja-busqueda--filtro">
@@ -156,8 +158,8 @@ function Biblioteca({ setToken }) {
                 type="search"
                 value={consulta}
                 onChange={(e) => setConsulta(e.target.value)}
-                placeholder="Filtrar mis juegos"
-                aria-label="Filtrar mis juegos"
+                placeholder={t('biblioteca.filtrarJuegos')}
+                aria-label={t('biblioteca.filtrarJuegos')}
               />
             </div>
           </div>
@@ -176,9 +178,11 @@ function Biblioteca({ setToken }) {
 
           {visibles.length === 0 && (
             <div className="sin-resultados">
-              <h2>Ningún juego coincide</h2>
+              <h2>{t('biblioteca.sinResultadosTitulo')}</h2>
               <p>
-                Prueba con otro filtro o <Link to="/buscar">busca juegos nuevos</Link> para añadirlos.
+                {t('biblioteca.sinResultadosAntes')}
+                <Link to="/buscar">{t('biblioteca.sinResultadosEnlace')}</Link>
+                {t('biblioteca.sinResultadosDespues')}
               </p>
             </div>
           )}

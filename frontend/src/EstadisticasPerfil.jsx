@@ -1,15 +1,18 @@
 import { Link } from 'react-router-dom'
-import { ETIQUETAS_ESTADO } from './estados'
+import { ESTADOS } from './estados'
+import { useIdioma } from './IdiomaContext'
 
 // Resumen de la biblioteca del usuario. Recibe lo que calcula GET /profile/stats:
 //  - stats: { total, jugando, completado, abandonado, pendiente, valorados, nota_media }
 //  - mejores: sus juegos mejor valorados (hasta 5)
 function EstadisticasPerfil({ stats, mejores }) {
+  const { t } = useIdioma()
+
   if (stats.total === 0) {
     return (
       <div className="estado-vacio">
-        <p>Todavía no has guardado ningún juego, así que no hay nada que contar.</p>
-        <Link to="/buscar" className="btn btn--primario">Buscar juegos</Link>
+        <p>{t('stats.vacio')}</p>
+        <Link to="/buscar" className="btn btn--primario">{t('comun.buscarJuegos')}</Link>
       </div>
     )
   }
@@ -21,27 +24,27 @@ function EstadisticasPerfil({ stats, mejores }) {
     <div className="estadisticas">
       <dl className="stats">
         <div className="stat">
-          <dt className="stat__etiqueta">Juegos</dt>
+          <dt className="stat__etiqueta">{t('stats.juegos')}</dt>
           <dd className="stat__valor">{stats.total}</dd>
         </div>
         <div className="stat">
           <dt className="stat__etiqueta">
-            Nota media{stats.valorados > 0 && ` · ${stats.valorados} valorados`}
+            {t('stats.notaMedia')}{stats.valorados > 0 && t('stats.valorados', { n: stats.valorados })}
           </dt>
           <dd className="stat__valor">{stats.nota_media ?? "—"}</dd>
         </div>
         <div className="stat">
-          <dt className="stat__etiqueta">Completados</dt>
+          <dt className="stat__etiqueta">{t('stats.completados')}</dt>
           <dd className="stat__valor">{porcentajeCompletado}%</dd>
         </div>
       </dl>
 
       <div>
-        <h3 className="estadisticas__subtitulo">Por estado</h3>
+        <h3 className="estadisticas__subtitulo">{t('stats.porEstado')}</h3>
         {/* Barra dividida en tramos: cada uno crece según cuántos juegos tiene
             (flex-grow). Los estados con 0 juegos no se pintan. */}
         <div className="barra-estados" aria-hidden="true">
-          {Object.keys(ETIQUETAS_ESTADO)
+          {ESTADOS
             .filter((id) => stats[id] > 0)
             .map((id) => (
               <span
@@ -52,10 +55,10 @@ function EstadisticasPerfil({ stats, mejores }) {
             ))}
         </div>
         <ul className="leyenda">
-          {Object.entries(ETIQUETAS_ESTADO).map(([id, etiqueta]) => (
+          {ESTADOS.map((id) => (
             <li key={id} className="leyenda__item">
               <span className={`punto punto--${id}`} aria-hidden="true" />
-              {etiqueta}
+              {t(`estado.${id}`)}
               <strong>{stats[id]}</strong>
             </li>
           ))}
@@ -64,7 +67,7 @@ function EstadisticasPerfil({ stats, mejores }) {
 
       {mejores.length > 0 && (
         <div>
-          <h3 className="estadisticas__subtitulo">Mejor valorados</h3>
+          <h3 className="estadisticas__subtitulo">{t('stats.mejores')}</h3>
           <ol className="mejores">
             {mejores.map((juego) => (
               <li key={juego.id} className="mejores__item">

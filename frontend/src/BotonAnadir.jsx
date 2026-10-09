@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Cargando from './Cargando'
 import Mensaje from './Mensaje'
+import { useIdioma } from './IdiomaContext'
 
 // Botón "Añadir a mi biblioteca" con sus estados. Lo uso en la tarjeta de la
 // búsqueda (GameCard) y en la ficha (DetalleJuego) para que se comporte igual
@@ -13,6 +14,7 @@ import Mensaje from './Mensaje'
 // copiarlo al useState, porque la lista de guardados puede llegar después de
 // pintar el botón.
 function BotonAnadir({ yaGuardado, onAnadir, bloque = true }) {
+  const { t } = useIdioma()
   const [estadoPropio, setEstado] = useState("idle")
   const [mensaje, setMensaje] = useState("")
 
@@ -48,11 +50,11 @@ function BotonAnadir({ yaGuardado, onAnadir, bloque = true }) {
         {estado === "guardando" && (
           <>
             <Cargando tamano="pequeno" />
-            Guardando...
+            {t('anadir.guardando')}
           </>
         )}
-        {estado === "anadido" && "✓ En tu biblioteca"}
-        {(estado === "idle" || estado === "error") && "Añadir a mi biblioteca"}
+        {estado === "anadido" && t('anadir.anadido')}
+        {(estado === "idle" || estado === "error") && t('anadir.boton')}
       </button>
 
       <Mensaje texto={estado === "error" ? mensaje : ""} />

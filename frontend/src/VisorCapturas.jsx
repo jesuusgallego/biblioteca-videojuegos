@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Cargando from './Cargando'
 import { useVentana } from './useVentana'
+import { useIdioma } from './IdiomaContext'
 
 // El backend manda las capturas en tamaño medio (t_screenshot_big, 889x500), pensado
 // para la rejilla. Para verlas grandes pido a IGDB la misma imagen en 1080p
@@ -14,6 +15,7 @@ function ampliar(url) {
 //  - indice: cuál se está viendo
 //  - onCambiar(nuevoIndice) / onCerrar(): los gestiona quien lo abre
 function VisorCapturas({ urls, indice, onCambiar, onCerrar }) {
+  const { t } = useIdioma()
   const dialogRef = useRef(null)
   // Cierre con animación de salida (ver useVentana.js)
   const { saliendo, cerrar, alCancelar } = useVentana(onCerrar)
@@ -52,7 +54,7 @@ function VisorCapturas({ urls, indice, onCambiar, onCerrar }) {
     <dialog
       ref={dialogRef}
       className={saliendo ? "visor ventana--saliendo" : "visor"}
-      aria-label={`Captura ${indice + 1} de ${urls.length}`}
+      aria-label={t('visor.captura', { n: indice + 1, total: urls.length })}
       onClose={onCerrar}
       onCancel={alCancelar}
       onMouseDown={cerrarSiEsElFondo}
@@ -79,7 +81,7 @@ function VisorCapturas({ urls, indice, onCambiar, onCerrar }) {
         type="button"
         className="btn-icono visor__boton visor__cerrar"
         onClick={() => cerrar()}
-        aria-label="Cerrar"
+        aria-label={t('comun.cerrar')}
       >
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
           <path d="M6 6l12 12M18 6 6 18" />
@@ -92,7 +94,7 @@ function VisorCapturas({ urls, indice, onCambiar, onCerrar }) {
             type="button"
             className="btn-icono visor__boton visor__anterior"
             onClick={() => mover(-1)}
-            aria-label="Captura anterior"
+            aria-label={t('visor.anterior')}
           >
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M15 5l-7 7 7 7" />
@@ -103,7 +105,7 @@ function VisorCapturas({ urls, indice, onCambiar, onCerrar }) {
             type="button"
             className="btn-icono visor__boton visor__siguiente"
             onClick={() => mover(1)}
-            aria-label="Captura siguiente"
+            aria-label={t('visor.siguiente')}
           >
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M9 5l7 7-7 7" />

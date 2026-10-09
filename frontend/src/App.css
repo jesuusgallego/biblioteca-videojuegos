@@ -1941,6 +1941,74 @@ body:has(dialog[open]) {
   color: var(--peligro);
 }
 
+/* ---- Menú de ajustes (MenuAjustes.jsx) ------------------------------------ */
+/* Reutiliza el panel y las opciones del menú de usuario (.menu-usuario__*). El
+   botón es un .btn-icono de tres líneas del mismo tamaño que la foto. */
+.menu-ajustes__boton[aria-expanded="true"] {
+  color: var(--acento);
+  border-color: var(--acento);
+}
+
+/* El botón es cuadrado, no hace falta el puente diagonal de la foto redonda */
+.menu-ajustes .menu-usuario__panel::before {
+  display: none;
+}
+
+/* Las tres líneas se convierten en una X al abrir: la de arriba y la de abajo
+   giran hacia el centro y la del medio se desvanece */
+.menu-ajustes__linea {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform var(--transicion), opacity var(--transicion);
+}
+
+.menu-ajustes__boton[aria-expanded="true"] .menu-ajustes__linea--arriba {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.menu-ajustes__boton[aria-expanded="true"] .menu-ajustes__linea--medio {
+  opacity: 0;
+  transform: scaleX(0.2);
+}
+
+.menu-ajustes__boton[aria-expanded="true"] .menu-ajustes__linea--abajo {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.menu-ajustes__titulo {
+  padding: 0.4rem 0.7rem 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.menu-ajustes__titulo--separado {
+  margin-top: 0.3rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--borde);
+}
+
+/* Idioma elegido: en acento y con la marca de verificación, que entra con un
+   fundido y un pequeño giro */
+.menu-usuario__opcion--activa {
+  font-weight: 600;
+  color: var(--acento);
+}
+
+.menu-ajustes__check {
+  flex: none;
+  opacity: 0;
+  scale: 0.5;
+  transition: opacity var(--transicion), scale var(--transicion);
+}
+
+.menu-usuario__opcion--activa .menu-ajustes__check {
+  opacity: 1;
+  scale: 1;
+}
+
 /* ---- Perfil (Perfil.jsx) ---------------------------------------------------- */
 .perfil {
   display: flex;

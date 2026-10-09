@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { apiFetch } from './api'
-import { ETIQUETAS_ESTADO } from './estados'
+import { ESTADOS } from './estados'
+import { useIdioma } from './IdiomaContext'
 import Desplegable from './Desplegable'
 import Cargando from './Cargando'
 import { useVentana } from './useVentana'
 import Mensaje from './Mensaje'
-
-const OPCIONES_ESTADO = Object.entries(ETIQUETAS_ESTADO).map(([valor, etiqueta]) => ({ valor, etiqueta }))
 
 // Ventana (centrada en la pantalla) para editar un juego de mi biblioteca, con
 // los campos que admite PATCH /games/:id.
@@ -16,6 +15,8 @@ const OPCIONES_ESTADO = Object.entries(ETIQUETAS_ESTADO).map(([valor, etiqueta])
 // Solo existe mientras estoy editando, así que los campos del formulario se
 // inician con los datos actuales cada vez que la abro y "Cancelar" descarta todo.
 function EditarJuego({ juego, onActualizar, onCerrar }) {
+  const { t } = useIdioma()
+  const opcionesEstado = ESTADOS.map((valor) => ({ valor, etiqueta: t(`estado.${valor}`) }))
   const dialogRef = useRef(null)
   // Cierre con animación de salida (ver useVentana.js)
   const { saliendo, cerrar, alCancelar } = useVentana(onCerrar)
@@ -90,7 +91,7 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
     nombresPlataforma.unshift(platform)
   }
   const opcionesPlataforma = [
-    { valor: "", etiqueta: cargandoPlataformas ? "Cargando..." : "Sin especificar" },
+    { valor: "", etiqueta: cargandoPlataformas ? t('editar.cargando') : t('editar.sinEspecificar') },
     ...nombresPlataforma.map((nombre) => ({ valor: nombre, etiqueta: nombre })),
   ]
 
@@ -109,7 +110,7 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
         className="btn-icono editar__cerrar"
         onClick={() => cerrar()}
         disabled={ocupado}
-        aria-label="Cerrar"
+        aria-label={t('comun.cerrar')}
       >
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
           <path d="M6 6l12 12M18 6 6 18" />
@@ -120,21 +121,21 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
         <div className="editar__portada">
           {juego.cover_url
             ? <img src={juego.cover_url} alt="" />
-            : <span className="portada__vacia">Sin portada</span>}
+            : <span className="portada__vacia">{t('comun.sinPortada')}</span>}
         </div>
         <div>
-          <p className="editar__etiqueta">Editar juego</p>
+          <p className="editar__etiqueta">{t('editar.etiqueta')}</p>
           <h2 id="editar-titulo" className="editar__titulo">{juego.name}</h2>
         </div>
       </div>
 
       <form className="formulario formulario--edicion" onSubmit={handleGuardar}>
         <label className="campo">
-          <span>Estado</span>
-          <Desplegable opciones={OPCIONES_ESTADO} valor={status} onChange={setStatus} />
+          <span>{t('editar.estado')}</span>
+          <Desplegable opciones={opcionesEstado} valor={status} onChange={setStatus} />
         </label>
         <label className="campo">
-          <span>Nota (1-10)</span>
+          <span>{t('editar.nota')}</span>
           <input
             type="number"
             min="1"
@@ -145,7 +146,7 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
           />
         </label>
         <label className="campo">
-          <span>Plataforma</span>
+          <span>{t('editar.plataforma')}</span>
           <Desplegable
             opciones={opcionesPlataforma}
             valor={platform}
@@ -154,11 +155,11 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
             cargando={cargandoPlataformas}
           />
           {errorPlataformas && (
-            <small>No se pudo cargar la lista de plataformas.</small>
+            <small>{t('editar.errorPlataformas')}</small>
           )}
         </label>
         <label className="campo campo--ancho">
-          <span>Reseña</span>
+          <span>{t('editar.resena')}</span>
           <textarea value={review} onChange={(e) => setReview(e.target.value)} />
         </label>
 
@@ -166,12 +167,12 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
 
         <div className="editar__acciones campo--ancho">
           <button type="button" className="btn btn--secundario" onClick={() => cerrar()} disabled={ocupado}>
-            Cancelar
+            {t('comun.cancelar')}
           </button>
           <button type="submit" className="btn btn--primario" disabled={ocupado}>
             {ocupado
-              ? <><Cargando tamano="pequeno" /> Guardando...</>
-              : "Guardar"}
+              ? <><Cargando tamano="pequeno" /> {t('comun.guardando')}</>
+              : t('editar.guardar')}
           </button>
         </div>
       </form>
