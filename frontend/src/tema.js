@@ -15,3 +15,11 @@ export function aplicarTema(tema) {
     // Sin localStorage (modo privado, etc.) el tema solo vale para esta visita
   }
 }
+
+// Cambia al otro tema y devuelve cuál es el nuevo, para que quien lo llame
+// actualice su estado.
+export function alternarTema() {
+  const nuevo = temaActual() === 'oscuro' ? 'claro' : 'oscuro'
+  aplicarTema(nuevo)
+  return nuevo
+}

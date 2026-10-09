@@ -1681,16 +1681,123 @@ body:has(dialog[open]) {
 .avatar--normal { width: 56px; height: 56px; font-size: 1.6rem; }
 .avatar--grande { width: 96px; height: 96px; font-size: 2.8rem; }
 
-/* Enlace al perfil en la barra: un aro de color al pasar el ratón y en la página activa */
-.barra__perfil {
+/* ---- Menú de usuario de la barra (MenuUsuario.jsx) ------------------------ */
+.menu-usuario {
+  position: relative; /* el desplegable se coloca respecto a este contenedor */
+}
+
+/* La foto es un botón: le quito el aspecto de botón y le pongo un aro de color
+   al pasar el ratón, al abrir el menú y en la página de perfil */
+.menu-usuario__boton {
   display: inline-flex;
+  padding: 0;
+  background: none;
+  border: 0;
   border-radius: 50%;
   transition: box-shadow var(--transicion);
 }
 
-.barra__perfil:hover,
-.barra__perfil.active {
+.menu-usuario__boton:hover,
+.menu-usuario__boton[aria-expanded="true"],
+.menu-usuario__boton--activo {
   box-shadow: 0 0 0 2px var(--barra), 0 0 0 4px var(--acento);
+}
+
+/* El panel empieza justo donde acaba la foto y su padding de arriba deja el
+   espacio visual: si hubiera un hueco vacío entre los dos, el ratón saldría del
+   menú al bajar y se cerraría. */
+.menu-usuario__panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 20;
+  padding-top: 0.6rem;
+  animation: menu-usuario-entrada 0.16s ease both;
+}
+
+/* Puente invisible. La foto es redonda, así que su esquina inferior izquierda
+   está vacía: al ir en diagonal hacia el panel el ratón pasa por ahí, fuera de la
+   foto y todavía encima del panel, y el menú se cerraría. Esta franja transparente
+   (del tamaño del radio de la foto) rellena ese hueco. Como cuelga del panel,
+   cuenta como parte del menú. Termina donde empieza la foto (right: 36px = su
+   ancho) para no tapar el clic en ella. */
+.menu-usuario__panel::before {
+  content: "";
+  position: absolute;
+  top: -18px;
+  right: 36px;
+  left: 0;
+  height: 18px;
+}
+
+.menu-usuario__lista {
+  display: flex;
+  flex-direction: column;
+  min-width: 190px;
+  padding: 0.3rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+/* Al cerrar: la misma animación al revés. Mientras sale no se puede pulsar. */
+.menu-usuario__panel--saliendo {
+  pointer-events: none;
+  animation: menu-usuario-salida 0.16s ease both;
+}
+
+@keyframes menu-usuario-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes menu-usuario-salida {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.menu-usuario__nombre {
+  padding: 0.5rem 0.7rem 0.6rem;
+  margin-bottom: 0.3rem;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--texto-h);
+  border-bottom: 1px solid var(--borde);
+}
+
+/* Las dos opciones se ven igual aunque una sea un enlace y otra un botón */
+.menu-usuario__opcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  color: var(--texto);
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  transition: background-color var(--transicion), color var(--transicion);
+}
+
+.menu-usuario__opcion:hover {
+  color: var(--texto-h);
+  text-decoration: none;
+  background: var(--superficie-2);
+}
+
+.menu-usuario__opcion--salir:hover {
+  color: var(--peligro);
 }
 
 /* ---- Perfil (Perfil.jsx) ---------------------------------------------------- */
