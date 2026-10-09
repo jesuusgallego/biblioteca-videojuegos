@@ -1,13 +1,29 @@
 /* Perfil: banner con las cifras, pestañas y paneles. */
 
 /* ---- Perfil: banner (CabeceraPerfil.jsx) ------------------------------------ */
-/* El banner es oscuro en los dos temas: su fondo es una aurora con una capa oscura
-   encima, así el texto blanco se lee siempre */
+/* El banner cambia con el tema: en oscuro, una aurora sobre azul marino con texto
+   blanco; en claro, la misma aurora en tonos pastel sobre blanco con texto oscuro.
+   Los colores que cambian (texto y "cristal" de botón y cifras) son variables
+   --banner-*: abajo, en :root[data-tema="claro"], se redefinen. */
 .banner-perfil {
+  --banner-texto: #fff;
+  --banner-texto-suave: rgba(255, 255, 255, 0.72);
+  --banner-bio: rgba(255, 255, 255, 0.92);
+  --banner-bio-vacia: rgba(255, 255, 255, 0.6);
+  --banner-sombra-titulo: 0 2px 14px rgba(0, 0, 0, 0.45);
+  --banner-aro-avatar: rgba(255, 255, 255, 0.92);
+  --banner-sombra-avatar: rgba(0, 0, 0, 0.5);
+  --banner-cristal: rgba(255, 255, 255, 0.09);
+  --banner-cristal-hover: rgba(255, 255, 255, 0.22);
+  --banner-cristal-borde: rgba(255, 255, 255, 0.18);
+  --banner-boton: rgba(255, 255, 255, 0.12);
+  --banner-boton-borde: rgba(255, 255, 255, 0.28);
+  --banner-boton-borde-hover: rgba(255, 255, 255, 0.5);
+
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  color: #fff;
+  color: var(--banner-texto);
   background: #0e1724;
   border: 1px solid var(--borde);
   border-radius: var(--radio-grande);
@@ -84,31 +100,31 @@
 
 .banner-perfil .titulo-pagina {
   font-size: 2.4rem;
-  color: #fff;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
+  color: var(--banner-texto);
+  text-shadow: var(--banner-sombra-titulo);
   overflow-wrap: anywhere; /* un nombre muy largo sin espacios no debe salirse */
 }
 
 .banner-perfil__meta {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--banner-texto-suave);
 }
 
 .banner-perfil__bio {
   max-width: 34rem;
   margin-top: 0.4rem;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--banner-bio);
   overflow-wrap: anywhere;
   white-space: pre-line; /* respeto los saltos de línea que escribió */
 }
 
 .banner-perfil__bio--vacia {
   font-style: italic;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--banner-bio-vacia);
 }
 
 .banner-perfil .avatar {
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.92), 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 3px var(--banner-aro-avatar), 0 10px 30px var(--banner-sombra-avatar);
 }
 
 /* Botón de cristal (translúcido y con el fondo desenfocado) arriba a la derecha */
@@ -123,9 +139,9 @@
   font: inherit;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: var(--banner-texto);
+  background: var(--banner-boton);
+  border: 1px solid var(--banner-boton-borde);
   border-radius: 999px;
   backdrop-filter: blur(8px);
   cursor: pointer;
@@ -134,8 +150,8 @@
 }
 
 .banner-perfil__editar:hover {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: var(--banner-cristal-hover);
+  border-color: var(--banner-boton-borde-hover);
 }
 
 .banner-perfil__editar:active {
@@ -158,8 +174,8 @@
   gap: 0.1rem;
   min-width: 6.5rem;
   padding: 0.7rem 1rem;
-  background: rgba(255, 255, 255, 0.09);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--banner-cristal);
+  border: 1px solid var(--banner-cristal-borde);
   border-radius: var(--radio);
   backdrop-filter: blur(10px);
   animation: cifra-entrada 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -179,13 +195,54 @@
   font-size: 2rem;
   font-weight: 600;
   line-height: 1.1;
-  color: #fff;
+  color: var(--banner-texto);
 }
 
 .cifra__etiqueta {
   font-size: 0.75rem;
   letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--banner-texto-suave);
+}
+
+/* Banner en el tema claro: la aurora en pastel sobre blanco, con el texto oscuro del
+   tema. La rejilla pasa de líneas blancas a líneas azul marino muy tenues, y la
+   capa de arriba aclara (en vez de oscurecer) la zona del texto. */
+:root[data-tema="claro"] .banner-perfil {
+  --banner-texto: var(--texto-h);
+  --banner-texto-suave: rgba(15, 27, 42, 0.68);
+  --banner-bio: rgba(15, 27, 42, 0.86);
+  --banner-bio-vacia: rgba(15, 27, 42, 0.55);
+  --banner-sombra-titulo: none;
+  --banner-aro-avatar: #fff;
+  --banner-sombra-avatar: rgba(31, 52, 80, 0.28);
+  --banner-cristal: rgba(255, 255, 255, 0.6);
+  --banner-cristal-hover: rgba(255, 255, 255, 0.9);
+  --banner-cristal-borde: rgba(15, 27, 42, 0.1);
+  --banner-boton: rgba(255, 255, 255, 0.65);
+  --banner-boton-borde: rgba(15, 27, 42, 0.16);
+  --banner-boton-borde-hover: rgba(15, 27, 42, 0.32);
+
+  background: #eef2fb;
+}
+
+:root[data-tema="claro"] .banner-perfil__fondo {
+  background:
+    radial-gradient(ellipse 55% 140% at 4% -20%, rgba(124, 96, 255, 0.5), transparent 70%),
+    radial-gradient(ellipse 50% 120% at 48% 135%, rgba(59, 150, 230, 0.5), transparent 68%),
+    radial-gradient(ellipse 42% 110% at 98% 10%, rgba(76, 201, 240, 0.5), transparent 70%),
+    linear-gradient(135deg, #e3ebfa, #f6f8fd 55%, #e9e3fc);
+}
+
+:root[data-tema="claro"] .banner-perfil__fondo::before {
+  background-image:
+    linear-gradient(rgba(15, 27, 42, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 27, 42, 0.06) 1px, transparent 1px);
+}
+
+:root[data-tema="claro"] .banner-perfil__fondo::after {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.05) 60%, rgba(255, 255, 255, 0.15)),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.35), transparent 50%);
 }
 
 /* ---- Perfil: pestañas y paneles (PestanasPerfil.jsx, Perfil.jsx) ------------- */
