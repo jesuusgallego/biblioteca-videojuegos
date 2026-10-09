@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom'
 import { ESTADOS } from './estados'
 import { useIdioma } from './IdiomaContext'
 
-// Resumen de la biblioteca del usuario. Recibe lo que calcula GET /profile/stats:
+// Resumen de la biblioteca del usuario (las tres cifras grandes viven en el banner,
+// CabeceraPerfil). Recibe lo que calcula GET /profile/stats:
 //  - stats: { total, jugando, completado, abandonado, pendiente, valorados, nota_media }
 //  - mejores: sus juegos mejor valorados (hasta 5)
 function EstadisticasPerfil({ stats, mejores }) {
@@ -17,28 +18,8 @@ function EstadisticasPerfil({ stats, mejores }) {
     )
   }
 
-  // Porcentaje de juegos terminados, redondeado
-  const porcentajeCompletado = Math.round((stats.completado / stats.total) * 100)
-
   return (
     <div className="estadisticas">
-      <dl className="stats">
-        <div className="stat">
-          <dt className="stat__etiqueta">{t('stats.juegos')}</dt>
-          <dd className="stat__valor">{stats.total}</dd>
-        </div>
-        <div className="stat">
-          <dt className="stat__etiqueta">
-            {t('stats.notaMedia')}{stats.valorados > 0 && t('stats.valorados', { n: stats.valorados })}
-          </dt>
-          <dd className="stat__valor">{stats.nota_media ?? "—"}</dd>
-        </div>
-        <div className="stat">
-          <dt className="stat__etiqueta">{t('stats.completados')}</dt>
-          <dd className="stat__valor">{porcentajeCompletado}%</dd>
-        </div>
-      </dl>
-
       <div>
         <h3 className="estadisticas__subtitulo">{t('stats.porEstado')}</h3>
         {/* Barra dividida en tramos: cada uno crece según cuántos juegos tiene

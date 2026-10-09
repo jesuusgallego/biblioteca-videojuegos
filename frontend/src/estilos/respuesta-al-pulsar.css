@@ -1,0 +1,18 @@
+/* Todo lo pulsable se encoge un poco al mantenerlo pulsado. */
+
+/* ---- Respuesta al pulsar ------------------------------------------------- */
+/* Todo lo que se puede pulsar se encoge un poco mientras se mantiene pulsado.
+   Uso `scale` y no `transform`: son propiedades independientes, así que no pisa
+   los transform que ya usan algunos elementos (los botones del visor se centran
+   con translateY). Cada uno lleva `scale` en su `transition`, por eso el cambio
+   es suave. Los botones .btn ya bajan 1px al pulsarse. */
+.btn-icono:active:not(:disabled),
+.filtro:active,
+.menu-usuario__boton:active,
+.menu-usuario__opcion:active,
+.desplegable__boton:active:not(:disabled),
+.desplegable__opcion:active,
+.boton-portada:active,
+.selector-artwork__imagen:active {
+  scale: 0.96;
+}

@@ -1,0 +1,329 @@
+/* Mi biblioteca: "Jugando ahora", filtros laterales y portadas pulsables. */
+
+/* ---- Mi biblioteca: fila "Jugando ahora" -------------------------------- */
+.biblioteca-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+}
+
+.biblioteca-pagina > section > .titulo-seccion {
+  margin-bottom: 0.9rem;
+}
+
+.jugando__encabezado {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Puntito verde que late junto al título: "esto está pasando ahora" */
+.pulso {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--estado-jugando);
+  animation: pulso 1.8s ease-out infinite;
+}
+
+@keyframes pulso {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--estado-jugando) 60%, transparent);
+  }
+  70%, 100% {
+    box-shadow: 0 0 0 9px transparent;
+  }
+}
+
+.jugando {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 0.9rem;
+}
+
+/* Tarjeta ancha: el fondo es la portada desenfocada y encima va un degradado
+   de la propia superficie para que el texto se lea en los dos temas. */
+.jugando__tarjeta {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: stretch;
+  gap: 0.9rem;
+  padding: 0.75rem;
+  overflow: hidden;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+  transition: transform var(--transicion), border-color var(--transicion),
+    box-shadow var(--transicion);
+}
+
+.jugando__tarjeta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    90deg,
+    var(--superficie) 0%,
+    color-mix(in srgb, var(--superficie) 78%, transparent) 55%,
+    color-mix(in srgb, var(--superficie) 45%, transparent) 100%
+  );
+}
+
+.jugando__tarjeta:hover {
+  transform: translateY(-3px);
+  border-color: var(--acento);
+  box-shadow: var(--sombra);
+}
+
+.jugando__fondo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(22px) saturate(1.3);
+  transform: scale(1.25);
+  opacity: 0.55;
+  transition: transform 0.5s ease, opacity var(--transicion);
+}
+
+/* Toda la tarjeta es clicable: el ::after del botón del título cubre la tarjeta
+   (el <li> es position: relative). La portada queda debajo y sin foco propio. */
+.jugando__titulo .enlace-titulo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.jugando__tarjeta {
+  cursor: pointer;
+}
+
+/* El anillo de foco va en la tarjeta entera, no solo alrededor del texto */
+.jugando__titulo .enlace-titulo:focus-visible {
+  outline: none;
+}
+
+.jugando__tarjeta:has(.enlace-titulo:focus-visible) {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+/* El fondo desenfocado también se acerca al pasar el ratón por la tarjeta */
+.jugando__tarjeta:hover .jugando__fondo {
+  transform: scale(1.4);
+  opacity: 0.7;
+}
+
+.jugando__portada {
+  position: relative;
+  flex: 0 0 76px;
+  aspect-ratio: 264 / 374;
+  align-self: center;
+  overflow: hidden;
+  background: var(--degradado);
+  border-radius: var(--radio);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.jugando__portada img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.jugando__cuerpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.jugando__titulo {
+  font-family: var(--display);
+  font-size: 1.3rem;
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.jugando__datos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* ---- Mi biblioteca: barra lateral de filtros + contenido ----------------- */
+.biblioteca {
+  display: flex;
+  flex-wrap: wrap; /* en pantallas estrechas la barra pasa encima de la rejilla */
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.filtros {
+  flex: 0 0 240px;
+  padding: 0.5rem 0;
+  background: var(--barra);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+.filtros__titulo {
+  padding: 0.6rem 1.1rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.filtro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
+  color: var(--texto);
+  background: transparent;
+  border: 0;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background-color var(--transicion), color var(--transicion), scale var(--transicion);
+}
+
+.filtro:hover {
+  color: var(--texto-h);
+  background: var(--superficie-2);
+}
+
+.filtro--activo {
+  color: var(--texto-h);
+  background: var(--superficie-2);
+  border-left-color: var(--acento);
+}
+
+.filtro__nombre {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.filtro__cuenta {
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+/* Puntito de color de cada estado (mismas variables que los chips) */
+.punto {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--texto-suave);
+}
+
+.punto--jugando { background: var(--estado-jugando); }
+.punto--completado { background: var(--estado-completado); }
+.punto--abandonado { background: var(--estado-abandonado); }
+.punto--pendiente { background: var(--estado-pendiente); }
+
+/* flex: 999 1 560px = "crece mucho, base 560px": así la barra lateral solo se
+   queda al lado si caben las dos cosas; si no, el contenido pasa a otra línea */
+.biblioteca__contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex: 999 1 560px;
+  min-width: 0;
+}
+
+.biblioteca__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sin-resultados {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--texto-suave);
+  border: 1px dashed var(--borde);
+  border-radius: var(--radio);
+}
+
+.sin-resultados h2 {
+  margin-bottom: 0.4rem;
+  font-size: 1.1rem;
+}
+
+/* ---- Portadas y títulos pulsables (abren la ficha del juego) --------------- */
+.boton-portada {
+  display: block;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: scale var(--transicion);
+}
+
+/* Llena toda la portada; la nota (position: absolute, más abajo en el HTML)
+   queda por encima y deja pasar los clics al botón */
+.boton-portada--llena {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.boton-portada:focus-visible {
+  outline-offset: -3px;
+}
+
+.boton-portada img {
+  transition: transform var(--transicion);
+}
+
+.boton-portada:hover img {
+  transform: scale(1.04);
+}
+
+.nota {
+  pointer-events: none;
+}
+
+.enlace-titulo {
+  display: inline;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: color var(--transicion);
+}
+
+.enlace-titulo:hover {
+  color: var(--acento);
+}

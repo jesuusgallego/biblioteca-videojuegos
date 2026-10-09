@@ -6,6 +6,7 @@ import EditarJuego from './EditarJuego'
 import Mensaje from './Mensaje'
 import Desplegable from './Desplegable'
 import IconoResena from './IconoResena'
+import ProgresoSteam from './ProgresoSteam'
 
 // Tarjeta de un juego que ya está en mi biblioteca. "Editar" abre la ventana
 // EditarJuego y "Quitar" pide confirmación antes de borrar. onActualizar y
@@ -13,7 +14,7 @@ import IconoResena from './IconoResena'
 // El chip de estado es un desplegable: cambiar el estado guarda al momento, sin
 // pasar por la ventana de edición.
 // Toda la tarjeta es clicable, pero solo hay UN botón de verdad (el del título):
-// su ::after (ver App.css) se estira por toda la tarjeta. Los controles de dentro
+// su ::after (ver estilos/tarjetas.css) se estira por toda la tarjeta. Los controles de dentro
 // (estado, Editar, Quitar) van por encima con z-index, así no anido botones.
 
 function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
@@ -78,6 +79,8 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
         </h3>
 
         {juego.platform && <p className="tarjeta__meta">{juego.platform}</p>}
+
+        <ProgresoSteam juego={juego} />
 
         <Mensaje texto={error} />
 

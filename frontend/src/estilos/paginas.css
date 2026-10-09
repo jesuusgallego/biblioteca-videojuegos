@@ -1,0 +1,115 @@
+/* Contenedor y títulos de las páginas, y la página Buscar. */
+
+/* ---- Páginas ------------------------------------------------------------- */
+.contenedor {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.titulo-pagina {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--display);
+  font-size: 2.1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.titulo-seccion {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.contador {
+  padding: 0.1rem 0.7rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--acento);
+  background: var(--acento-suave);
+  border-radius: 999px;
+}
+
+/* Campo de búsqueda con lupa. La lupa es un SVG colocado encima (position:
+   absolute) y el input deja hueco a la izquierda con padding. */
+.caja-busqueda {
+  position: relative;
+}
+
+.caja-busqueda svg {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--texto-suave);
+  pointer-events: none;
+}
+
+.caja-busqueda input {
+  padding-left: 2.6rem;
+}
+
+.caja-busqueda--filtro {
+  flex: 1 1 260px;
+  max-width: 380px;
+}
+
+.caja-busqueda--filtro input {
+  height: 44px;
+  font-size: 0.9rem;
+}
+
+.caja-busqueda--grande {
+  max-width: 640px;
+}
+
+.caja-busqueda--grande svg {
+  left: 1rem;
+}
+
+.caja-busqueda--grande input {
+  height: 52px;
+  padding-left: 3rem;
+  font-size: 1rem;
+}
+
+/* ---- Buscar -------------------------------------------------------------- */
+.buscar-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.banner {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2.25rem 2rem;
+  background: var(--banner);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+}
+
+.banner__titulo {
+  font-family: var(--display);
+  font-size: 2.5rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.banner__texto {
+  max-width: 560px;
+}
+
+.resultados__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: -0.5rem;
+}

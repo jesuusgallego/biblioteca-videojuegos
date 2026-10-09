@@ -4,7 +4,7 @@ import { useIdioma } from './IdiomaContext'
 // Tarjeta de un resultado de la búsqueda. El botón de añadir vive en BotonAnadir
 // y el padre (Buscar) me pasa yaGuardado y onAnadir.
 // Toda la tarjeta abre la ficha: el ::after del botón del título se estira por
-// ella (ver App.css) y el botón de añadir va por encima.
+// ella (ver estilos/tarjetas.css) y el botón de añadir va por encima.
 function GameCard({ nombre, portada, yaGuardado, onAnadir, onVerDetalle }) {
   const { t } = useIdioma()
 

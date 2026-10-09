@@ -1,0 +1,234 @@
+/* Avatar, menú de usuario y menú de ajustes de la barra. */
+
+/* ---- Avatar (Avatar.jsx) -------------------------------------------------- */
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  overflow: hidden;
+  font-family: var(--display);
+  font-weight: 600;
+  color: #fff;
+  background: var(--degradado);
+  border-radius: 50%;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar--pequeno { width: 36px; height: 36px; font-size: 1.1rem; }
+.avatar--normal { width: 56px; height: 56px; font-size: 1.6rem; }
+.avatar--grande { width: 96px; height: 96px; font-size: 2.8rem; }
+.avatar--enorme { width: 120px; height: 120px; font-size: 3.4rem; }
+
+/* ---- Menú de usuario de la barra (MenuUsuario.jsx) ------------------------ */
+.menu-usuario {
+  position: relative; /* el desplegable se coloca respecto a este contenedor */
+}
+
+/* La foto es un botón: le quito el aspecto de botón y le pongo un aro de color
+   al pasar el ratón, al abrir el menú y en la página de perfil */
+.menu-usuario__boton {
+  display: inline-flex;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  transition: box-shadow var(--transicion), scale var(--transicion);
+}
+
+.menu-usuario__boton:hover,
+.menu-usuario__boton[aria-expanded="true"],
+.menu-usuario__boton--activo {
+  box-shadow: 0 0 0 2px var(--barra), 0 0 0 4px var(--acento);
+}
+
+/* El panel empieza justo donde acaba la foto y su padding de arriba deja el
+   espacio visual: si hubiera un hueco vacío entre los dos, el ratón saldría del
+   menú al bajar y se cerraría. */
+.menu-usuario__panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 20;
+  padding-top: 0.6rem;
+  animation: menu-usuario-entrada 0.16s ease both;
+}
+
+/* Puente invisible. La foto es redonda, así que su esquina inferior izquierda
+   está vacía: al ir en diagonal hacia el panel el ratón pasa por ahí, fuera de la
+   foto y todavía encima del panel, y el menú se cerraría. Esta franja transparente
+   (del tamaño del radio de la foto) rellena ese hueco. Como cuelga del panel,
+   cuenta como parte del menú. Termina donde empieza la foto (right: 36px = su
+   ancho) para no tapar el clic en ella. */
+.menu-usuario__panel::before {
+  content: "";
+  position: absolute;
+  top: -18px;
+  right: 36px;
+  left: 0;
+  height: 18px;
+}
+
+.menu-usuario__lista {
+  display: flex;
+  flex-direction: column;
+  min-width: 190px;
+  padding: 0.3rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+/* Al cerrar: la misma animación al revés. Mientras sale no se puede pulsar. */
+.menu-usuario__panel--saliendo {
+  pointer-events: none;
+  animation: menu-usuario-salida 0.16s ease both;
+}
+
+@keyframes menu-usuario-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes menu-usuario-salida {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.menu-usuario__nombre {
+  padding: 0.5rem 0.7rem 0.6rem;
+  margin-bottom: 0.3rem;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--texto-h);
+  border-bottom: 1px solid var(--borde);
+}
+
+/* Las dos opciones se ven igual aunque una sea un enlace y otra un botón */
+.menu-usuario__opcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  color: var(--texto);
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  transition: background-color var(--transicion), color var(--transicion), scale var(--transicion);
+}
+
+.menu-usuario__opcion:hover {
+  color: var(--texto-h);
+  text-decoration: none;
+  background: var(--superficie-2);
+}
+
+.menu-usuario__opcion--salir:hover {
+  color: var(--peligro);
+}
+
+/* ---- Menú de ajustes (MenuAjustes.jsx) ------------------------------------ */
+/* Reutiliza el panel y las opciones del menú de usuario (.menu-usuario__*). El
+   botón es un .btn-icono de tres líneas del mismo tamaño que la foto. */
+.menu-ajustes__boton[aria-expanded="true"] {
+  color: var(--acento);
+  border-color: var(--acento);
+}
+
+/* El botón es cuadrado, no hace falta el puente diagonal de la foto redonda */
+.menu-ajustes .menu-usuario__panel::before {
+  display: none;
+}
+
+/* Las tres líneas se convierten en una X al abrir: la de arriba y la de abajo
+   giran hacia el centro y la del medio se desvanece */
+.menu-ajustes__linea {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform var(--transicion), opacity var(--transicion);
+}
+
+.menu-ajustes__boton[aria-expanded="true"] .menu-ajustes__linea--arriba {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.menu-ajustes__boton[aria-expanded="true"] .menu-ajustes__linea--medio {
+  opacity: 0;
+  transform: scaleX(0.2);
+}
+
+.menu-ajustes__boton[aria-expanded="true"] .menu-ajustes__linea--abajo {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.menu-ajustes__titulo {
+  padding: 0.4rem 0.7rem 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.menu-ajustes__titulo--separado {
+  margin-top: 0.3rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--borde);
+}
+
+/* Bandera + nombre del idioma */
+.menu-ajustes__idioma {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.bandera {
+  flex: none;
+  width: 24px;
+  height: 16px;
+  border-radius: 3px;
+  /* Un filo sutil: las partes claras de la bandera no se pierden en el tema claro */
+  box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.35);
+  transition: scale var(--transicion);
+}
+
+.menu-usuario__opcion:hover .bandera,
+.menu-usuario__opcion--activa .bandera {
+  scale: 1.1;
+}
+
+/* Idioma elegido: en acento y con la marca de verificación, que entra con un
+   fundido y un pequeño giro */
+.menu-usuario__opcion--activa {
+  font-weight: 600;
+  color: var(--acento);
+}
+
+.menu-ajustes__check {
+  flex: none;
+  opacity: 0;
+  scale: 0.5;
+  transition: opacity var(--transicion), scale var(--transicion);
+}
+
+.menu-usuario__opcion--activa .menu-ajustes__check {
+  opacity: 1;
+  scale: 1;
+}

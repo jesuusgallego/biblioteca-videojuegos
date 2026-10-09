@@ -1,0 +1,69 @@
+import Avatar from './Avatar'
+import { useIdioma } from './IdiomaContext'
+
+// Banner del perfil: foto, nombre, bio y tres cifras de la biblioteca.
+// El fondo es un collage borroso con las portadas de los juegos mejor valorados del
+// usuario (si no tiene ninguno, un degradado de la marca). Es decorativo.
+//  - perfil: { username, avatar, bio, created_at }
+//  - stats: lo que calcula GET /profile/stats, o null mientras carga
+//  - portadas: lista de URLs de portada para el fondo
+//  - onEditar(): salta a la pestaña de edición
+function CabeceraPerfil({ perfil, stats, portadas, onEditar }) {
+  const { t, locale } = useIdioma()
+
+  const miembroDesde = new Date(perfil.created_at).toLocaleDateString(locale, {
+    month: 'long',
+    year: 'numeric',
+  })
+
+  // Mientras no llegan las estadísticas enseño rayas, no ceros que luego cambian
+  const cargando = stats === null
+  const porcentajeCompletado = stats && stats.total > 0 ? Math.round((stats.completado / stats.total) * 100) : 0
+
+  const cifras = [
+    { etiqueta: t('stats.juegos'), valor: cargando ? "–" : stats.total },
+    { etiqueta: t('stats.notaMedia'), valor: cargando ? "–" : (stats.nota_media ?? "—") },
+    { etiqueta: t('stats.completados'), valor: cargando ? "–" : `${porcentajeCompletado}%` },
+  ]
+
+  return (
+    <header className="banner-perfil">
+      <div className="banner-perfil__fondo" aria-hidden="true">
+        {portadas.map((url) => <img key={url} src={url} alt="" />)}
+      </div>
+
+      <button type="button" className="banner-perfil__editar" onClick={onEditar}>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </svg>
+        {t('perfil.editarBoton')}
+      </button>
+
+      <div className="banner-perfil__contenido">
+        <div className="banner-perfil__identidad">
+          <Avatar usuario={perfil} tamano="enorme" />
+          <div className="banner-perfil__datos">
+            <h1 className="titulo-pagina">{perfil.username}</h1>
+            <p className="banner-perfil__meta">{t('perfil.miembroDesde', { fecha: miembroDesde })}</p>
+            {perfil.bio
+              ? <p className="banner-perfil__bio">{perfil.bio}</p>
+              : <p className="banner-perfil__bio banner-perfil__bio--vacia">{t('perfil.sinBio')}</p>}
+          </div>
+        </div>
+
+        {/* En el HTML va primero la etiqueta (<dt>) y luego el valor (<dd>), que es lo
+            correcto para un lector de pantalla; el CSS pinta el número encima. */}
+        <dl className="banner-perfil__cifras">
+          {cifras.map(({ etiqueta, valor }, i) => (
+            <div key={etiqueta} className="cifra" style={{ '--orden': i }}>
+              <dt className="cifra__etiqueta">{etiqueta}</dt>
+              <dd className="cifra__valor">{valor}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </header>
+  )
+}
+
+export default CabeceraPerfil

@@ -1,0 +1,286 @@
+/* Perfil: banner con las cifras, pestañas y paneles. */
+
+/* ---- Perfil: banner (CabeceraPerfil.jsx) ------------------------------------ */
+/* El banner es oscuro en los dos temas: su fondo son portadas con una capa negra
+   encima, así el texto blanco se lee siempre */
+.banner-perfil {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fff;
+  background: linear-gradient(135deg, #1c2f4a, #192536 55%, #2a1f5c);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+  animation: banner-entrada 0.5s ease both;
+}
+
+@keyframes banner-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Collage de portadas: cada una ocupa lo mismo, borrosa y oscurecida. El scale
+   evita que el desenfoque deje un borde claro en los lados. */
+.banner-perfil__fondo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: flex;
+}
+
+.banner-perfil__fondo img {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(10px) saturate(1.5) brightness(0.78);
+  transform: scale(1.25);
+}
+
+.banner-perfil__fondo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(8, 13, 22, 0.82), rgba(8, 13, 22, 0.28) 55%, rgba(8, 13, 22, 0.5)),
+    linear-gradient(0deg, rgba(8, 13, 22, 0.45), transparent 55%);
+}
+
+.banner-perfil__contenido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem 2rem;
+  padding: 3rem 2rem 1.75rem;
+}
+
+.banner-perfil__identidad {
+  display: flex;
+  flex: 1 1 22rem;
+  align-items: center;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.banner-perfil__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.banner-perfil .titulo-pagina {
+  font-size: 2.4rem;
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
+  overflow-wrap: anywhere; /* un nombre muy largo sin espacios no debe salirse */
+}
+
+.banner-perfil__meta {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.banner-perfil__bio {
+  max-width: 34rem;
+  margin-top: 0.4rem;
+  color: rgba(255, 255, 255, 0.92);
+  overflow-wrap: anywhere;
+  white-space: pre-line; /* respeto los saltos de línea que escribió */
+}
+
+.banner-perfil__bio--vacia {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.banner-perfil .avatar {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.92), 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Botón de cristal (translúcido y con el fondo desenfocado) arriba a la derecha */
+.banner-perfil__editar {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: background-color var(--transicion), border-color var(--transicion),
+    transform var(--transicion);
+}
+
+.banner-perfil__editar:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.banner-perfil__editar:active {
+  transform: scale(0.95);
+}
+
+.banner-perfil__cifras {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+/* En el HTML va primero la etiqueta (<dt>) y luego el valor (<dd>), que es lo
+   correcto para un lector de pantalla; column-reverse pinta el número encima.
+   Entran escalonadas: --orden es 0, 1, 2. */
+.cifra {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 0.1rem;
+  min-width: 6.5rem;
+  padding: 0.7rem 1rem;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radio);
+  backdrop-filter: blur(10px);
+  animation: cifra-entrada 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(0.15s + var(--orden) * 0.08s);
+}
+
+@keyframes cifra-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+}
+
+.cifra__valor {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.cifra__etiqueta {
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ---- Perfil: pestañas y paneles (PestanasPerfil.jsx, Perfil.jsx) ------------- */
+.perfil__cuerpo {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* position: sticky la deja pegada arriba al hacer scroll y, a la vez, hace de
+   referencia para colocar el indicador (position: absolute) */
+.pestanas {
+  position: sticky;
+  top: 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.4rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+}
+
+/* Fondo que se desliza hasta la pestaña activa. Su posición y tamaño los pone el
+   componente (style); la transición solo se activa después de la primera medida. */
+.pestanas__indicador {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  background: var(--acento-suave);
+  border-radius: calc(var(--radio-grande) - 3px);
+  box-shadow: inset 3px 0 0 var(--acento);
+  pointer-events: none;
+}
+
+.pestanas__indicador--lista {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pestana {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--texto);
+  background: none;
+  border: 0;
+  border-radius: calc(var(--radio-grande) - 3px);
+  cursor: pointer;
+  transition: color var(--transicion), background-color var(--transicion);
+}
+
+.pestana svg {
+  flex: none;
+}
+
+.pestana:hover {
+  color: var(--texto-h);
+  background: color-mix(in srgb, var(--texto) 7%, transparent);
+}
+
+.pestana--activa,
+.pestana--activa:hover {
+  color: var(--acento);
+  background: none;
+}
+
+.perfil__paneles {
+  min-width: 0;
+}
+
+.panel-perfil {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: 22rem;
+  padding: 1.5rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+}
+
+/* display: flex le gana al atributo hidden; así lo recupero */
+.panel-perfil[hidden] {
+  display: none;
+}
+
+.panel-perfil__cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--borde);
+}
+
+.panel-perfil__cabecera p {
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}

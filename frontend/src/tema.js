@@ -1,4 +1,4 @@
-// Tema claro/oscuro. Vive en el atributo data-tema de <html> y el CSS (index.css)
+// Tema claro/oscuro. Vive en el atributo data-tema de <html> y el CSS (estilos/base.css)
 // cambia todos los colores según ese atributo. Guardo la preferencia en
 // localStorage; el script de index.html la aplica antes de pintar.
 const CLAVE = 'tema'

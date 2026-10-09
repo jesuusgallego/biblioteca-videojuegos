@@ -1,12 +1,6 @@
 const pool = require('../config/db');
-const { searchGames, getGameDetails, getArtworks } = require('../services/igdbService');
+const { urlImagen, searchGames, getGameDetails, getArtworks } = require('../services/igdbService');
 const { traducir, IDIOMAS, IDIOMA_ORIGINAL } = require('../services/traduccionService');
-
-// Monto la URL de una imagen de IGDB. "tamano" es una plantilla de IGDB:
-// t_cover_big (portada), t_screenshot_big (captura), t_1080p (captura grande)...
-function urlImagen(imageId, tamano) {
-  return `https://images.igdb.com/igdb/image/upload/${tamano}/${imageId}.jpg`;
-}
 
 // Mensajes legibles para los CHECK de user_games (los defino en schema.sql)
 const MENSAJES_CHECK = {

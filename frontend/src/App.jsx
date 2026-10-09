@@ -6,7 +6,6 @@ import Buscar from './Buscar'
 import Perfil from './Perfil'
 import Layout from './Layout'
 import RutaProtegida from './RutaProtegida'
-import './App.css'
 import Registro from './Registro'
 
 function App() {

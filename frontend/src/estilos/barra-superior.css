@@ -1,0 +1,73 @@
+/* Barra superior de la app. */
+
+/* ---- Barra superior ------------------------------------------------------ */
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--barra);
+  border-bottom: 1px solid var(--borde);
+  transition: background-color var(--transicion);
+}
+
+.barra__interior {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  max-width: 1320px;
+  min-height: 64px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.barra__nav {
+  position: relative; /* la línea se coloca respecto a este contenedor */
+  display: flex;
+  gap: 1.75rem;
+  flex: 1;
+}
+
+/* Línea del enlace activo. Menu.jsx le pone el ancho y la posición; aquí solo
+   hago que los cambios se animen en 0,3 s, empezando y acabando suave. */
+.barra__linea {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 3px;
+  background: var(--acento);
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hago que los enlaces midan lo mismo que la barra (64px) para que la línea,
+   pegada al borde inferior, quede como en Steam. Mantengo el borde transparente
+   para que el texto siga centrado igual. */
+.barra__nav a {
+  display: inline-flex;
+  align-items: center;
+  height: 64px;
+  box-sizing: border-box;
+  padding: 0 0.25rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--texto-suave);
+  border-bottom: 3px solid transparent;
+  transition: color var(--transicion);
+}
+
+.barra__nav a:hover {
+  color: var(--texto-h);
+  text-decoration: none;
+}
+
+.barra__nav a.active {
+  color: var(--texto-h);
+}
+
+.barra__acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}

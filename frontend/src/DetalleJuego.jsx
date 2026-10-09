@@ -6,6 +6,7 @@ import VisorCapturas from './VisorCapturas'
 import Cargando from './Cargando'
 import { useVentana } from './useVentana'
 import Mensaje from './Mensaje'
+import ProgresoSteam from './ProgresoSteam'
 
 // "2015-05-19" -> "19 de mayo de 2015" (o "19 May 2015", según el idioma). Con
 // timeZone UTC evito que, según la zona horaria del usuario, la fecha salga un
@@ -163,6 +164,13 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
             {guardado.rating && <span className="contador">★ {guardado.rating}/10</span>}
             {guardado.platform && <span className="tarjeta__meta">{guardado.platform}</span>}
           </div>
+
+          {guardado.playtime_minutes !== null && (
+            <div className="detalle__steam">
+              <h4 className="detalle__subtitulo">{t('progreso.titulo')}</h4>
+              <ProgresoSteam juego={guardado} grande />
+            </div>
+          )}
 
           {guardado.review
             ? <p className="detalle__texto">{guardado.review}</p>

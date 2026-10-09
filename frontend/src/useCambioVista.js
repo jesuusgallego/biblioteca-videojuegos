@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 
 // Lo que dura la animación de salida de una vista (debe coincidir con
-// "vista-salida" en App.css)
+// "vista-salida" en estilos/perfil.css)
 const DURACION_VISTA_MS = 160
 
 // Cambio animado entre dos vistas de un mismo panel (por ejemplo, de la lista de

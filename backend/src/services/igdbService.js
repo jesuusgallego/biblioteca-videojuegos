@@ -1,6 +1,12 @@
 const axios = require('axios');
 const { getAccessToken } = require('./igdbAuth');
 
+// Monto la URL de una imagen de IGDB. "tamano" es una plantilla de IGDB:
+// t_cover_big (portada), t_screenshot_big (captura), t_1080p (captura grande)...
+function urlImagen(imageId, tamano) {
+  return `https://images.igdb.com/igdb/image/upload/${tamano}/${imageId}.jpg`;
+}
+
 // Mando una consulta en Apicalypse (el lenguaje de IGDB) a un endpoint de IGDB
 async function igdbPost(endpoint, body) {
   const accessToken = await getAccessToken();
@@ -121,4 +127,53 @@ async function getArtworks(igdbIds) {
   return resultado;
 }
 
-module.exports = { searchGames, getGameDetails, getArtworks };
+// IGDB devuelve como máximo 500 resultados por consulta
+const LOTE_IGDB = 500;
+
+
+// Empareja ids de juegos de Steam (appid) con juegos de IGDB. IGDB guarda en
+// "external_games" los identificadores de cada juego en otras tiendas;
+// external_game_source = 1 es Steam y "uid" el appid (como texto).
+// Devuelve un Map appid -> igdbId (los juegos sin equivalente en IGDB no salen).
+// Los appid se interpolan en la consulta: los paso por Number.isInteger antes.
+async function getIgdbIdsDeSteam(appids) {
+  const resultado = new Map();
+  const validos = appids.filter((id) => Number.isInteger(id) && id > 0);
+
+  for (let i = 0; i < validos.length; i += LOTE_IGDB) {
+    const lote = validos.slice(i, i + LOTE_IGDB);
+    const filas = await igdbPost(
+      'external_games',
+      `fields game, uid; where external_game_source = 1 & uid = (${lote.map((id) => `"${id}"`).join(',')}); limit ${LOTE_IGDB};`
+    );
+
+    for (const fila of filas) {
+      if (fila.game) resultado.set(Number(fila.uid), fila.game);
+    }
+  }
+
+  return resultado;
+}
+
+// Nombre y portada de varios juegos a la vez: Map igdbId -> { name, imageId }.
+// Igual que en getArtworks, las ids se interpolan: tienen que llegar como enteros.
+async function getJuegosBasicos(igdbIds) {
+  const resultado = new Map();
+  const validos = igdbIds.filter((id) => Number.isInteger(id) && id > 0);
+
+  for (let i = 0; i < validos.length; i += LOTE_IGDB) {
+    const lote = validos.slice(i, i + LOTE_IGDB);
+    const juegos = await igdbPost(
+      'games',
+      `fields name, cover.image_id; where id = (${lote.join(',')}); limit ${LOTE_IGDB};`
+    );
+
+    for (const juego of juegos) {
+      resultado.set(juego.id, { name: juego.name, imageId: juego.cover?.image_id ?? null });
+    }
+  }
+
+  return resultado;
+}
+
+module.exports = { urlImagen, searchGames, getGameDetails, getArtworks, getIgdbIdsDeSteam, getJuegosBasicos };

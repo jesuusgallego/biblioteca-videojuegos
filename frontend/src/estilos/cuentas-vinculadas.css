@@ -1,0 +1,549 @@
+/* Perfil → Cuentas vinculadas: tarjeta de plataforma y escena animada de conexión con Steam. */
+
+/* ---- Cuentas vinculadas: tarjeta de plataforma (CuentaSteam.jsx) ------------- */
+.plataformas {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.plataforma {
+  overflow: hidden;
+  background: var(--superficie-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+}
+
+/* La cabecera lleva los colores de Steam en los dos temas */
+.plataforma__cabecera {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.25rem;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(110deg, #0e1117, #1b2838 55%, #2a475e);
+}
+
+.plataforma__logo {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+}
+
+.plataforma__nombre {
+  font-family: var(--display);
+  font-size: 1.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.plataforma__estado {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease;
+}
+
+.plataforma__estado--ok {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.14);
+  border-color: rgba(74, 222, 128, 0.4);
+}
+
+.plataforma__marca-agua {
+  position: absolute;
+  top: 50%;
+  right: -1.5rem;
+  margin-top: -75px;
+  color: #fff;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.plataforma__cuerpo {
+  position: relative; /* la escena de conexión (ConexionSteam) se coloca sobre él */
+  padding: 1.25rem;
+  min-height: 16rem;
+}
+
+/* Una animación con fill-mode "forwards" (el "both" de .vista) deja el elemento
+   como si tuviera un transform, y entonces la escena de conexión se ajustaría a
+   él y no a toda la tarjeta. Con "backwards" la entrada se anima igual, pero al
+   acabar el elemento queda sin transform. (La salida, .vista--saliendo, no cambia.) */
+.plataforma__cuerpo .vista:not(.vista--saliendo) {
+  animation-fill-mode: backwards;
+}
+
+.plataforma__ayuda {
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+
+/* Botón con los colores de Steam */
+.btn--steam {
+  color: #fff;
+  background: linear-gradient(135deg, #1b2838, #2a475e);
+  border-color: #3d6c8d;
+}
+
+.btn--steam:hover:not(:disabled) {
+  filter: brightness(1.2);
+  border-color: #66c0f4;
+}
+
+/* Cuenta vinculada: foto, nombre y dos datos. Cada hijo entra con un pequeño retraso. */
+.steam-cuenta {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.steam-cuenta > * {
+  animation: aparece 0.4s ease both;
+}
+
+.steam-cuenta > :nth-child(2) { animation-delay: 0.08s; }
+.steam-cuenta > :nth-child(n + 3) { animation-delay: 0.16s; }
+
+@keyframes aparece {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.steam-cuenta__perfil {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.steam-cuenta__avatar {
+  flex: none;
+  width: 4rem;
+  height: 4rem;
+  object-fit: cover;
+  border: 2px solid #66c0f4;
+  border-radius: var(--radio);
+  box-shadow: 0 0 0 3px color-mix(in srgb, #66c0f4 22%, transparent);
+}
+
+.steam-cuenta__nombre {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--texto-h);
+}
+
+.steam-cuenta__enlace {
+  font-size: 0.85rem;
+}
+
+.datos-cuenta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.dato-cuenta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.8rem 1rem;
+  background: var(--campo);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+.dato-cuenta dt {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.dato-cuenta dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--texto-h);
+}
+
+.dato-cuenta .dato-cuenta__valor--ok {
+  color: var(--exito);
+}
+
+/* ---- Escena de conexión con Steam (ConexionSteam.jsx) ------------------------- */
+/* Tapa el cuerpo de la tarjeta mientras se vincula. Primero (conectando) los
+   paquetes de datos viajan en bucle; cuando llega la respuesta (--conectado) la
+   línea se rellena, aparece el tic, salen las chispas y el logo de Steam se
+   convierte en la foto de la cuenta. La animación final avisa con animationend. */
+.conexion {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  background: var(--superficie-2);
+  animation: conexion-entrada 0.3s ease both;
+}
+
+.conexion--saliendo {
+  pointer-events: none;
+  animation: conexion-salida 0.2s ease both;
+}
+
+@keyframes conexion-entrada {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@keyframes conexion-salida {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+.conexion__escena {
+  display: flex;
+  align-items: center;
+  width: min(100%, 24rem);
+}
+
+.conexion__nodo {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 4.75rem;
+  height: 4.75rem;
+  background: var(--superficie);
+  border: 2px solid var(--borde);
+  border-radius: 50%;
+  animation: nodo-entra 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.conexion__nodo--steam {
+  color: #fff;
+  background: #1b2838;
+  animation-delay: 0.12s;
+}
+
+.conexion__nodo .marca__icono {
+  width: 2.7rem;
+  height: 2.7rem;
+}
+
+/* Onda que sale de cada nodo mientras conecta */
+.conexion__nodo::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border: 2px solid var(--acento);
+  border-radius: 50%;
+  opacity: 0;
+  animation: onda 1.7s ease-out 0.5s infinite;
+}
+
+.conexion__nodo--steam::before {
+  animation-delay: 1.35s;
+}
+
+@keyframes onda {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.55);
+  }
+}
+
+@keyframes nodo-entra {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
+.conexion__camino {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  height: 4.75rem;
+}
+
+.conexion__linea,
+.conexion__linea-llena {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 3px;
+  margin-top: -1.5px;
+  border-radius: 2px;
+}
+
+/* Línea de guiones que avanza hacia Steam */
+.conexion__linea {
+  background: repeating-linear-gradient(90deg, var(--borde) 0 6px, transparent 6px 12px);
+  animation: marcha 0.7s linear infinite;
+  transition: opacity 0.3s ease;
+}
+
+@keyframes marcha {
+  to {
+    background-position: 12px 0;
+  }
+}
+
+.conexion__linea-llena {
+  background: linear-gradient(90deg, var(--acento), var(--exito));
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.conexion__paquete {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 0.65rem;
+  height: 0.65rem;
+  margin-top: -0.325rem;
+  background: var(--acento);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--acento);
+  opacity: 0;
+  animation: viaja 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: var(--retraso);
+}
+
+@keyframes viaja {
+  0% {
+    left: 0;
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  15% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    left: calc(100% - 0.65rem);
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+.conexion__marca {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #0b121c;
+  background: var(--exito);
+  border-radius: 50%;
+  transform: scale(0);
+}
+
+.conexion__marca svg {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+}
+
+.conexion__chispa {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin: -0.225rem;
+  background: var(--c);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.conexion__avatar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+/* --- Ya conectado --- */
+.conexion--conectado .conexion__nodo {
+  border-color: var(--exito);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--exito) 18%, transparent),
+    0 0 26px color-mix(in srgb, var(--exito) 38%, transparent);
+}
+
+.conexion--conectado .conexion__nodo::before,
+.conexion--conectado .conexion__paquete {
+  animation: none;
+  opacity: 0;
+}
+
+.conexion--conectado .conexion__linea {
+  animation: none;
+  opacity: 0;
+}
+
+.conexion--conectado .conexion__linea-llena {
+  animation: llena 0.55s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.conexion--conectado .conexion__marca {
+  animation: pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) 0.45s both;
+}
+
+.conexion--conectado .conexion__marca svg {
+  animation: trazo 0.35s ease-out 0.75s both;
+}
+
+.conexion--conectado .conexion__chispa {
+  animation: chispa 0.9s ease-out 0.5s both;
+}
+
+.conexion--conectado .conexion__logo {
+  animation: desaparece 0.4s ease 0.6s both;
+}
+
+.conexion--conectado .conexion__avatar {
+  animation: aparece-suave 0.5s ease 0.6s both;
+}
+
+@keyframes llena {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0) rotate(-40deg);
+  }
+  to {
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes trazo {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes chispa {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--ang)) translateX(1.3rem) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--ang)) translateX(var(--dist)) scale(0.2);
+  }
+}
+
+@keyframes desaparece {
+  to {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+@keyframes aparece-suave {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.conexion__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-height: 3rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--texto-h);
+}
+
+.conexion__texto--busca {
+  animation: respira 1.6s ease-in-out infinite;
+}
+
+@keyframes respira {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.conexion__texto--final strong {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.conexion__texto--final span {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--texto-suave);
+}
+
+/* Es la última animación: al acabar, la escena avisa (animationend) y se cambia
+   a la vista de la cuenta vinculada. Dura lo que se quiere dejar leer el mensaje. */
+.conexion__texto--final {
+  animation: conexion-final 1.5s ease 0.6s both;
+}
+
+@keyframes conexion-final {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  20%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}

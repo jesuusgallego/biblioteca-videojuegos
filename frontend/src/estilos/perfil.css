@@ -1,0 +1,406 @@
+/* Perfil: estructura base, estadísticas y edición (foto, nombre, bio). */
+
+/* ---- Perfil (Perfil.jsx) ---------------------------------------------------- */
+.perfil {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+/* Cada bloque de la página: una tarjeta con su título */
+.panel {
+  padding: 1.5rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+}
+
+.panel > .titulo-seccion {
+  margin-bottom: 1.25rem;
+}
+
+/* ---- Estadísticas del perfil ---------------------------------------------- */
+.estadisticas {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.estadisticas__subtitulo {
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+/* Barra de estados: tramos de color cuyo ancho depende de cuántos juegos hay */
+.barra-estados {
+  display: flex;
+  gap: 2px;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.barra-estados__tramo {
+  min-width: 6px;
+}
+
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 0.75rem;
+}
+
+.leyenda__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.leyenda__item strong {
+  color: var(--texto-h);
+}
+
+.mejores {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mejores__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.4rem;
+  background: var(--superficie-2);
+  border-radius: var(--radio);
+}
+
+.mejores__portada {
+  flex: none;
+  width: 32px;
+  aspect-ratio: 264 / 374; /* misma proporción que las portadas de IGDB */
+  overflow: hidden;
+  background: var(--campo);
+  border-radius: 4px;
+}
+
+.mejores__portada img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mejores__nombre {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--texto-h);
+}
+
+.mejores__nota {
+  font-weight: 700;
+  color: var(--acento);
+}
+
+.mejores__nota small {
+  font-weight: 400;
+  color: var(--texto-suave);
+}
+
+/* ---- Editar perfil y cuenta ------------------------------------------------ */
+.foto-perfil {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.1rem;
+  background: var(--superficie-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+}
+
+.foto-perfil__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.foto-perfil__acciones small {
+  flex-basis: 100%;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.formulario__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.mensaje--ok {
+  color: var(--exito);
+  background: color-mix(in srgb, var(--exito) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--exito) 35%, transparent);
+}
+
+/* Elegir ilustración como foto de perfil (EditarPerfil.jsx y SelectorArtwork.jsx) */
+/* Panel desplegable. Truco para animar a "altura automática": una rejilla de una
+   fila que pasa de 0fr (altura 0) a 1fr (la altura del contenido). Como abrir y
+   cerrar son la misma transición, cerrar es abrir al revés. Cerrado va oculto
+   con `visibility`, que cambia al final del plegado (su transición espera 0,3 s);
+   así no se puede tabular a sus botones. El margin-top negativo anula el hueco que
+   el formulario deja entre elementos, para que cerrado no ocupe sitio. */
+.selector-avatar {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: -1rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease,
+    visibility 0s linear 0.3s;
+}
+
+.selector-avatar--abierto {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  opacity: 1;
+  visibility: visible;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease,
+    visibility 0s;
+}
+
+.selector-avatar__interior {
+  min-height: 0; /* sin esto la fila no se puede encoger por debajo de su contenido */
+  overflow: hidden;
+}
+
+.selector-avatar__caja {
+  padding: 1rem;
+  background: var(--superficie-2);
+  border-radius: var(--radio);
+}
+
+/* La flecha del botón gira al abrir (y vuelve al cerrar) */
+.btn__flecha {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[aria-expanded="true"] > .btn__flecha {
+  transform: rotate(180deg);
+}
+
+/* Cambio entre la lista y el encuadre: la vista que sale se desvanece (la clase
+   la pone SelectorArtwork) y la nueva entra con la animación de entrada */
+.vista {
+  animation: vista-entrada 0.2s ease both;
+}
+
+.vista--saliendo {
+  pointer-events: none;
+  animation: vista-salida 0.16s ease both;
+}
+
+@keyframes vista-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes vista-salida {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* Lista de ilustraciones, agrupadas por juego, con su propio scroll */
+.selector-artwork {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 340px;
+  padding: 3px; /* deja sitio al aro de las miniaturas, que si no se recortaría */
+  overflow-y: auto;
+}
+
+.selector-artwork__juego {
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.selector-artwork__fila {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+/* Las miniaturas aparecen una detrás de otra: cada una espera 30 ms por la
+   posición que ocupa (--i), con un máximo de 0,4 s para que no tarde si hay muchas */
+.selector-artwork__fila li {
+  animation: miniatura-entrada 0.3s ease both;
+  animation-delay: min(calc(var(--i) * 30ms), 400ms);
+}
+
+@keyframes miniatura-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+}
+
+.selector-artwork__imagen {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+  background: var(--campo);
+  border: 0;
+  border-radius: 6px;
+  transition: box-shadow var(--transicion), scale var(--transicion);
+}
+
+/* La imagen entra con un fundido al terminar de cargar y se acerca al pasar el
+   ratón; mientras carga, el fondo late como un esqueleto */
+.selector-artwork__imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s ease, transform 0.4s ease;
+}
+
+.selector-artwork__imagen--cargando {
+  animation: esqueleto 1.2s ease-in-out infinite;
+}
+
+.selector-artwork__imagen--cargando img {
+  opacity: 0;
+}
+
+@keyframes esqueleto {
+  50% {
+    background: var(--superficie);
+  }
+}
+
+.selector-artwork__imagen:hover {
+  box-shadow: 0 0 0 2px var(--acento);
+}
+
+.selector-artwork__imagen:hover img {
+  transform: scale(1.08);
+}
+
+/* Recortador de la foto de perfil (RecortadorFoto.jsx): un cuadro en el que se
+   arrastra y se amplía la imagen, con un círculo que marca lo que se verá */
+.recortador {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* El fondo es un color fijo (no cambia con el tema) y el mismo que usa imagen.js
+   para rellenar lo que no cubre la imagen: lo que se ve aquí es lo que se guarda.
+   touch-action: none evita que el dedo haga scroll o zoom de la página al arrastrar. */
+.recortador__vista {
+  position: relative;
+  flex: none;
+  width: min(260px, 100%);
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #0b121c;
+  border-radius: var(--radio);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.recortador__vista--arrastrando {
+  cursor: grabbing;
+}
+
+.recortador__vista:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+/* El tamaño y la posición de la imagen los pone el componente con style (hay que
+   calcularlos en JavaScript). max-width: none anula el de las imágenes en general. */
+.recortador__imagen {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  max-width: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.recortador__imagen--lista {
+  opacity: 1;
+}
+
+/* Los botones (+, -, restablecer) animan el cambio; arrastrar y la rueda no, porque
+   la imagen tiene que seguir al dedo sin retraso */
+.recortador__imagen--suave {
+  transition: opacity 0.3s ease, width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* El círculo: un borde fino y una sombra enorme que oscurece todo lo de fuera
+   (lo que sobresale del cuadro lo recorta el overflow: hidden) */
+.recortador__guia {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  box-shadow: 0 0 0 999px rgba(5, 10, 18, 0.62);
+  pointer-events: none;
+}
+
+.recortador__controles {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Botón -, deslizador y botón + en una fila */
+.recortador__zoom {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.recortador__zoom .btn-icono {
+  flex: none;
+}
+
+/* El deslizador: sin la caja de los demás campos */
+.recortador input[type="range"] {
+  padding: 0;
+  background: none;
+  border: 0;
+  accent-color: var(--acento);
+}

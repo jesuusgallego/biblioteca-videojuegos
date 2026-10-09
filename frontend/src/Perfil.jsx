@@ -1,29 +1,62 @@
-import { useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useOutletContext, useSearchParams } from 'react-router-dom'
 import { apiFetch } from './api'
-import Avatar from './Avatar'
 import Cargando from './Cargando'
+import CabeceraPerfil from './CabeceraPerfil'
+import PestanasPerfil from './PestanasPerfil'
 import EstadisticasPerfil from './EstadisticasPerfil'
 import EditarPerfil from './EditarPerfil'
 import CuentaPerfil from './CuentaPerfil'
+import CuentasVinculadas from './CuentasVinculadas'
 import Mensaje from './Mensaje'
+import { useCambioVista } from './useCambioVista'
 import { useIdioma } from './IdiomaContext'
 
-// Página del perfil: cabecera, estadísticas de la biblioteca, edición del perfil
-// (foto, nombre, bio) y ajustes de cuenta (email, contraseña, borrar cuenta).
+const PESTANAS = ['resumen', 'editar', 'cuentas', 'seguridad']
+
+// Página del perfil: un banner con los datos del usuario y, debajo, cuatro pestañas
+// (estadísticas, editar perfil, cuentas vinculadas y seguridad).
 //  - El perfil (nombre, foto...) llega de Layout, que lo comparte con la barra
 //    para que el avatar se actualice a la vez en los dos sitios.
-//  - Las estadísticas las pido aquí, cada vez que entro, para que estén al día.
+//  - Las estadísticas las pido aquí, cada vez que entro (y tras sincronizar Steam),
+//    para que estén al día.
+//  - La pestaña activa va en la URL (?tab=cuentas): sobrevive a recargar la página y
+//    se puede enlazar directamente.
+//  - Los cuatro paneles están siempre montados y solo se oculta el que no toca: así
+//    lo que se estaba escribiendo en "Editar perfil" no se pierde al cambiar de pestaña.
 function Perfil({ setToken }) {
-  const { t, locale } = useIdioma()
+  const { t } = useIdioma()
   const { perfil, setPerfil } = useOutletContext()
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState("")
+  // Sube cada vez que se sincroniza Steam: las estadísticas dependen de ella y
+  // así se vuelven a pedir (importar juegos cambia los totales)
+  const [version, setVersion] = useState(0)
 
-  function cerrarSesion() {
+  const [params, setParams] = useSearchParams()
+  const pestanaInicial = PESTANAS.includes(params.get('tab')) ? params.get('tab') : 'resumen'
+  // "seleccion" mueve el indicador de las pestañas al instante; "mostrada" es el
+  // panel que se ve y cambia cuando acaba de desvanecerse el anterior. Cuando hay
+  // un clic rápido encima de otro, la ref hace que gane siempre la última elección.
+  const [seleccion, setSeleccion] = useState(pestanaInicial)
+  const [mostrada, setMostrada] = useState(pestanaInicial)
+  const seleccionRef = useRef(pestanaInicial)
+  const { saliendo, cambiar } = useCambioVista()
+
+  function irA(id) {
+    if (id === seleccionRef.current) return
+    seleccionRef.current = id
+    setSeleccion(id)
+    setParams({ tab: id }, { replace: true })
+    cambiar(() => setMostrada(seleccionRef.current))
+  }
+
+  // useCallback para que sea la misma función en cada render: CuentasVinculadas
+  // la usa en un useEffect y, si cambiara, volvería a pedir sus datos cada vez
+  const cerrarSesion = useCallback(() => {
     localStorage.removeItem("token")
     setToken("")
-  }
+  }, [setToken])
 
   useEffect(() => {
     let cancelado = false
@@ -45,45 +78,86 @@ function Perfil({ setToken }) {
       })
 
     return () => { cancelado = true }
-  }, [setToken])
+  }, [setToken, version])
 
   // Hasta que llegue el perfil no hay nada que enseñar
   if (!perfil) return <Cargando texto={t('perfil.cargando')} tamano="grande" centrado />
 
-  const miembroDesde = new Date(perfil.created_at).toLocaleDateString(locale, {
-    month: 'long',
-    year: 'numeric',
-  })
+  // Portadas de los mejor valorados para el fondo del banner (sin repetir)
+  const portadas = [...new Set((datos?.mejores ?? []).map((j) => j.cover_url).filter(Boolean))]
+
+  const paneles = [
+    {
+      id: 'resumen',
+      etiqueta: t('perfil.estadisticas'),
+      ayuda: t('perfil.resumenAyuda'),
+      contenido: (
+        <>
+          <Mensaje texto={error} />
+          {!error && !datos && <Cargando texto={t('perfil.calculando')} centrado />}
+          {datos && <EstadisticasPerfil stats={datos.stats} mejores={datos.mejores} />}
+        </>
+      ),
+    },
+    {
+      id: 'editar',
+      etiqueta: t('perfil.editar'),
+      ayuda: t('perfil.editarAyuda'),
+      contenido: <EditarPerfil perfil={perfil} onGuardado={setPerfil} cerrarSesion={cerrarSesion} />,
+    },
+    {
+      id: 'cuentas',
+      etiqueta: t('perfil.vinculadas'),
+      ayuda: t('perfil.vinculadasAyuda'),
+      contenido: <CuentasVinculadas cerrarSesion={cerrarSesion} onSincronizado={() => setVersion((v) => v + 1)} />,
+    },
+    {
+      id: 'seguridad',
+      etiqueta: t('perfil.seguridad'),
+      ayuda: t('perfil.seguridadAyuda'),
+      contenido: <CuentaPerfil perfil={perfil} onGuardado={setPerfil} cerrarSesion={cerrarSesion} />,
+    },
+  ]
 
   return (
     <div className="perfil">
-      <header className="perfil__cabecera">
-        <Avatar usuario={perfil} tamano="grande" />
-        <div className="perfil__datos">
-          <h1 className="titulo-pagina">{perfil.username}</h1>
-          <p className="perfil__meta">{t('perfil.miembroDesde', { fecha: miembroDesde })}</p>
-          {perfil.bio
-            ? <p className="perfil__bio">{perfil.bio}</p>
-            : <p className="perfil__bio perfil__bio--vacia">{t('perfil.sinBio')}</p>}
+      <CabeceraPerfil
+        perfil={perfil}
+        stats={datos?.stats ?? null}
+        portadas={portadas}
+        onEditar={() => irA('editar')}
+      />
+
+      <div className="perfil__cuerpo">
+        <PestanasPerfil
+          pestanas={paneles.map(({ id, etiqueta }) => ({ id, etiqueta }))}
+          activa={seleccion}
+          onCambiar={irA}
+          etiqueta={t('perfil.secciones')}
+        />
+
+        <div className="perfil__paneles">
+          {paneles.map(({ id, etiqueta, ayuda, contenido }) => {
+            const activo = mostrada === id
+            return (
+              <section
+                key={id}
+                id={`panel-${id}`}
+                role="tabpanel"
+                aria-labelledby={`pestana-${id}`}
+                hidden={!activo}
+                className={activo ? (saliendo ? "panel-perfil vista vista--saliendo" : "panel-perfil vista") : "panel-perfil"}
+              >
+                <header className="panel-perfil__cabecera">
+                  <h2 className="titulo-seccion">{etiqueta}</h2>
+                  <p>{ayuda}</p>
+                </header>
+                {contenido}
+              </section>
+            )
+          })}
         </div>
-      </header>
-
-      <section className="panel" aria-labelledby="perfil-estadisticas">
-        <h2 id="perfil-estadisticas" className="titulo-seccion">{t('perfil.estadisticas')}</h2>
-        <Mensaje texto={error} />
-        {!error && !datos && <Cargando texto={t('perfil.calculando')} centrado />}
-        {datos && <EstadisticasPerfil stats={datos.stats} mejores={datos.mejores} />}
-      </section>
-
-      <section className="panel" aria-labelledby="perfil-editar">
-        <h2 id="perfil-editar" className="titulo-seccion">{t('perfil.editar')}</h2>
-        <EditarPerfil perfil={perfil} onGuardado={setPerfil} cerrarSesion={cerrarSesion} />
-      </section>
-
-      <section className="panel" aria-labelledby="perfil-cuenta">
-        <h2 id="perfil-cuenta" className="titulo-seccion">{t('perfil.cuenta')}</h2>
-        <CuentaPerfil perfil={perfil} onGuardado={setPerfil} cerrarSesion={cerrarSesion} />
-      </section>
+      </div>
     </div>
   )
 }

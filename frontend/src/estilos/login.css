@@ -1,0 +1,49 @@
+/* Pantallas de inicio de sesión y registro. */
+
+/* ---- Login y registro ---------------------------------------------------- */
+.auth {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: 1.25rem;
+}
+
+.auth__tema {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.auth__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra);
+  /* Borde superior con el degradado de marca */
+  border-top: 3px solid transparent;
+  background-image: linear-gradient(var(--superficie), var(--superficie)), var(--degradado);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.auth__tarjeta .marca {
+  align-self: center;
+}
+
+.auth__titulo {
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.auth__pie {
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--texto-suave);
+}

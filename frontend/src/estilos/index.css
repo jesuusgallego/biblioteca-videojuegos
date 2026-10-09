@@ -1,0 +1,45 @@
+/* ==========================================================================
+   Punto de entrada de los estilos. main.jsx importa SOLO este archivo.
+
+   El ORDEN de los @import importa: en CSS, si dos reglas tienen la misma
+   fuerza, gana la que va después. Por eso estos archivos se cargan en el mismo
+   orden en que estaba el antiguo App.css. Al añadir un archivo nuevo, ponlo
+   donde corresponda y, si dudas, al final de su zona. Más detalles en LEEME.md.
+   ========================================================================== */
+
+/* Variables de diseño (colores, temas, tipografías) y estilos base */
+@import './base.css';
+
+/* Marca, carga y elementos generales */
+@import './marca.css';
+@import './botones.css';
+@import './barra-superior.css';
+@import './paginas.css';
+@import './mensajes.css';
+
+/* Tarjetas de juego y formularios */
+@import './tarjetas.css';
+@import './formularios.css';
+@import './desplegable.css';
+@import './login.css';
+
+/* Mi biblioteca y las ventanas de un juego */
+@import './biblioteca.css';
+@import './ventanas.css';
+
+/* Menús de la barra y perfil */
+@import './menus.css';
+@import './perfil.css';
+
+/* Respuesta al pulsar: afecta a elementos de varias zonas */
+@import './respuesta-al-pulsar.css';
+
+/* Perfil: banner, pestañas, seguridad y cuentas vinculadas */
+@import './perfil-cabecera-y-pestanas.css';
+@import './perfil-seguridad.css';
+@import './cuentas-vinculadas.css';
+@import './perfil-movil.css';
+@import './progreso-steam.css';
+
+/* Pantallas estrechas: va el último para poder sobrescribir lo anterior */
+@import './movil.css';

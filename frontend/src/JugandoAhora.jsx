@@ -6,7 +6,7 @@ import IconoResena from './IconoResena'
 // nota); no hay horas ni progreso, así que no los dibujo. La reseña no se
 // escribe aquí: un icono junto al estado avisa de que existe y se lee en la ficha.
 // Toda la tarjeta es clicable, pero solo hay UN botón de verdad (el del título):
-// su ::after (ver App.css) se estira por toda la tarjeta. Así no anido botones
+// su ::after (ver estilos/biblioteca.css) se estira por toda la tarjeta. Así no anido botones
 // y el teclado y los lectores de pantalla ven un único enlace por juego.
 //  - juegos: los juegos con estado "jugando"
 //  - onVerDetalle(juego): abre la ficha del juego

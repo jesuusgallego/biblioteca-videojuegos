@@ -1,0 +1,71 @@
+/* Horas y barra de logros de Steam en tarjetas y fichas. */
+
+/* ---- Progreso traído de Steam (ProgresoSteam.jsx) -------------------------- */
+.progreso {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.progreso__texto {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.1rem 0.6rem;
+}
+
+.progreso__barra {
+  height: 6px;
+  overflow: hidden;
+  background: var(--campo);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+}
+
+/* --p es la fracción de logros (0 a 1). Escalo el relleno desde la izquierda y,
+   al aparecer, crece desde 0 */
+.progreso__relleno {
+  height: 100%;
+  background: var(--acento);
+  border-radius: inherit;
+  transform-origin: left;
+  transform: scaleX(var(--p));
+  animation: progreso-crece 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.progreso__relleno--completo {
+  background: var(--estado-completado);
+}
+
+@keyframes progreso-crece {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* En la ficha va más grande */
+.progreso--grande {
+  max-width: 28rem;
+  font-size: 0.95rem;
+}
+
+.progreso--grande .progreso__barra {
+  height: 10px;
+}
+
+.detalle__steam {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.detalle__subtitulo {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}

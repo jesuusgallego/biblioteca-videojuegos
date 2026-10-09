@@ -1,0 +1,92 @@
+/* Formularios y campos. */
+
+/* ---- Formularios --------------------------------------------------------- */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.campo > span,
+.campo > label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.campo small {
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+/* Casilla de verificación a medida: el input global ocupa todo el ancho y tiene
+   aspecto de campo de texto, así que aquí lo convierto en un cuadrado con un tic
+   que aparece con animación al marcarlo */
+.casilla {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.casilla small {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.casilla input {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.1rem;
+  padding: 0;
+  cursor: pointer;
+  transition: background-color var(--transicion), border-color var(--transicion),
+    box-shadow var(--transicion);
+}
+
+.casilla input::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 5px;
+  width: 6px;
+  height: 11px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  opacity: 0;
+  transform: rotate(45deg) scale(0.4);
+  transition: opacity var(--transicion), transform var(--transicion);
+}
+
+.casilla input:checked {
+  background: var(--degradado);
+  border-color: transparent;
+}
+
+.casilla input:checked::after {
+  opacity: 1;
+  transform: rotate(45deg) scale(1);
+}
+
+.casilla:hover input:not(:disabled):not(:checked) {
+  border-color: var(--acento);
+}
+
+.casilla input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

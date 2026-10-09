@@ -64,3 +64,47 @@ CREATE TABLE IF NOT EXISTS translation_usage (
     characters INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (provider, month)
 );
+
+-- Cuentas de otras plataformas vinculadas a un usuario (de momento solo Steam).
+-- external_id es el id de la cuenta en esa plataforma (para Steam, el SteamID de
+-- 17 dígitos). Es un dato público, no una credencial: Steam se consulta con la
+-- clave de API de la propia app, así que no guardo ninguna contraseña ni token.
+-- UNIQUE (user_id, platform): un usuario solo puede tener una cuenta por plataforma.
+CREATE TABLE IF NOT EXISTS linked_accounts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    platform VARCHAR(20) NOT NULL,
+    external_id VARCHAR(64) NOT NULL,
+    display_name VARCHAR(100),
+    avatar_url VARCHAR(500),
+    profile_url VARCHAR(500),
+    -- TIMESTAMPTZ guarda el instante exacto (el frontend lo enseña con hora, y así no
+    -- depende de la zona horaria del servidor). NULL = vinculada pero sin sincronizar.
+    last_sync_at TIMESTAMPTZ,
+    -- Si al vincular se eligió "añadir también los juegos que me falten". Se decide
+    -- solo al vincular; sincronizar lo respeta y desvincular borra lo importado.
+    import_games BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE (user_id, platform)
+);
+
+-- Para una BD creada antes de existir esta columna (CREATE TABLE IF NOT EXISTS no
+-- toca una tabla que ya existe)
+ALTER TABLE linked_accounts ADD COLUMN IF NOT EXISTS import_games BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Progreso traído de Steam. Todo es NULL en los juegos que no vienen de Steam.
+--  - steam_appid: id del juego en Steam (distinto del igdb_id)
+--  - playtime_minutes: tiempo jugado
+--  - achievements_*: logros desbloqueados y totales. Total 0 = el juego no tiene
+--    logros; NULL = todavía no se han consultado.
+-- Igual que con avatar y bio: CREATE TABLE IF NOT EXISTS no toca una tabla que ya
+-- existe, así que las columnas se añaden aparte (en una BD nueva no hacen nada).
+ALTER TABLE user_games ADD COLUMN IF NOT EXISTS steam_appid INTEGER;
+ALTER TABLE user_games ADD COLUMN IF NOT EXISTS playtime_minutes INTEGER;
+ALTER TABLE user_games ADD COLUMN IF NOT EXISTS achievements_unlocked INTEGER;
+ALTER TABLE user_games ADD COLUMN IF NOT EXISTS achievements_total INTEGER;
+
+-- De dónde viene un juego: 'steam' si lo añadió la importación de Steam, NULL si lo
+-- añadió el usuario. Sirve para que, al desvincular la cuenta, se borre lo importado
+-- y la biblioteca vuelva a quedar como antes de vincularla.
+ALTER TABLE user_games ADD COLUMN IF NOT EXISTS imported_from VARCHAR(20);

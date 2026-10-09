@@ -1,0 +1,440 @@
+/* Ventanas modales: ficha del juego, visor de capturas, edición y confirmación. */
+
+/* ---- Ventana con la ficha del juego ---------------------------------------- */
+/* Un <dialog> abierto con showModal() se pinta en la "capa superior" del
+   navegador: encima de todo, sin depender de z-index ni de los overflow de las
+   tarjetas. El oscurecimiento de detrás es el pseudoelemento ::backdrop. */
+/* OJO: aquí no pongo "position". Un <dialog> modal ya es position: fixed (así
+   se centra en la pantalla) y por eso ya sirve de referencia para colocar el
+   botón de cerrar. Si lo cambio a relative se sale de la pantalla por arriba. */
+.detalle {
+  width: min(880px, calc(100% - 2rem));
+  max-height: calc(100svh - 2rem);
+  padding: 1.75rem;
+  overflow-y: auto;
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra);
+}
+
+.detalle[open],
+.dialogo[open],
+.editar[open],
+.visor[open] {
+  animation: detalle-entrada 0.2s ease;
+}
+
+.detalle::backdrop,
+.dialogo::backdrop,
+.editar::backdrop {
+  background: rgba(5, 10, 18, 0.72);
+  backdrop-filter: blur(3px);
+  animation: fondo-entrada 0.2s ease;
+}
+
+@keyframes detalle-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+@keyframes fondo-entrada {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Salida de las ventanas (la pone useVentana.js al cerrar): la animación de
+   entrada al revés, también en el fondo oscuro. Mientras sale no se puede pulsar.
+   Los selectores llevan [open] y dos clases para ganar a la regla de entrada. */
+.detalle[open].ventana--saliendo,
+.dialogo[open].ventana--saliendo,
+.editar[open].ventana--saliendo,
+.visor[open].ventana--saliendo {
+  pointer-events: none;
+  animation: detalle-salida 0.2s ease both;
+}
+
+.detalle.ventana--saliendo::backdrop,
+.dialogo.ventana--saliendo::backdrop,
+.editar.ventana--saliendo::backdrop,
+.visor.ventana--saliendo::backdrop {
+  animation: fondo-salida 0.2s ease both;
+}
+
+@keyframes detalle-salida {
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+@keyframes fondo-salida {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Con la ventana abierta bloqueo el scroll de la página de detrás. El hueco de
+   la barra de scroll está reservado (scrollbar-gutter), así que no hay saltos. */
+body:has(dialog[open]) {
+  overflow: hidden;
+}
+
+.detalle__cerrar {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.detalle__cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding-right: 2.5rem; /* deja sitio al botón de cerrar */
+}
+
+.detalle__portada {
+  position: relative;
+  flex: 0 0 200px;
+  aspect-ratio: 264 / 374;
+  overflow: hidden;
+  background: var(--superficie-2);
+  border-radius: var(--radio);
+}
+
+.detalle__portada img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detalle__info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.detalle__titulo {
+  font-family: var(--display);
+  font-size: 2.1rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.detalle__nota {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.detalle__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0;
+}
+
+.detalle__fila {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: 0.75rem;
+}
+
+.detalle__fila dt {
+  padding-top: 0.15rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.detalle__fila dd {
+  margin: 0;
+}
+
+.detalle__anadir {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+/* Recuadro con lo que el usuario ha guardado de este juego */
+.detalle__biblioteca {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--superficie-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+.detalle__biblioteca-datos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.detalle__seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.75rem;
+}
+
+.detalle__texto {
+  white-space: pre-line; /* respeta los saltos de párrafo de IGDB */
+}
+
+.detalle__capturas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+/* Cada miniatura es un <button> (se puede pulsar con ratón y con teclado); le
+   quito el aspecto de botón para que parezca solo la imagen. */
+.detalle__captura {
+  display: block;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: var(--radio);
+  cursor: zoom-in;
+  transition: border-color var(--transicion);
+}
+
+.detalle__captura:hover,
+.detalle__captura:focus-visible {
+  border-color: var(--acento);
+}
+
+.detalle__captura img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--superficie-2);
+  border-radius: calc(var(--radio) - 2px);
+}
+
+/* ---- Visor de capturas --------------------------------------------------- */
+/* El propio <dialog> se ajusta al tamaño de la imagen y coloco sus botones
+   encima con position: absolute (un <dialog> modal ya es position: fixed). */
+.visor {
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+}
+
+.visor::backdrop {
+  background: rgba(0, 0, 0, 0.88);
+  animation: fondo-entrada 0.2s ease;
+}
+
+/* Marco 16:9 que cabe en pantalla: el ancho es el menor entre 94% de la ventana,
+   1600px y lo que dejaría el 86% del alto. Las capturas de IGDB son 16:9. */
+.visor__marco {
+  position: relative;
+  width: min(94vw, 1600px, calc(86svh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--superficie);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.visor__cargando {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.visor__imagen {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.visor__imagen--lista {
+  opacity: 1;
+}
+
+.visor__boton {
+  position: absolute;
+  background: var(--superficie);
+}
+
+.visor__cerrar {
+  top: 0.6rem;
+  right: 0.6rem;
+}
+
+.visor__anterior,
+.visor__siguiente {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.visor__anterior {
+  left: 0.6rem;
+}
+
+.visor__siguiente {
+  right: 0.6rem;
+}
+
+.visor__contador {
+  position: absolute;
+  bottom: 0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--superficie); /* sólido: el del .contador es translúcido y sobre la imagen no se lee */
+}
+
+.detalle__pie {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .detalle {
+    padding: 1.25rem;
+  }
+
+  .detalle__cabecera {
+    flex-direction: column;
+    padding-right: 0;
+  }
+
+  .detalle__portada {
+    flex-basis: auto;
+    width: 150px;
+  }
+
+  .detalle__titulo {
+    font-size: 1.7rem;
+  }
+
+  .detalle__fila {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+}
+
+/* ---- Ventana de edición (EditarJuego.jsx) --------------------------------- */
+/* Un <dialog> modal sale centrado en la pantalla, no importa en qué punto de la
+   página esté la tarjeta del juego. Comparte fondo y animación con .detalle. */
+.editar {
+  width: min(640px, calc(100% - 2rem));
+  max-height: calc(100svh - 2rem);
+  padding: 1.75rem;
+  overflow-y: auto;
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra);
+}
+
+.editar__cerrar {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.editar__cabecera {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-right: 2.5rem; /* deja sitio al botón de cerrar */
+  margin-bottom: 1.5rem;
+}
+
+.editar__portada {
+  position: relative; /* para el "Sin portada", que va en absolute */
+  flex: 0 0 64px;
+  aspect-ratio: 264 / 374;
+  overflow: hidden;
+  background: var(--superficie-2);
+  border-radius: 6px;
+}
+
+.editar__portada img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.editar__etiqueta {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.editar__titulo {
+  font-family: var(--display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  color: var(--texto-h);
+}
+
+.editar__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+/* ---- Ventana de confirmación (DialogoConfirmar.jsx) ---------------------- */
+/* Comparte fondo y animación de entrada con .detalle (ver más arriba) */
+.dialogo {
+  width: min(420px, calc(100% - 2rem));
+  padding: 1.5rem;
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra);
+}
+
+.dialogo__titulo {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-h);
+}
+
+.dialogo__mensaje {
+  margin-top: 0.6rem;
+}
+
+.dialogo__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}

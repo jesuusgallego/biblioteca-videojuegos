@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 
 // Lo que dura la animación de salida de las ventanas (debe coincidir con
-// "detalle-salida" en App.css)
+// "detalle-salida" en estilos/ventanas.css)
 const DURACION_SALIDA_MS = 200
 
 // Cierre animado para las ventanas <dialog> (ficha, edición, confirmación).

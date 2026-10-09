@@ -23,6 +23,7 @@ biblioteca-videojuegos/
 │   └── src/app.js       # Servidor Express
 └── frontend/
     └── src/
+        ├── estilos/           # CSS dividido por zonas (mira estilos/LEEME.md)
         ├── App.jsx            # Rutas
         ├── Login.jsx
         ├── Registro.jsx
@@ -37,6 +38,7 @@ biblioteca-videojuegos/
 - Docker y Docker Compose
 - Credenciales de la API de Twitch/IGDB (`TWITCH_CLIENT_ID` y `TWITCH_CLIENT_SECRET`)
 - Opcional: una clave de Azure AI Translator (`AZURE_TRANSLATOR_KEY` y `AZURE_TRANSLATOR_REGION`) para mejorar la traducción de las descripciones
+- Opcional: una [clave de la API web de Steam](https://steamcommunity.com/dev/apikey) (`STEAM_API_KEY`, gratuita) para vincular cuentas de Steam y traer horas jugadas y logros
 
 ## Puesta en marcha
 
@@ -75,6 +77,8 @@ TWITCH_CLIENT_SECRET=tu_client_secret
 # AZURE_TRANSLATOR_KEY=tu_clave
 # AZURE_TRANSLATOR_REGION=westeurope
 # AZURE_TRANSLATOR_LIMITE_MENSUAL=1900000
+# Opcional: vincular Steam (https://steamcommunity.com/dev/apikey)
+# STEAM_API_KEY=tu_clave
 ```
 
 ```bash
@@ -131,6 +135,10 @@ docker compose up -d --build
 | PATCH | `/profile/email` | Bearer token | Cambia el email (`email` + `current_password`). 403 si la contraseña es incorrecta |
 | PATCH | `/profile/password` | Bearer token | Cambia la contraseña (`current_password` + `new_password`) |
 | DELETE | `/profile` | Bearer token | Borra tu cuenta y toda tu biblioteca (`password`) |
+| GET | `/accounts` | Bearer token | Cuentas vinculadas del usuario y `steam_disponible` (si el servidor tiene `STEAM_API_KEY`) |
+| PUT | `/accounts/steam` | Bearer token | Vincula una cuenta de Steam. `perfil` puede ser la URL del perfil, el nombre personalizado o el SteamID de 17 dígitos. `importar: true` (opcional) decide, solo en este momento, si la sincronización añadirá también los juegos que te faltan. 409 si ya hay una vinculada |
+| POST | `/accounts/steam/sync` | Bearer token | Trae de Steam las horas y los logros de los juegos que ya tienes y, si al vincular se eligió importar, añade los que te faltan. 422 si el perfil es privado; 409 si ya hay una sincronización en curso |
+| DELETE | `/accounts/steam` | Bearer token | Desvincula Steam y deja la biblioteca como antes de vincular: borra los juegos que añadió la importación (`user_games.imported_from = 'steam'`) y quita el progreso de Steam de los demás. Devuelve cuántos eliminó |
 
 `status` admite `jugando`, `completado`, `abandonado` y `pendiente`; `rating` va de 1 a 10.
 
@@ -145,5 +153,7 @@ docker compose up -d --build
 - La columna `user_games.igdb_id` guarda el ID del juego en **IGDB**.
 - El token JWT se guarda en `localStorage`.
 - La foto de perfil se guarda como texto (data URL en base64) en `users.avatar`; el navegador la recorta en cuadrado y la reduce a 256 px antes de enviarla. Puede ser una foto subida o una ilustración de IGDB de un juego de tu biblioteca: en el segundo caso el navegador descarga la ilustración (IGDB permite leer sus imágenes desde otras webs), te deja ajustar el encuadre y guarda el recorte, igual que una foto subida; el backend no guarda ninguna URL de IGDB como avatar. Si tu base de datos es anterior al perfil, añade las columnas con `docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT; ALTER TABLE users ADD COLUMN IF NOT EXISTS bio VARCHAR(300);"` (o vuelve a ejecutar `schema.sql`, que es idempotente).
+- **Steam:** es la única plataforma con una API oficial para leer la biblioteca de un jugador, por eso es la única que se puede vincular. Hace falta que el perfil tenga los "Detalles del juego" en público. No se guarda ninguna contraseña: solo el SteamID (dato público) en `linked_accounts`; las consultas las hace el backend con su propia `STEAM_API_KEY`. Steam identifica los juegos con su `appid` y la biblioteca usa ids de IGDB, así que al sincronizar se emparejan con el campo `external_games` de IGDB (los que no tienen equivalente no se pueden importar). El progreso se guarda en `user_games` (`steam_appid`, `playtime_minutes`, `achievements_unlocked`, `achievements_total`). La importación de juegos nuevos se elige solo al vincular (`linked_accounts.import_games`) y los juegos que trae entran como **Pendiente**: Steam no guarda si te has pasado un juego, así que el estado lo cambia el usuario a mano, como en el resto de la biblioteca. Quedan marcados con `user_games.imported_from = 'steam'`, para poder borrarlos al desvincular sin tocar los que añadiste tú. Si tu base de datos es anterior a esta función, ejecuta de nuevo `schema.sql` (es idempotente): `docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db < backend/src/models/sql/schema.sql`.
+- **Perfil (`/perfil`):** un banner con el avatar, la bio y tres cifras (juegos, nota media y % completados) sobre un collage borroso de tus portadas mejor valoradas, y debajo cuatro pestañas: Estadísticas, Editar perfil, Cuentas vinculadas y Seguridad. La pestaña va en la URL (`/perfil?tab=cuentas`), se maneja con las flechas del teclado y los cuatro paneles siguen montados al cambiar, así que lo que escribes en "Editar perfil" no se pierde. Todos los campos de contraseña (`CampoContrasena.jsx`) tienen un ojo para verla, y la nueva muestra sus requisitos en vivo. Al vincular Steam, `ConexionSteam.jsx` anima la conexión y avisa con `animationend` (no con temporizadores) cuando termina.
 - Las credenciales de `docker-compose.yml` son solo para desarrollo; cámbialas en cualquier otro entorno.
 - `backend/.env` contiene secretos: asegúrate de que esté en `.gitignore`.

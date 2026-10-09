@@ -1,0 +1,58 @@
+/* Perfil en pantallas estrechas. */
+
+/* ---- Perfil: pantallas estrechas ----------------------------------------------- */
+@media (max-width: 820px) {
+  .perfil__cuerpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Las pestañas pasan a una fila con scroll horizontal, pegada bajo la barra */
+  .pestanas {
+    top: 4rem;
+    z-index: 5;
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .pestana {
+    flex: none;
+  }
+
+  .pestanas__indicador {
+    box-shadow: inset 0 -3px 0 var(--acento);
+  }
+}
+
+@media (max-width: 640px) {
+  .banner-perfil__contenido {
+    padding: 3.5rem 1.1rem 1.25rem;
+  }
+
+  .banner-perfil__identidad {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .banner-perfil__cifras {
+    width: 100%;
+  }
+
+  .cifra {
+    flex: 1;
+    min-width: 0;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .panel-perfil {
+    padding: 1.1rem;
+  }
+
+  .ajuste {
+    padding: 1rem;
+  }
+
+  .plataforma__cuerpo {
+    padding: 1rem;
+  }
+}
