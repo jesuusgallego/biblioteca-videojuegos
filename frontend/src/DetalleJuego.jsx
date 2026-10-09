@@ -4,6 +4,7 @@ import { ETIQUETAS_ESTADO } from './estados'
 import BotonAnadir from './BotonAnadir'
 import VisorCapturas from './VisorCapturas'
 import Cargando from './Cargando'
+import { useVentana } from './useVentana'
 
 // "2015-05-19" -> "19 de mayo de 2015". Con timeZone UTC evito que, según la zona
 // horaria del usuario, la fecha salga un día antes.
@@ -38,6 +39,8 @@ function Fila({ etiqueta, valores }) {
 //    (lo usa la búsqueda; en Mi biblioteca el juego ya está guardado).
 function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
   const dialogRef = useRef(null)
+  // Cierre con animación de salida (ver useVentana.js)
+  const { saliendo, cerrar, alCancelar } = useVentana(onCerrar)
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState("")
   // Índice de la captura que se ve en grande, o null si el visor está cerrado
@@ -71,7 +74,7 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
   // como objetivo el propio dialog, no su contenido. Uso mousedown y no click para
   // que seleccionar texto y soltar fuera no cierre la ventana sin querer.
   function cerrarSiEsElFondo(e) {
-    if (e.target === e.currentTarget) onCerrar()
+    if (e.target === e.currentTarget) cerrar()
   }
 
   const portada = datos?.cover_url ?? juego.cover_url
@@ -80,15 +83,16 @@ function DetalleJuego({ juego, guardado, onAnadir, onCerrar }) {
   return (
     <dialog
       ref={dialogRef}
-      className="detalle"
+      className={saliendo ? "detalle ventana--saliendo" : "detalle"}
       aria-labelledby="detalle-titulo"
       onClose={onCerrar}
+      onCancel={alCancelar}
       onMouseDown={cerrarSiEsElFondo}
     >
       <button
         type="button"
         className="btn-icono detalle__cerrar"
-        onClick={onCerrar}
+        onClick={() => cerrar()}
         aria-label="Cerrar"
       >
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import Cargando from './Cargando'
+import { useVentana } from './useVentana'
 
 // El backend manda las capturas en tamaño medio (t_screenshot_big, 889x500), pensado
 // para la rejilla. Para verlas grandes pido a IGDB la misma imagen en 1080p
@@ -14,6 +15,8 @@ function ampliar(url) {
 //  - onCambiar(nuevoIndice) / onCerrar(): los gestiona quien lo abre
 function VisorCapturas({ urls, indice, onCambiar, onCerrar }) {
   const dialogRef = useRef(null)
+  // Cierre con animación de salida (ver useVentana.js)
+  const { saliendo, cerrar, alCancelar } = useVentana(onCerrar)
   // URL de la última imagen que ha terminado de cargar. Si no coincide con la que
   // toca ver, todavía estoy cargando (así se reinicia sola al cambiar de captura).
   const [urlCargada, setUrlCargada] = useState(null)
@@ -42,15 +45,16 @@ function VisorCapturas({ urls, indice, onCambiar, onCerrar }) {
 
   // Un clic en el fondo oscuro (::backdrop) tiene como objetivo el propio dialog
   function cerrarSiEsElFondo(e) {
-    if (e.target === e.currentTarget) onCerrar()
+    if (e.target === e.currentTarget) cerrar()
   }
 
   return (
     <dialog
       ref={dialogRef}
-      className="visor"
+      className={saliendo ? "visor ventana--saliendo" : "visor"}
       aria-label={`Captura ${indice + 1} de ${urls.length}`}
       onClose={onCerrar}
+      onCancel={alCancelar}
       onMouseDown={cerrarSiEsElFondo}
       onKeyDown={alPulsarTecla}
     >
@@ -74,7 +78,7 @@ function VisorCapturas({ urls, indice, onCambiar, onCerrar }) {
       <button
         type="button"
         className="btn-icono visor__boton visor__cerrar"
-        onClick={onCerrar}
+        onClick={() => cerrar()}
         aria-label="Cerrar"
       >
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">

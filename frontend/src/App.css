@@ -1280,7 +1280,8 @@
 
 .detalle[open],
 .dialogo[open],
-.editar[open] {
+.editar[open],
+.visor[open] {
   animation: detalle-entrada 0.2s ease;
 }
 
@@ -1289,12 +1290,50 @@
 .editar::backdrop {
   background: rgba(5, 10, 18, 0.72);
   backdrop-filter: blur(3px);
+  animation: fondo-entrada 0.2s ease;
 }
 
 @keyframes detalle-entrada {
   from {
     opacity: 0;
     transform: translateY(12px) scale(0.98);
+  }
+}
+
+@keyframes fondo-entrada {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Salida de las ventanas (la pone useVentana.js al cerrar): la animación de
+   entrada al revés, también en el fondo oscuro. Mientras sale no se puede pulsar.
+   Los selectores llevan [open] y dos clases para ganar a la regla de entrada. */
+.detalle[open].ventana--saliendo,
+.dialogo[open].ventana--saliendo,
+.editar[open].ventana--saliendo,
+.visor[open].ventana--saliendo {
+  pointer-events: none;
+  animation: detalle-salida 0.2s ease both;
+}
+
+.detalle.ventana--saliendo::backdrop,
+.dialogo.ventana--saliendo::backdrop,
+.editar.ventana--saliendo::backdrop,
+.visor.ventana--saliendo::backdrop {
+  animation: fondo-salida 0.2s ease both;
+}
+
+@keyframes detalle-salida {
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+@keyframes fondo-salida {
+  to {
+    opacity: 0;
   }
 }
 
@@ -1463,6 +1502,7 @@ body:has(dialog[open]) {
 
 .visor::backdrop {
   background: rgba(0, 0, 0, 0.88);
+  animation: fondo-entrada 0.2s ease;
 }
 
 /* Marco 16:9 que cabe en pantalla: el ancho es el menor entre 94% de la ventana,

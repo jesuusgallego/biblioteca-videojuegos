@@ -3,6 +3,7 @@ import { apiFetch } from './api'
 import { ETIQUETAS_ESTADO } from './estados'
 import Desplegable from './Desplegable'
 import Cargando from './Cargando'
+import { useVentana } from './useVentana'
 
 const OPCIONES_ESTADO = Object.entries(ETIQUETAS_ESTADO).map(([valor, etiqueta]) => ({ valor, etiqueta }))
 
@@ -15,6 +16,8 @@ const OPCIONES_ESTADO = Object.entries(ETIQUETAS_ESTADO).map(([valor, etiqueta])
 // inician con los datos actuales cada vez que la abro y "Cancelar" descarta todo.
 function EditarJuego({ juego, onActualizar, onCerrar }) {
   const dialogRef = useRef(null)
+  // Cierre con animación de salida (ver useVentana.js)
+  const { saliendo, cerrar, alCancelar } = useVentana(onCerrar)
 
   // Los campos del formulario son strings: null (vacío en la BD) pasa a ""
   const [status, setStatus] = useState(juego.status)
@@ -64,7 +67,7 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
         platform: platform || null,
         review: review.trim() || null,
       })
-      onCerrar()
+      cerrar()
     } catch (err) {
       setError(err.message)
       setOcupado(false)
@@ -74,7 +77,7 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
   // Un clic en el fondo oscuro (::backdrop) tiene como objetivo el propio dialog.
   // Mientras guardo no dejo cerrarla, para ver cómo acaba.
   function cerrarSiEsElFondo(e) {
-    if (e.target === e.currentTarget && !ocupado) onCerrar()
+    if (e.target === e.currentTarget && !ocupado) cerrar()
   }
 
   // Si el juego ya tiene una plataforma que no está en la lista (por ejemplo,
@@ -93,16 +96,17 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
   return (
     <dialog
       ref={dialogRef}
-      className="editar"
+      className={saliendo ? "editar ventana--saliendo" : "editar"}
       aria-labelledby="editar-titulo"
       onClose={onCerrar}
-      onCancel={(e) => { if (ocupado) e.preventDefault() }} // Esc no cierra mientras guardo
+      // Esc nunca cierra de golpe; y mientras guardo no cierra en absoluto
+      onCancel={(e) => { if (ocupado) e.preventDefault(); else alCancelar(e) }}
       onMouseDown={cerrarSiEsElFondo}
     >
       <button
         type="button"
         className="btn-icono editar__cerrar"
-        onClick={onCerrar}
+        onClick={() => cerrar()}
         disabled={ocupado}
         aria-label="Cerrar"
       >
@@ -162,7 +166,7 @@ function EditarJuego({ juego, onActualizar, onCerrar }) {
         )}
 
         <div className="editar__acciones campo--ancho">
-          <button type="button" className="btn btn--secundario" onClick={onCerrar} disabled={ocupado}>
+          <button type="button" className="btn btn--secundario" onClick={() => cerrar()} disabled={ocupado}>
             Cancelar
           </button>
           <button type="submit" className="btn btn--primario" disabled={ocupado}>
