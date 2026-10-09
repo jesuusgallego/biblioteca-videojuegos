@@ -61,6 +61,43 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
+/* Insignia de Steam (InsigniaSteam.jsx), en la esquina contraria a la nota. El
+   círculo oscuro translúcido, su aro y el logo en blanco son un solo svg (ver
+   IconoSteam), así que van siempre centrados entre sí. Medidas en px enteros para
+   que no haya subpíxeles. */
+.insignia-steam {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2; /* por encima del destello de la portada */
+  display: block;
+  width: 28px;
+  height: 28px;
+  color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+}
+
+.insignia-steam svg {
+  display: block;
+}
+
+.insignia-steam__fondo {
+  fill: rgba(11, 18, 28, 0.78);
+  stroke: rgba(102, 192, 244, 0.55);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke; /* el aro mide 1 px en cualquier tamaño */
+}
+
+/* Tarjeta estrecha de "Jugando ahora" (la portada mide 76 px) */
+.insignia-steam--pequena {
+  top: 5px;
+  left: 5px;
+  width: 20px;
+  height: 20px;
+}
+
 .tarjeta__cuerpo {
   display: flex;
   flex-direction: column;

@@ -7,6 +7,7 @@ import Mensaje from './Mensaje'
 import Desplegable from './Desplegable'
 import IconoResena from './IconoResena'
 import ProgresoSteam from './ProgresoSteam'
+import InsigniaSteam from './InsigniaSteam'
 
 // Tarjeta de un juego que ya está en mi biblioteca. "Editar" abre la ventana
 // EditarJuego y "Quitar" pide confirmación antes de borrar. onActualizar y
@@ -70,6 +71,7 @@ function JuegoGuardado({ juego, onActualizar, onBorrar, onVerDetalle }) {
             ? <img src={juego.cover_url} alt="" loading="lazy" />
             : <span className="portada__vacia">{t('comun.sinPortada')}</span>}
         </button>
+        <InsigniaSteam juego={juego} />
         {juego.rating && <span className="nota">★ {juego.rating}</span>}
       </div>
 

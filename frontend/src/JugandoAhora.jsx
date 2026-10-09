@@ -1,9 +1,10 @@
 import { useIdioma } from './IdiomaContext'
 import IconoResena from './IconoResena'
+import InsigniaSteam from './InsigniaSteam'
 
 // Fila "Jugando ahora" de Mi biblioteca: una tarjeta ancha por cada juego con
-// estado "jugando". Solo enseño lo que guardo en la BD (portada, plataforma y
-// nota); no hay horas ni progreso, así que no los dibujo. La reseña no se
+// estado "jugando". Solo enseño lo que guardo en la BD (portada, plataforma,
+// nota y la insignia si viene de Steam); no dibujo horas ni progreso. La reseña no se
 // escribe aquí: un icono junto al estado avisa de que existe y se lee en la ficha.
 // Toda la tarjeta es clicable, pero solo hay UN botón de verdad (el del título):
 // su ::after (ver estilos/biblioteca.css) se estira por toda la tarjeta. Así no anido botones
@@ -41,6 +42,7 @@ function JugandoAhora({ juegos, onVerDetalle }) {
                   ? <img src={juego.cover_url} alt="" loading="lazy" />
                   : <span className="portada__vacia">{t('comun.sinPortada')}</span>}
               </button>
+              <InsigniaSteam juego={juego} pequena />
             </div>
 
             <div className="jugando__cuerpo">

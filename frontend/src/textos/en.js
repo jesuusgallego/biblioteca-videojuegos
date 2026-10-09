@@ -221,6 +221,7 @@ export default {
   'steam.importacionNo': 'Off',
   'steam.importacionActiva': 'On',
   'steam.importacionActivaN': 'On · Imported: {n}',
+  'steam.insignia': 'Steam game',
   'steam.sincronizar': 'Sync now',
   'steam.autoSync': 'It syncs on its own every so often and whenever you open your profile. You can also do it now.',
   'steam.sincronizando': 'Syncing, this may take a while...',
