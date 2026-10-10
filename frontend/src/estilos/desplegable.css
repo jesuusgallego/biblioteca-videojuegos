@@ -2,7 +2,7 @@
 
 /* ---- Desplegable propio (Desplegable.jsx) -------------------------------- */
 /* El botón copia el aspecto de los demás campos (mira "Campos de formulario"
-   en index.css). */
+   en base.css). */
 .desplegable__boton {
   display: flex;
   align-items: center;

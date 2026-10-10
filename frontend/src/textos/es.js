@@ -59,7 +59,6 @@ export default {
   'biblioteca.vaciaTitulo': 'Tu biblioteca está vacía',
   'biblioteca.vaciaTexto': 'Aún no has guardado ningún juego.',
   'biblioteca.titulo': 'Mi biblioteca',
-  'biblioteca.filtrarPorEstado': 'Filtrar por estado',
   'biblioteca.estado': 'Estado',
   'biblioteca.todos': 'Todos',
   'biblioteca.filtrarJuegos': 'Buscar por nombre, compañía, género...',

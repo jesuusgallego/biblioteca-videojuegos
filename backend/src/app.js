@@ -6,7 +6,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const pool = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
-const verifyToken = require('./middleware/authMiddleware');
 const { limitadorGeneral } = require('./middleware/limitadores');
 const gameRoutes = require('./routes/gameRoutes');
 const profileRoutes = require('./routes/profileRoutes');
@@ -69,10 +68,6 @@ app.get('/health', async (req, res) => {
     console.error('Error en /health:', err);
     res.status(500).json({ status: 'error', message: 'No se pudo conectar a la base de datos' });
   }
-});
-
-app.get('/auth/me', verifyToken, (req, res) => {
-  res.json({ message: 'Token válido', user: req.user });
 });
 
 app.use('/auth', authRoutes);

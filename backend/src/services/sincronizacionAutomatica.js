@@ -68,4 +68,4 @@ function iniciarSincronizacionAutomatica() {
   console.log(`Sincronización automática de Steam activa (cada ${MINUTOS} min)`);
 }
 
-module.exports = { iniciarSincronizacionAutomatica, sincronizarPendientes };
+module.exports = { iniciarSincronizacionAutomatica };

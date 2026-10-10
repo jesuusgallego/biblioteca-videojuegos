@@ -160,11 +160,6 @@
   margin-top: auto;
 }
 
-.tarjeta__meta {
-  font-size: 0.85rem;
-  color: var(--texto-suave);
-}
-
 /* Estado + botones, pegados al fondo de la tarjeta */
 .tarjeta__pie {
   display: flex;

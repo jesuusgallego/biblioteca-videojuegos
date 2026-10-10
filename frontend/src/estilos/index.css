@@ -2,9 +2,9 @@
    Punto de entrada de los estilos. main.jsx importa SOLO este archivo.
 
    El ORDEN de los @import importa: en CSS, si dos reglas tienen la misma
-   fuerza, gana la que va después. Por eso estos archivos se cargan en el mismo
-   orden en que estaba el antiguo App.css. Al añadir un archivo nuevo, ponlo
-   donde corresponda y, si dudas, al final de su zona. Más detalles en LEEME.md.
+   fuerza, gana la que va después. Por eso los archivos se cargan en el orden en
+   que deben aplicarse. Al añadir uno nuevo, ponlo donde corresponda y, si dudas,
+   al final de su zona. Más detalles en LEEME.md.
    ========================================================================== */
 
 /* Variables de diseño (colores, temas, tipografías) y estilos base */

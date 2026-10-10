@@ -9,10 +9,9 @@ services:
     ports:
       - "5432:5432"
     volumes:
+      # Las tablas las crea el propio backend al arrancar (aplica schema.sql), así que
+      # aquí solo hace falta guardar los datos.
       - pgdata:/var/lib/postgresql/data
-      # Los .sql de esta carpeta se ejecutan SOLO la primera vez, con el volumen
-      # vacío: así las tablas se crean solas.
-      - ./backend/src/models/sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
     healthcheck:
       # "Healthy" = Postgres ya acepta conexiones
       test: ["CMD-SHELL", "pg_isready -U biblioteca_user -d biblioteca_db"]

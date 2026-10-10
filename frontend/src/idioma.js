@@ -20,7 +20,7 @@ export const IDIOMAS = [
   { codigo: 'en', nombre: 'English', locale: 'en-GB' },
 ]
 
-export const IDIOMA_POR_DEFECTO = 'es'
+const IDIOMA_POR_DEFECTO = 'es'
 
 function leerGuardado() {
   try {

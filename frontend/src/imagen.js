@@ -6,7 +6,7 @@
 // hasta que sobra espacio) y de las partes transparentes de un PNG. JPEG no tiene
 // transparencia: sin un relleno saldrían negras. Es el mismo color que el fondo
 // del recortador (RecortadorFoto), para que lo que se ve ahí sea lo que se guarda.
-export const COLOR_RELLENO = '#0b121c'
+const COLOR_RELLENO = '#0b121c'
 
 // Recorta de `imagen` el cuadrado que empieza en (sx, sy) y mide `tamano`
 // (los tres en píxeles de la imagen original) y lo reduce a `salida` píxeles.

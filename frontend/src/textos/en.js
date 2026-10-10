@@ -57,7 +57,6 @@ export default {
   'biblioteca.vaciaTitulo': 'Your library is empty',
   'biblioteca.vaciaTexto': "You haven't saved any games yet.",
   'biblioteca.titulo': 'My library',
-  'biblioteca.filtrarPorEstado': 'Filter by status',
   'biblioteca.estado': 'Status',
   'biblioteca.todos': 'All',
   'biblioteca.filtrarJuegos': 'Search by name, company, genre...',

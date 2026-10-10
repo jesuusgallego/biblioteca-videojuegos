@@ -7,7 +7,7 @@ export function temaActual() {
   return document.documentElement.dataset.tema === 'claro' ? 'claro' : 'oscuro'
 }
 
-export function aplicarTema(tema) {
+function aplicarTema(tema) {
   document.documentElement.dataset.tema = tema
   try {
     localStorage.setItem(CLAVE, tema)

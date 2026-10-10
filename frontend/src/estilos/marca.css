@@ -12,7 +12,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--texto-h);
-  /* Sin subrayado en ningún estado: el de los enlaces (index.css) parte de
+  /* Sin subrayado en ningún estado: el de los enlaces (base.css) parte de
      transparente y al quitar el ratón se veía un instante al desvanecerse */
   text-decoration: none;
 }
