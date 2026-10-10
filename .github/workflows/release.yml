@@ -74,6 +74,16 @@ jobs:
           path: desktop/release/*.exe
           if-no-files-found: error
 
+      # Creo la Release ANTES de subir nada. Si no existe, electron-builder sube varios
+      # archivos a la vez y cada uno intenta crearla: salían dos Releases iguales
+      # (una con el instalador y otra solo con el .blockmap).
+      - name: Crear la Release si no existe
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        shell: bash
+        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "GameHub ${GITHUB_REF_NAME#v}" --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # Con una etiqueta v*: genera el instalador y lo publica en la Release
       - name: Generar y publicar el instalador
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
