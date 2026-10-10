@@ -21,7 +21,11 @@ que compilar de nuevo.
 Necesitas Node 20+ y el servidor (o el backend local en `http://localhost:4000`).
 
 ```bash
-cd desktop
+# La interfaz se compila con las dependencias de frontend/: instálalas primero
+cd frontend
+npm install
+
+cd ../desktop
 npm install
 # Si npm avisa de "allow-scripts", descarga Electron a mano:
 node node_modules/electron/install.js
@@ -39,7 +43,11 @@ Con el backend local, arranca con `CORS_ORIGINS` vacío (cualquier origen) o inc
 ```bash
 cd desktop
 GAMEHUB_API_URL=https://api.tu-servidor.com npm run dist
+# Windows PowerShell:
+#   $env:GAMEHUB_API_URL="https://api.tu-servidor.com"; npm run dist
 ```
+
+(Antes hay que haber hecho `npm install` en `frontend/` y en `desktop/`, como arriba.)
 
 Deja `desktop/release/GameHub Setup 1.0.0.exe`. **Compílalo en Windows** (o en GitHub
 Actions, ver abajo): desde WSL/Linux, `electron-builder` necesita Wine.
