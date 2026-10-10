@@ -150,4 +150,69 @@ async function getLogros(steamId, appid) {
   }
 }
 
-module.exports = { ErrorSteam, resolverSteamId, getPerfil, getJuegosPoseidos, getLogros };
+// Steam escribe los textos de los logros en el idioma que le pidas con el parámetro
+// "l", y espera el nombre completo del idioma, no el código de dos letras que usa la app.
+const IDIOMA_STEAM = { es: 'spanish', en: 'english' };
+
+// La lista de logros de un juego, con nombre, descripción, icono y si el usuario lo
+// tiene: [{ id, nombre, descripcion, icono, oculto, desbloqueado, fecha }, ...]
+// (fecha en segundos Unix, o null si no está desbloqueado). Lista vacía = el juego
+// no tiene logros. A diferencia de getLogros, que solo cuenta, aquí un fallo SÍ lanza
+// un ErrorSteam: quien pide la lista quiere enseñarla, no conservar un dato anterior.
+//
+// Hacen falta dos llamadas, porque cada una da una parte:
+//  - GetPlayerAchievements: qué logros tiene el usuario y cuándo los consiguió
+//  - GetSchemaForGame: los iconos (uno en color y otro en gris para los pendientes)
+//    y si el logro es oculto. Es igual para todos los jugadores.
+// Las lanzo a la vez con Promise.all: tardan lo que tarde la más lenta, no la suma.
+async function getLogrosDetallados(steamId, appid, idioma) {
+  const l = IDIOMA_STEAM[idioma] ?? IDIOMA_STEAM.en;
+
+  const [jugador, esquema] = await Promise.all([
+    steamGet('ISteamUserStats/GetPlayerAchievements/v1/', { steamid: steamId, appid, l }),
+    steamGet('ISteamUserStats/GetSchemaForGame/v2/', { appid, l }),
+  ]);
+
+  // Sin logros Steam responde 400 ("Requested app has no stats")
+  if (jugador.status === 400) return [];
+
+  // Con el perfil privado, 403 y un playerstats con el motivo. Lo compruebo ANTES
+  // que exigirRespuestaValida, que tomaría ese 403 por una clave de API mala.
+  if (jugador.status === 403 && jugador.data?.playerstats?.error) {
+    throw new ErrorSteam(
+      'Tu perfil de Steam es privado. En Steam, pon "Detalles del juego" en público y vuelve a sincronizar',
+      422
+    );
+  }
+  exigirRespuestaValida(jugador);
+
+  const logros = jugador.data?.playerstats?.achievements;
+  if (!Array.isArray(logros)) {
+    if (jugador.data?.playerstats?.success === true) return [];
+    throw new ErrorSteam('No se pudieron consultar los logros en Steam', 502);
+  }
+
+  // Si el esquema falla o no trae nada, sigo sin iconos: el nombre y el estado del
+  // logro (lo importante) los dio la otra llamada. "apiname" es el identificador de
+  // cada logro y me sirve de clave para unir las dos respuestas.
+  const delEsquema = new Map(
+    (esquema.data?.game?.availableGameStats?.achievements ?? []).map((a) => [a.name, a])
+  );
+
+  return logros.map((logro) => {
+    const extra = delEsquema.get(logro.apiname);
+    const desbloqueado = logro.achieved === 1;
+    return {
+      id: logro.apiname,
+      nombre: logro.name || extra?.displayName || logro.apiname,
+      descripcion: logro.description || extra?.description || '',
+      // icon = en color (desbloqueado); icongray = en gris (pendiente)
+      icono: (desbloqueado ? extra?.icon : extra?.icongray) ?? null,
+      oculto: extra?.hidden === 1,
+      desbloqueado,
+      fecha: desbloqueado && logro.unlocktime > 0 ? logro.unlocktime : null,
+    };
+  });
+}
+
+module.exports = { ErrorSteam, resolverSteamId, getPerfil, getJuegosPoseidos, getLogros, getLogrosDetallados };

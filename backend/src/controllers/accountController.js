@@ -1,6 +1,7 @@
 const pool = require('../config/db');
 const { urlImagen, getIgdbIdsDeSteam, getJuegosBasicos } = require('../services/igdbService');
-const { ErrorSteam, resolverSteamId, getPerfil, getJuegosPoseidos, getLogros } = require('../services/steamService');
+const { ErrorSteam, resolverSteamId, getPerfil, getJuegosPoseidos, getLogros, getLogrosDetallados } = require('../services/steamService');
+const { IDIOMAS, IDIOMA_ORIGINAL } = require('../services/traduccionService');
 
 // imported_count: cuántos juegos de la biblioteca trajo la importación. El frontend lo
 // enseña y avisa de que se borrarán al desvincular.
@@ -282,4 +283,47 @@ async function syncSteam(req, res) {
   }
 }
 
-module.exports = { listAccounts, linkSteam, unlinkSteam, syncSteam, sincronizarSteam };
+// GET /accounts/steam/games/:id/achievements?lang=es — la lista de logros de un
+// juego de MI biblioteca. ":id" es el id de la fila de user_games (el mismo que
+// usan PATCH y DELETE /games/:id), no el de IGDB ni el de Steam.
+// No guardo la lista en la BD: cambia cada vez que el usuario desbloquea uno, así
+// que se pide a Steam al abrir la ficha y siempre está al día.
+async function getGameAchievements(req, res) {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'id debe ser un número entero positivo' });
+  }
+
+  const lang = req.query.lang ?? IDIOMA_ORIGINAL;
+  if (typeof lang !== 'string' || !IDIOMAS.includes(lang)) {
+    return res.status(400).json({ error: `lang debe ser uno de: ${IDIOMAS.join(', ')}` });
+  }
+
+  try {
+    // El "AND user_id" es lo que impide pedir los logros de la biblioteca de otro:
+    // un id ajeno no devuelve fila y responde igual que uno que no existe.
+    // El JOIN trae a la vez el appid del juego y el SteamID de la cuenta vinculada.
+    const result = await pool.query(
+      `SELECT g.steam_appid, a.external_id
+       FROM user_games g
+       LEFT JOIN linked_accounts a ON a.user_id = g.user_id AND a.platform = 'steam'
+       WHERE g.id = $1 AND g.user_id = $2`,
+      [id, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Juego no encontrado en tu biblioteca' });
+    }
+
+    const { steam_appid: appid, external_id: steamId } = result.rows[0];
+    if (!appid || !steamId) {
+      return res.status(404).json({ error: 'Este juego no está vinculado con Steam' });
+    }
+
+    res.json({ achievements: await getLogrosDetallados(steamId, appid, lang) });
+  } catch (err) {
+    responderError(err, res, 'getGameAchievements');
+  }
+}
+
+module.exports = { listAccounts, linkSteam, unlinkSteam, syncSteam, sincronizarSteam, getGameAchievements };

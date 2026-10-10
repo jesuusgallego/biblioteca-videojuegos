@@ -69,3 +69,100 @@
   text-transform: uppercase;
   color: var(--texto-suave);
 }
+
+/* ---- Lista de logros de la ficha (LogrosSteam.jsx) -------------------------- */
+/* Con cientos de logros la ficha sería interminable: la lista tiene su propia
+   altura máxima y se desplaza por dentro. */
+.logros {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 22rem;
+  margin-top: 0.4rem;
+  padding-right: 0.25rem;
+  overflow-y: auto;
+  animation: logros-entrada 0.35s ease both;
+}
+
+@keyframes logros-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.logro {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.65rem;
+  background: var(--campo);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  /* Los pendientes se ven apagados; al pasar el ratón recuperan fuerza */
+  opacity: 0.65;
+  transition: opacity var(--transicion), border-color var(--transicion);
+}
+
+.logro:hover {
+  opacity: 1;
+  border-color: var(--acento);
+}
+
+.logro--desbloqueado {
+  opacity: 1;
+}
+
+.logro__icono {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  background: var(--superficie-2);
+  border-radius: calc(var(--radio) - 2px);
+}
+
+.logro__texto {
+  flex: 1;
+  min-width: 0; /* sin esto un nombre largo ensancha la fila en vez de partirse */
+}
+
+.logro__nombre {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.logro__descripcion {
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.logro__estado {
+  flex: none;
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+  text-align: right;
+}
+
+.logro--desbloqueado .logro__estado {
+  color: var(--estado-completado);
+}
+
+/* En pantallas estrechas la fecha baja a su propia línea, bajo el texto, para que
+   el nombre y la descripción no se queden en una columna de cuatro palabras */
+@media (max-width: 640px) {
+  .logro {
+    flex-wrap: wrap;
+  }
+
+  .logro__texto {
+    flex-basis: calc(100% - 48px - 0.75rem);
+  }
+
+  .logro__estado {
+    flex-basis: 100%;
+    padding-left: calc(48px + 0.75rem);
+    text-align: left;
+  }
+}

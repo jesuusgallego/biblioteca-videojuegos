@@ -242,4 +242,11 @@ export default {
   'progreso.horas': '{n} h',
   'progreso.logros': '{desbloqueados}/{total} logros',
   'progreso.logrosAria': 'Logros desbloqueados: {desbloqueados} de {total}',
+
+  // ---- Lista de logros de un juego (viene de Steam) ----
+  'logros.cargando': 'Cargando logros...',
+  'logros.vacio': 'Steam no ha devuelto ningún logro para este juego.',
+  'logros.oculto': 'Logro oculto: se revela al conseguirlo.',
+  'logros.pendiente': 'Pendiente',
+  'logros.desbloqueado': 'Desbloqueado',
 }

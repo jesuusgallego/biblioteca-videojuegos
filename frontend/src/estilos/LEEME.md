@@ -26,7 +26,7 @@ a su vez importa el resto de archivos con `@import`.
 | `perfil-seguridad.css` | Tarjetas de ajustes, campo de contraseña con ojo, requisitos y fuerza | `CuentaPerfil`, `CampoContrasena` |
 | `cuentas-vinculadas.css` | Tarjeta de plataforma (Steam), botón `.btn--steam`, escena animada de conexión | `CuentaSteam`, `ConexionSteam` |
 | `perfil-movil.css` | Perfil en pantallas estrechas | `Perfil` y sus piezas |
-| `progreso-steam.css` | Horas y barra de logros de Steam | `ProgresoSteam` |
+| `progreso-steam.css` | Horas y barra de logros de Steam, y la lista de logros de la ficha | `ProgresoSteam`, `LogrosSteam` |
 | `movil.css` | Ajustes generales para pantallas estrechas | varios |
 
 ## Reglas para trabajar aquí

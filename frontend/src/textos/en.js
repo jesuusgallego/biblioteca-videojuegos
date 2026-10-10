@@ -240,6 +240,13 @@ export default {
   'progreso.horas': '{n} h',
   'progreso.logros': '{desbloqueados}/{total} achievements',
   'progreso.logrosAria': 'Achievements unlocked: {desbloqueados} of {total}',
+
+  // ---- Lista de logros de un juego (viene de Steam) ----
+  'logros.cargando': 'Loading achievements...',
+  'logros.vacio': 'Steam returned no achievements for this game.',
+  'logros.oculto': 'Hidden achievement: revealed when you unlock it.',
+  'logros.pendiente': 'Locked',
+  'logros.desbloqueado': 'Unlocked',
 }
 
 // Los mensajes de error del backend llegan en español (backend/src/controllers).
@@ -289,4 +296,7 @@ export const erroresApi = {
     'You already have a Steam account linked. Unlink it before linking another one',
   'No tienes ninguna cuenta de Steam vinculada': 'You have no Steam account linked',
   'Ya hay una sincronización en curso': 'A sync is already in progress',
+  'Este juego no está vinculado con Steam': 'This game is not linked to Steam',
+  'No se pudieron consultar los logros en Steam': 'Could not fetch the achievements from Steam',
+  'id debe ser un número entero positivo': 'id must be a positive integer',
 }

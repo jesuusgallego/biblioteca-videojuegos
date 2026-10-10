@@ -7,6 +7,7 @@ import Cargando from './Cargando'
 import { useVentana } from './useVentana'
 import Mensaje from './Mensaje'
 import ProgresoSteam from './ProgresoSteam'
+import LogrosSteam from './LogrosSteam'
 import VentanasJuego from './VentanasJuego'
 import { useAccionesJuego } from './useAccionesJuego'
 
@@ -195,6 +196,8 @@ function DetalleJuego({ juego, guardado, onAnadir, onActualizar, onBorrar, onCer
             <div className="detalle__steam">
               <h4 className="detalle__subtitulo">{t('progreso.titulo')}</h4>
               <ProgresoSteam juego={guardado} grande />
+              {/* Sin logros (total 0) o sin consultar (null) no hay lista que pedir */}
+              {guardado.achievements_total > 0 && <LogrosSteam juego={guardado} />}
             </div>
           )}
 
