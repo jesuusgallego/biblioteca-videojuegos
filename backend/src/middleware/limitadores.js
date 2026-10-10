@@ -1,0 +1,36 @@
+const rateLimit = require('express-rate-limit');
+
+// Limitadores de peticiones por IP. Sin ellos, cualquiera puede probar contraseñas
+// sin freno (login) o llenar la base de datos de cuentas falsas (registro).
+// Cada uno cuenta las peticiones de una IP dentro de una "ventana" de tiempo; al
+// pasarse del máximo, responde 429 hasta que la ventana termina.
+//
+// Importante detrás de un proxy (nginx, Render, Fly...): sin app.set('trust proxy')
+// todas las peticiones parecerían venir de la IP del proxy y se bloquearían entre sí.
+// Eso se configura con TRUST_PROXY en app.js.
+
+function limitador({ ventanaMinutos, maximo, ...resto }) {
+  return rateLimit({
+    windowMs: ventanaMinutos * 60 * 1000,
+    limit: maximo,
+    standardHeaders: 'draft-7', // cabecera RateLimit con lo que queda, para quien quiera leerla
+    legacyHeaders: false,
+    handler: (req, res) => {
+      res.status(429).json({ error: 'Demasiados intentos. Espera unos minutos y vuelve a probar' });
+    },
+    ...resto,
+  });
+}
+
+// Login: 10 intentos FALLIDOS cada 15 minutos. skipSuccessfulRequests hace que un
+// inicio de sesión correcto no cuente, así un usuario normal nunca lo nota.
+const limitadorLogin = limitador({ ventanaMinutos: 15, maximo: 10, skipSuccessfulRequests: true });
+
+// Registro: 10 cuentas nuevas por hora y por IP
+const limitadorRegistro = limitador({ ventanaMinutos: 60, maximo: 10 });
+
+// Tope general para todo lo demás. Es alto a propósito (un uso normal ni se acerca);
+// solo corta a quien automatiza peticiones sin parar.
+const limitadorGeneral = limitador({ ventanaMinutos: 15, maximo: 1000 });
+
+module.exports = { limitadorLogin, limitadorRegistro, limitadorGeneral };
