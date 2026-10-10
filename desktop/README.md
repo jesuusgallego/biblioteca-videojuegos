@@ -1,0 +1,85 @@
+# GameHub: versión de escritorio
+
+Aplicación de escritorio hecha con [Electron](https://www.electronjs.org/). Es la misma
+interfaz React de `frontend/`, dentro de una ventana propia. **No lleva servidor**: llama
+por internet al backend (ver [`docs/DESPLIEGUE.md`](../docs/DESPLIEGUE.md)).
+
+## Cómo está montada
+
+| Archivo | Para qué |
+|---------|----------|
+| `main.js` | Proceso principal: abre la ventana, sirve la interfaz con el protocolo `app://gamehub`, recuerda tamaño y posición, abre los enlaces externos en el navegador, aplica la política de seguridad (CSP) y busca actualizaciones |
+| `scripts/build-web.mjs` | Compila `frontend/` para escritorio y lo deja en `desktop/app/` |
+| `build/icon.png` | Icono de la app y del instalador (512×512, sale de `frontend/public/favicon.svg`) |
+| `package.json` | Dependencias y configuración de `electron-builder` (instalador, publicación) |
+
+La dirección del servidor **se graba al compilar** (`GAMEHUB_API_URL`). Para cambiarla hay
+que compilar de nuevo.
+
+## Probarla en tu PC
+
+Necesitas Node 20+ y el servidor (o el backend local en `http://localhost:4000`).
+
+```bash
+cd desktop
+npm install
+# Si npm avisa de "allow-scripts", descarga Electron a mano:
+node node_modules/electron/install.js
+
+# Windows PowerShell:  $env:GAMEHUB_API_URL="http://localhost:4000"
+GAMEHUB_API_URL=http://localhost:4000 npm run build:web
+npm start
+```
+
+Con el backend local, arranca con `CORS_ORIGINS` vacío (cualquier origen) o incluyendo
+`app://gamehub`.
+
+## Generar el instalador (Windows)
+
+```bash
+cd desktop
+GAMEHUB_API_URL=https://api.tu-servidor.com npm run dist
+```
+
+Deja `desktop/release/GameHub Setup 1.0.0.exe`. **Compílalo en Windows** (o en GitHub
+Actions, ver abajo): desde WSL/Linux, `electron-builder` necesita Wine.
+
+## Publicar una versión
+
+1. Sube la versión en `desktop/package.json` (y en `frontend/package.json` para que
+   coincida) y apunta los cambios en `CHANGELOG.md`.
+2. En GitHub, crea la variable de repositorio `GAMEHUB_API_URL` (Settings → Secrets and
+   variables → Actions → Variables).
+3. Haz commit y sube la etiqueta:
+
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+
+4. El flujo [`.github/workflows/release.yml`](../.github/workflows/release.yml) compila el
+   instalador en un Windows de GitHub y lo adjunta a la Release `v1.0.0`.
+
+Las apps ya instaladas buscan sus actualizaciones en esas Releases al arrancar
+(`electron-updater`) y avisan cuando hay una nueva.
+
+## Aviso de Windows "editor desconocido"
+
+El instalador no está **firmado** (un certificado de firma de código cuesta dinero), así
+que SmartScreen mostrará "Windows protegió su PC" y habrá que pulsar *Más información →
+Ejecutar de todos modos*. Es normal en un proyecto sin certificado; no indica un problema
+del instalador.
+
+## Seguridad
+
+- `contextIsolation`, `sandbox` y sin `nodeIntegration`: la interfaz no tiene acceso a Node.
+- **CSP**: solo carga scripts de la propia app y solo se conecta al servidor configurado
+  (más `images.igdb.com` para recortar fotos de perfil).
+- Los enlaces externos se abren en el navegador; la ventana nunca navega fuera de la app.
+- La interfaz se sirve con un protocolo propio y se bloquea cualquier ruta con `../`.
+
+## Limitaciones conocidas de la 1.0
+
+- Solo Windows (la configuración de `electron-builder` solo define el objetivo `win`).
+- Instalador sin firmar (ver arriba).
+- La actualización automática depende de las Releases públicas de GitHub.

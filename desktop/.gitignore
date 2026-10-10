@@ -1,0 +1,4 @@
+# Dependencias, interfaz compilada e instaladores generados
+node_modules/
+app/
+release/
