@@ -8,6 +8,8 @@ import { useVentana } from './useVentana'
 import Mensaje from './Mensaje'
 import ProgresoSteam from './ProgresoSteam'
 import LogrosSteam from './LogrosSteam'
+import IconoPlataforma from './IconoPlataforma'
+import IconoSteam from './IconoSteam'
 import VentanasJuego from './VentanasJuego'
 import { useAccionesJuego } from './useAccionesJuego'
 
@@ -23,13 +25,14 @@ function formatearFecha(iso, locale) {
   })
 }
 
-// Una fila "Etiqueta: valor, valor". Si no hay datos no pinto nada, así no quedan
-// filas vacías.
-function Fila({ etiqueta, valores }) {
+// Una baldosa de la ficha técnica: la etiqueta pequeña arriba y los valores debajo,
+// separados por comas. Si no hay datos no pinto nada, así no quedan baldosas vacías.
+//  - ancho: ocupa toda la fila de la rejilla (para listas largas, como las plataformas)
+function Dato({ etiqueta, valores, ancho = false }) {
   if (!valores || valores.length === 0) return null
 
   return (
-    <div className="detalle__fila">
+    <div className={ancho ? "detalle__dato detalle__dato--ancho" : "detalle__dato"}>
       <dt>{etiqueta}</dt>
       <dd>{valores.join(', ')}</dd>
     </div>
@@ -118,7 +121,12 @@ function DetalleJuego({ juego, guardado, onAnadir, onActualizar, onBorrar, onCer
         </svg>
       </button>
 
-      <div className="detalle__cabecera">
+      {/* Cabecera: la propia portada, ampliada y difuminada, hace de fondo */}
+      <header className="detalle__hero">
+        <div className="detalle__fondo" aria-hidden="true">
+          {portada && <img src={portada} alt="" />}
+        </div>
+
         <div className="detalle__portada">
           {portada
             ? <img src={portada} alt="" />
@@ -127,6 +135,27 @@ function DetalleJuego({ juego, guardado, onAnadir, onActualizar, onBorrar, onCer
 
         <div className="detalle__info">
           <h2 id="detalle-titulo" className="detalle__titulo">{juego.name}</h2>
+
+          {datos?.genres.length > 0 && (
+            <ul className="detalle__etiquetas" aria-label={t('detalle.generos')}>
+              {datos.genres.map((genero) => (
+                <li key={genero} className="detalle__etiqueta">{genero}</li>
+              ))}
+            </ul>
+          )}
+
+          {datos?.rating != null && (
+            <div className="detalle__nota">
+              {/* --nota (0 a 100) es el trozo del aro que se rellena (ver ventanas.css) */}
+              <div className="nota-aro" role="img" aria-label={`IGDB ${datos.rating}`} style={{ '--nota': datos.rating }}>
+                <span className="nota-aro__valor">{datos.rating}</span>
+              </div>
+              <div className="detalle__nota-texto">
+                <span className="detalle__nota-etiqueta">IGDB</span>
+                <span className="estado">{t('detalle.valoraciones', { n: datos.rating_count })}</span>
+              </div>
+            </div>
+          )}
 
           {onAnadir && (
             <div className="detalle__anadir">
@@ -137,114 +166,112 @@ function DetalleJuego({ juego, guardado, onAnadir, onActualizar, onBorrar, onCer
           {cargando && <Cargando texto={t('detalle.cargando')} />}
 
           <Mensaje texto={error} />
-
-          {datos && (
-            <>
-              {datos.rating !== null && (
-                <p className="detalle__nota">
-                  <span className="contador">IGDB {datos.rating}</span>
-                  <span className="estado">{t('detalle.valoraciones', { n: datos.rating_count })}</span>
-                </p>
-              )}
-
-              <dl className="detalle__datos">
-                {datos.release_date && (
-                  <div className="detalle__fila">
-                    <dt>{t('detalle.lanzamiento')}</dt>
-                    <dd>{formatearFecha(datos.release_date, locale)}</dd>
-                  </div>
-                )}
-                <Fila etiqueta={t('detalle.desarrolladora')} valores={datos.developers} />
-                <Fila etiqueta={t('detalle.publisher')} valores={datos.publishers} />
-                <Fila etiqueta={t('detalle.generos')} valores={datos.genres} />
-                <Fila etiqueta={t('detalle.modos')} valores={datos.game_modes} />
-                <Fila etiqueta={t('detalle.plataformas')} valores={datos.platforms} />
-              </dl>
-            </>
-          )}
         </div>
-      </div>
+      </header>
 
-      {guardado && (
-        <section className="detalle__biblioteca" aria-labelledby="detalle-mi-biblioteca">
-          <div className="detalle__biblioteca-cabecera">
-            <h3 id="detalle-mi-biblioteca" className="titulo-seccion">{t('detalle.enBiblioteca')}</h3>
+      <div className="detalle__cuerpo">
+        {datos && (
+          <dl className="detalle__datos">
+            <Dato
+              etiqueta={t('detalle.lanzamiento')}
+              valores={datos.release_date ? [formatearFecha(datos.release_date, locale)] : null}
+            />
+            <Dato etiqueta={t('detalle.desarrolladora')} valores={datos.developers} />
+            <Dato etiqueta={t('detalle.publisher')} valores={datos.publishers} />
+            <Dato etiqueta={t('detalle.modos')} valores={datos.game_modes} />
+            <Dato etiqueta={t('detalle.plataformas')} valores={datos.platforms} ancho />
+          </dl>
+        )}
 
-            {onActualizar && onBorrar && (
-              <div className="detalle__acciones">
-                <button type="button" className="btn btn--secundario" onClick={acciones.editar} disabled={acciones.borrando}>
-                  {t('juego.editar')}
-                </button>
-                <button type="button" className="btn btn--peligro" onClick={acciones.quitar} disabled={acciones.borrando}>
-                  {t('juego.quitar')}
-                </button>
+        {guardado && (
+          <section className="detalle__biblioteca" aria-labelledby="detalle-mi-biblioteca">
+            <div className="detalle__biblioteca-cabecera">
+              <h3 id="detalle-mi-biblioteca" className="titulo-seccion">{t('detalle.enBiblioteca')}</h3>
+
+              {onActualizar && onBorrar && (
+                <div className="detalle__acciones">
+                  <button type="button" className="btn btn--secundario" onClick={acciones.editar} disabled={acciones.borrando}>
+                    {t('juego.editar')}
+                  </button>
+                  <button type="button" className="btn btn--peligro" onClick={acciones.quitar} disabled={acciones.borrando}>
+                    {t('juego.quitar')}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <Mensaje texto={acciones.error} />
+
+            <div className="detalle__biblioteca-datos">
+              <span className={`chip chip--${guardado.status}`}>
+                {t(`estado.${guardado.status}`)}
+              </span>
+              {guardado.rating && <span className="contador">★ {guardado.rating}/10</span>}
+              {guardado.platform && (
+                <span className="detalle__plataforma">
+                  <IconoPlataforma nombre={guardado.platform} tamano={16} decorativo />
+                  {guardado.platform}
+                </span>
+              )}
+            </div>
+
+            {guardado.review
+              ? <p className="detalle__texto detalle__resena">{guardado.review}</p>
+              : <p className="estado">{t('detalle.sinResena')}</p>}
+
+            {guardado.playtime_minutes !== null && (
+              <div className="detalle__steam">
+                <h4 className="detalle__subtitulo">
+                  <IconoSteam tamano={14} />
+                  {t('progreso.titulo')}
+                </h4>
+                <ProgresoSteam juego={guardado} grande />
+                {/* Sin logros (total 0) o sin consultar (null) no hay lista que pedir */}
+                {guardado.achievements_total > 0 && <LogrosSteam juego={guardado} />}
               </div>
             )}
-          </div>
+          </section>
+        )}
 
-          <Mensaje texto={acciones.error} />
+        {datos?.summary && (
+          <section className="detalle__seccion">
+            <h3 className="titulo-seccion">{t('detalle.descripcion')}</h3>
+            <p className="detalle__texto">{datos.summary}</p>
+            <small className="estado">
+              {/* summary_lang es el idioma en que llegó el texto: "en" = el original */}
+              {datos.summary_lang === "en"
+                ? t('detalle.descripcionOriginal')
+                : t('detalle.descripcionTraducida')}
+            </small>
+          </section>
+        )}
 
-          <div className="detalle__biblioteca-datos">
-            <span className={`chip chip--${guardado.status}`}>
-              {t(`estado.${guardado.status}`)}
-            </span>
-            {guardado.rating && <span className="contador">★ {guardado.rating}/10</span>}
-            {guardado.platform && <span className="tarjeta__meta">{guardado.platform}</span>}
-          </div>
+        {datos?.screenshots.length > 0 && (
+          <section className="detalle__seccion">
+            <h3 className="titulo-seccion">{t('detalle.capturas')}</h3>
+            <ul className="detalle__capturas">
+              {datos.screenshots.map((url, i) => (
+                <li key={url}>
+                  <button
+                    type="button"
+                    className="detalle__captura"
+                    onClick={() => setCapturaAbierta(i)}
+                    aria-label={t('detalle.ampliarCaptura', { n: i + 1 })}
+                  >
+                    <img src={url} alt="" loading="lazy" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-          {guardado.playtime_minutes !== null && (
-            <div className="detalle__steam">
-              <h4 className="detalle__subtitulo">{t('progreso.titulo')}</h4>
-              <ProgresoSteam juego={guardado} grande />
-              {/* Sin logros (total 0) o sin consultar (null) no hay lista que pedir */}
-              {guardado.achievements_total > 0 && <LogrosSteam juego={guardado} />}
-            </div>
-          )}
-
-          {guardado.review
-            ? <p className="detalle__texto">{guardado.review}</p>
-            : <p className="estado">{t('detalle.sinResena')}</p>}
-        </section>
-      )}
-
-      {datos?.summary && (
-        <section className="detalle__seccion">
-          <h3 className="titulo-seccion">{t('detalle.descripcion')}</h3>
-          <p className="detalle__texto">{datos.summary}</p>
-          <small className="estado">
-            {/* summary_lang es el idioma en que llegó el texto: "en" = el original */}
-            {datos.summary_lang === "en"
-              ? t('detalle.descripcionOriginal')
-              : t('detalle.descripcionTraducida')}
-          </small>
-        </section>
-      )}
-
-      {datos?.screenshots.length > 0 && (
-        <section className="detalle__seccion">
-          <h3 className="titulo-seccion">{t('detalle.capturas')}</h3>
-          <ul className="detalle__capturas">
-            {datos.screenshots.map((url, i) => (
-              <li key={url}>
-                <button
-                  type="button"
-                  className="detalle__captura"
-                  onClick={() => setCapturaAbierta(i)}
-                  aria-label={t('detalle.ampliarCaptura', { n: i + 1 })}
-                >
-                  <img src={url} alt="" loading="lazy" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {datos?.igdb_url && (
-        <p className="detalle__pie">
-          <a href={datos.igdb_url} target="_blank" rel="noreferrer">{t('detalle.verIgdb')}</a>
-        </p>
-      )}
+        {datos?.igdb_url && (
+          <p className="detalle__pie">
+            <a href={datos.igdb_url} target="_blank" rel="noreferrer">{t('detalle.verIgdb')}</a>
+          </p>
+        )}
+      </div>
 
       {guardado && onActualizar && (
         <VentanasJuego juego={guardado} acciones={acciones} onActualizar={onActualizar} />

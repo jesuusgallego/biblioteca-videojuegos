@@ -60,9 +60,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--borde);
 }
 
 .detalle__subtitulo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -70,15 +75,62 @@
   color: var(--texto-suave);
 }
 
-/* ---- Lista de logros de la ficha (LogrosSteam.jsx) -------------------------- */
+/* ---- Logros de la ficha: botón + panel desplegable (LogrosSteam.jsx) -------- */
+.logros-desplegable {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+
+/* Panel desplegable (mismo truco que .selector-avatar en perfil.css): una rejilla
+   de una fila que pasa de 0fr (altura 0) a 1fr (la altura del contenido), así se
+   anima la altura "automática". Cerrado va oculto con `visibility`, que cambia al
+   final del plegado (su transición espera 0,3 s): así no se puede tabular a lo que
+   hay dentro. El margin-top negativo anula el hueco del contenedor para que
+   cerrado no ocupe sitio. */
+.logros-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  align-self: stretch;
+  margin-top: -0.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease,
+    visibility 0s linear 0.3s;
+}
+
+.logros-panel--abierto {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  opacity: 1;
+  visibility: visible;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease,
+    visibility 0s;
+}
+
+.logros-panel__interior {
+  min-height: 0; /* sin esto la fila no se puede encoger por debajo de su contenido */
+  overflow: hidden;
+}
+
+.logros-cargando {
+  display: flex;
+  align-items: center;
+  min-height: 7rem;
+}
+
 /* Con cientos de logros la ficha sería interminable: la lista tiene su propia
    altura máxima y se desplaza por dentro. */
 .logros {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  max-height: 22rem;
-  margin-top: 0.4rem;
+  gap: 0.3rem;
+  max-height: 18rem;
+  margin-top: 0.1rem;
   padding-right: 0.25rem;
   overflow-y: auto;
   animation: logros-entrada 0.35s ease both;
@@ -94,8 +146,8 @@
 .logro {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.65rem;
+  gap: 0.7rem;
+  padding: 0.4rem 0.6rem;
   background: var(--campo);
   border: 1px solid var(--borde);
   border-radius: var(--radio);
@@ -115,8 +167,8 @@
 
 .logro__icono {
   flex: none;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   object-fit: cover;
   background: var(--superficie-2);
   border-radius: calc(var(--radio) - 2px);
@@ -157,12 +209,12 @@
   }
 
   .logro__texto {
-    flex-basis: calc(100% - 48px - 0.75rem);
+    flex-basis: calc(100% - 40px - 0.7rem);
   }
 
   .logro__estado {
     flex-basis: 100%;
-    padding-left: calc(48px + 0.75rem);
+    padding-left: calc(40px + 0.7rem);
     text-align: left;
   }
 }

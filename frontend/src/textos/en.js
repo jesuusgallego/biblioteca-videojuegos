@@ -242,6 +242,8 @@ export default {
   'progreso.logrosAria': 'Achievements unlocked: {desbloqueados} of {total}',
 
   // ---- Lista de logros de un juego (viene de Steam) ----
+  'logros.ver': 'Show achievements',
+  'logros.ocultar': 'Hide achievements',
   'logros.cargando': 'Loading achievements...',
   'logros.vacio': 'Steam returned no achievements for this game.',
   'logros.oculto': 'Hidden achievement: revealed when you unlock it.',

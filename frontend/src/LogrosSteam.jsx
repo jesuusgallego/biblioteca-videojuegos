@@ -1,18 +1,62 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useId } from 'react'
 import { apiFetch } from './api'
 import { useIdioma } from './IdiomaContext'
 import Cargando from './Cargando'
 import Mensaje from './Mensaje'
 
-// Lista de logros de Steam de un juego de mi biblioteca: icono, nombre, descripción
-// y, si ya lo tengo, el día en que lo conseguí. Primero salen los desbloqueados (el
-// más reciente arriba) y luego los pendientes, con el icono en gris.
+// Lista de logros de Steam de un juego de mi biblioteca, recogida en un desplegable:
+// un botón "Ver logros" la abre y la cierra con animación. Dentro, icono, nombre,
+// descripción y, si ya lo tengo, el día en que lo conseguí. Primero salen los
+// desbloqueados (el más reciente arriba) y luego los pendientes, con el icono en gris.
 //  - juego: la fila de user_games (necesito su "id" para pedir los logros al backend)
 //
-// La lista no está en la BD: se pide a Steam al montarse, así que siempre está al día.
-// Si cambio de idioma con la ficha abierta se vuelve a pedir, porque Steam traduce
-// los nombres y las descripciones.
+// Los logros NO se piden a Steam hasta que se abre el desplegable por primera vez:
+// la mayoría de las veces que se abre una ficha no se miran, y así nos ahorramos dos
+// llamadas a Steam por ficha. Una vez abierto, el contenido se queda montado aunque se
+// cierre: así el cierre puede animarse (si se desmontara de golpe no habría qué plegar).
 function LogrosSteam({ juego }) {
+  const { t } = useIdioma()
+  const idPanel = useId()
+  const [abierto, setAbierto] = useState(false)
+  const [visto, setVisto] = useState(false)
+
+  function alternar() {
+    setAbierto(!abierto)
+    setVisto(true)
+  }
+
+  return (
+    <div className="logros-desplegable">
+      <button
+        type="button"
+        className="btn btn--secundario logros-desplegable__boton"
+        aria-expanded={abierto}
+        aria-controls={idPanel}
+        onClick={alternar}
+      >
+        {/* Copa de trofeo */}
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M8 4h8v6a4 4 0 0 1-8 0V4zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 14v4M8.5 20h7" />
+        </svg>
+        {abierto ? t('logros.ocultar') : t('logros.ver')}
+        <svg className="btn__flecha" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {/* Panel que se despliega: ver progreso-steam.css */}
+      <div id={idPanel} className={abierto ? "logros-panel logros-panel--abierto" : "logros-panel"}>
+        <div className="logros-panel__interior">
+          {visto && <ListaLogros juego={juego} />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// La lista en sí: pide los logros al montarse y los pinta. Si cambio de idioma con la
+// ficha abierta se vuelve a pedir, porque Steam traduce los nombres y las descripciones.
+function ListaLogros({ juego }) {
   const { t, idioma, locale } = useIdioma()
   const [logros, setLogros] = useState(null)
   const [error, setError] = useState('')
@@ -40,7 +84,15 @@ function LogrosSteam({ juego }) {
     })
   }
 
-  if (!logros && !error) return <Cargando texto={t('logros.cargando')} />
+  // El hueco mínimo reserva sitio para la lista: así, al llegar los datos, el panel
+  // no pega un salto grande de golpe
+  if (!logros && !error) {
+    return (
+      <div className="logros-cargando">
+        <Cargando texto={t('logros.cargando')} />
+      </div>
+    )
+  }
 
   return (
     <>

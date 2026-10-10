@@ -13,8 +13,9 @@ import IconoSteam from './IconoSteam'
 //  - decorativo: dentro de un texto que ya dice la plataforma (las opciones del
 //    selector): sin nombre accesible ni tooltip, para no repetirla
 // Los trazados son de Simple Icons (CC0; las marcas son de sus dueños y aquí solo
-// indican la plataforma). Xbox, Windows y Nintendo se retiraron de las últimas
-// versiones del paquete, así que salen de la 11.0.0.
+// indican la plataforma). Xbox y Nintendo se retiraron de las últimas versiones del
+// paquete, así que salen de la 11.0.0. El PC no lleva logo de marca: es un monitor
+// dibujado a mano (ver Trazo).
 
 // Primera que coincida gana. Se compara con el nombre en minúsculas. Switch va antes
 // que el resto de Nintendo para que tenga su propio logo.
@@ -24,7 +25,9 @@ const FAMILIAS = [
   [/xbox/, 'xbox'],
   [/switch/, 'switch'],
   [/nintendo|\bwii\b|game ?boy|\b3ds\b|\bds\b|game ?cube|\bn64\b|\bnes\b|famicom/, 'nintendo'],
-  [/windows|^pc\b|\bdos\b/, 'windows'],
+  // PC es un ordenador, no el logo de Windows: casi nadie compra en la tienda de
+  // Microsoft, y "PC (Microsoft Windows)" es solo cómo IGDB llama al PC
+  [/windows|^pc\b|\bdos\b/, 'pc'],
   [/\bmac\b|macos|os x|\bios\b|iphone|ipad|apple/, 'apple'],
   [/android/, 'android'],
   [/linux|ubuntu/, 'linux'],
@@ -40,7 +43,6 @@ function familiaDe(nombre) {
 const RELLENO = {
   playstation: "M8.984 2.596v17.547l3.915 1.261V6.688c0-.69.304-1.151.794-.991.636.18.76.814.76 1.505v5.875c2.441 1.193 4.362-.002 4.362-3.152 0-3.237-1.126-4.675-4.438-5.827-1.307-.448-3.728-1.186-5.39-1.502zm4.656 16.241l6.296-2.275c.715-.258.826-.625.246-.818-.586-.192-1.637-.139-2.357.123l-4.205 1.5V14.98l.24-.085s1.201-.42 2.913-.615c1.696-.18 3.785.03 5.437.661 1.848.601 2.04 1.472 1.576 2.072-.465.6-1.622 1.036-1.622 1.036l-8.544 3.107V18.86zM1.807 18.6c-1.9-.545-2.214-1.668-1.352-2.32.801-.586 2.16-1.052 2.16-1.052l5.615-2.013v2.313L4.205 17c-.705.271-.825.632-.239.826.586.195 1.637.15 2.343-.12L8.247 17v2.074c-.12.03-.256.044-.39.073-1.939.331-3.996.196-6.038-.479z",
   xbox: "M4.102 21.033C6.211 22.881 8.977 24 12 24c3.026 0 5.789-1.119 7.902-2.967 1.877-1.912-4.316-8.709-7.902-11.417-3.582 2.708-9.779 9.505-7.898 11.417zm11.16-14.406c2.5 2.961 7.484 10.313 6.076 12.912C23.002 17.48 24 14.861 24 12.004c0-3.34-1.365-6.362-3.57-8.536 0 0-.027-.022-.082-.042-.063-.022-.152-.045-.281-.045-.592 0-1.985.434-4.805 3.246zM3.654 3.426c-.057.02-.082.041-.086.042C1.365 5.642 0 8.664 0 12.004c0 2.854.998 5.473 2.661 7.533-1.401-2.605 3.579-9.951 6.08-12.91-2.82-2.813-4.216-3.245-4.806-3.245-.131 0-.223.021-.281.046v-.002zM12 3.551S9.055 1.828 6.755 1.746c-.903-.033-1.454.295-1.521.339C7.379.646 9.659 0 11.984 0H12c2.334 0 4.605.646 6.766 2.085-.068-.046-.615-.372-1.52-.339C14.946 1.828 12 3.545 12 3.545v.006z",
-  windows: "M0,0H11.377V11.372H0ZM12.623,0H24V11.372H12.623ZM0,12.623H11.377V24H0Zm12.623,0H24V24H12.623",
   switch: "M14.176 24h3.674c3.376 0 6.15-2.774 6.15-6.15V6.15C24 2.775 21.226 0 17.85 0H14.1c-.074 0-.15.074-.15.15v23.7c-.001.076.075.15.226.15zm4.574-13.199c1.351 0 2.399 1.125 2.399 2.398 0 1.352-1.125 2.4-2.399 2.4-1.35 0-2.4-1.049-2.4-2.4-.075-1.349 1.05-2.398 2.4-2.398zM11.4 0H6.15C2.775 0 0 2.775 0 6.15v11.7C0 21.226 2.775 24 6.15 24h5.25c.074 0 .15-.074.15-.149V.15c.001-.076-.075-.15-.15-.15zM9.676 22.051H6.15c-2.326 0-4.201-1.875-4.201-4.201V6.15c0-2.326 1.875-4.201 4.201-4.201H9.6l.076 20.102zM3.75 7.199c0 1.275.975 2.25 2.25 2.25s2.25-.975 2.25-2.25c0-1.273-.975-2.25-2.25-2.25s-2.25.977-2.25 2.25z",
   nintendo: "M0 .6h7.1l9.85 15.9V.6H24v22.8h-7.04L7.06 7.5v15.9H0V.6",
   apple: "M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701",
@@ -50,6 +52,15 @@ const RELLENO = {
 
 // Glifos de línea para lo que no tiene logo de marca
 function Trazo({ familia }) {
+  if (familia === 'pc') {
+    // Monitor con su pie
+    return (
+      <>
+        <rect x="2.6" y="3.8" width="18.8" height="12.4" rx="2" />
+        <path d="M8.4 20.4h7.2M12 16.2v4.2" />
+      </>
+    )
+  }
   if (familia === 'web') {
     return (
       <>

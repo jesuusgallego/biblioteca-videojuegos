@@ -10,7 +10,9 @@
 .detalle {
   width: min(880px, calc(100% - 2rem));
   max-height: calc(100svh - 2rem);
-  padding: 1.75rem;
+  /* Sin relleno: la cabecera con el fondo difuminado llega hasta los bordes. El
+     relleno lo ponen la cabecera (.detalle__hero) y el cuerpo (.detalle__cuerpo). */
+  padding: 0;
   overflow-y: auto;
   color: var(--texto);
   background: var(--superficie);
@@ -84,17 +86,67 @@ body:has(dialog[open]) {
   overflow: hidden;
 }
 
+/* El botón queda sobre el fondo de la cabecera, que puede ser claro u oscuro según
+   la portada: le doy un fondo de "cristal" del color de la ventana para que se vea
+   siempre. */
 .detalle__cerrar {
   position: absolute;
   top: 1rem;
   right: 1rem;
+  z-index: 2;
+  background: color-mix(in srgb, var(--superficie) 72%, transparent);
+  backdrop-filter: blur(6px);
 }
 
-.detalle__cabecera {
+/* ---- Cabecera ----------------------------------------------------------------
+   Estilo de ficha de tienda: la portada del juego, ampliada y difuminada, hace de
+   fondo y se funde con el color de la ventana hacia abajo. El color de cada juego
+   sale de su propia portada, así que cada ficha es distinta sin escribir un color. */
+.detalle__hero {
+  position: relative;
+  isolation: isolate; /* el fondo (z-index: -1) no se escapa por detrás de la ventana */
   display: flex;
-  align-items: flex-start;
-  gap: 1.5rem;
-  padding-right: 2.5rem; /* deja sitio al botón de cerrar */
+  align-items: stretch;
+  gap: 1.75rem;
+  padding: 2.5rem 3.5rem 2.25rem 1.75rem; /* a la derecha deja sitio al botón de cerrar */
+  overflow: hidden;
+}
+
+/* Sin portada se ve la aurora de la marca (--banner), la misma del buscador */
+.detalle__fondo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--banner);
+}
+
+.detalle__fondo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* scale: al difuminar, los bordes de la imagen se aclaran; la agrando para que
+     esa franja quede fuera de la ventana */
+  filter: blur(28px) saturate(1.35);
+  transform: scale(1.35);
+  opacity: 0.6;
+  animation: hero-fondo-entrada 0.6s ease both;
+}
+
+/* Resplandor violeta de la marca arriba a la izquierda y fundido hacia el color de
+   la ventana abajo: así la cabecera se une con el cuerpo sin un corte */
+.detalle__fondo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 90% at 0% 0%, var(--resplandor), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--superficie) 30%, transparent), var(--superficie));
+}
+
+@keyframes hero-fondo-entrada {
+  from {
+    opacity: 0;
+  }
 }
 
 .detalle__portada {
@@ -104,6 +156,18 @@ body:has(dialog[open]) {
   overflow: hidden;
   background: var(--superficie-2);
   border-radius: var(--radio);
+  /* Sombra profunda y un aro finísimo que la separa del fondo, sea del color que sea */
+  box-shadow:
+    0 12px 26px rgba(8, 13, 22, 0.4),
+    0 0 0 1px color-mix(in srgb, var(--texto-h) 16%, transparent);
+  animation: portada-entrada 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes portada-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
 }
 
 .detalle__portada img {
@@ -115,48 +179,106 @@ body:has(dialog[open]) {
 .detalle__info {
   display: flex;
   flex-direction: column;
+  justify-content: flex-end; /* título y nota pegados al pie de la portada */
   flex: 1;
-  gap: 1rem;
+  gap: 0.9rem;
   min-width: 0;
 }
 
 .detalle__titulo {
   font-family: var(--display);
-  font-size: 2.1rem;
+  font-size: 2.6rem;
+  line-height: 1.05;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+  /* Un halo del color de la ventana (oscuro en el tema oscuro, claro en el claro)
+     para que el título se lea aunque la portada de detrás sea muy viva */
+  text-shadow: 0 2px 16px color-mix(in srgb, var(--superficie) 70%, transparent);
+}
+
+/* Géneros como etiquetas, en el acento de la app */
+.detalle__etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.detalle__etiqueta {
+  padding: 0.15rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--acento);
+  background: var(--acento-suave);
+  border: 1px solid color-mix(in srgb, var(--acento) 30%, transparent);
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+}
+
+/* ---- Nota de IGDB: aro que se rellena ------------------------------------------
+   --nota es un número de 0 a 100. Con @property le digo al navegador que es un
+   número (no un texto cualquiera): solo así puede animarlo de 0 a su valor. El
+   aro es un pseudoelemento con un degradado cónico recortado con una máscara
+   (queda solo el borde), y el número va en el centro. */
+@property --nota {
+  syntax: "<number>";
+  inherits: true; /* el valor se pone en .nota-aro y lo lee su ::before */
+  initial-value: 0;
 }
 
 .detalle__nota {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
 
-.detalle__datos {
+.nota-aro {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 3.75rem;
+  height: 3.75rem;
+}
+
+.nota-aro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    #5b3df5,
+    var(--acento) calc(var(--nota) * 1%),
+    color-mix(in srgb, var(--texto-h) 16%, transparent) 0
+  );
+  border-radius: 50%;
+  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+  animation: nota-llena 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both;
+}
+
+@keyframes nota-llena {
+  from {
+    --nota: 0;
+  }
+}
+
+.nota-aro__valor {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--texto-h);
+}
+
+.detalle__nota-texto {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
-  margin: 0;
+  line-height: 1.25;
 }
 
-.detalle__fila {
-  display: grid;
-  grid-template-columns: 9rem 1fr;
-  gap: 0.75rem;
-}
-
-.detalle__fila dt {
-  padding-top: 0.15rem;
+.detalle__nota-etiqueta {
   font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--texto-suave);
-}
-
-.detalle__fila dd {
-  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--texto-h);
 }
 
 .detalle__anadir {
@@ -166,16 +288,87 @@ body:has(dialog[open]) {
   gap: 0.5rem;
 }
 
-/* Recuadro con lo que el usuario ha guardado de este juego */
-.detalle__biblioteca {
+/* ---- Cuerpo ------------------------------------------------------------------- */
+.detalle__cuerpo {
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
+  padding: 0 1.75rem 1.75rem;
+}
+
+/* Ficha técnica: una baldosa por dato en vez de una lista de filas */
+.detalle__datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
   gap: 0.75rem;
-  margin-top: 1.75rem;
-  padding: 1rem 1.25rem;
+  margin: 0;
+}
+
+.detalle__dato {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0.95rem;
   background: var(--superficie-2);
   border: 1px solid var(--borde);
   border-radius: var(--radio);
+  animation: detalle-seccion-entrada 0.4s ease both;
+  transition: border-color var(--transicion), translate var(--transicion);
+}
+
+.detalle__dato:hover {
+  border-color: var(--acento);
+  translate: 0 -2px;
+}
+
+.detalle__dato--ancho {
+  grid-column: 1 / -1;
+}
+
+.detalle__dato dt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.detalle__dato dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--texto-h);
+}
+
+/* Cada bloque del cuerpo entra con un fundido que sube un poco. Aparecen cuando
+   llegan los datos de IGDB, así que cada uno entra en su momento. */
+@keyframes detalle-seccion-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Recuadro con lo que el usuario ha guardado de este juego. La barra vertical con
+   el degradado de la marca lo distingue de la información del juego. */
+.detalle__biblioteca {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.1rem 1.25rem 1.1rem 1.6rem;
+  background: var(--superficie-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  animation: detalle-seccion-entrada 0.4s ease 0.05s both;
+}
+
+.detalle__biblioteca::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--degradado);
 }
 
 /* Título del recuadro a la izquierda y Editar / Quitar a la derecha */
@@ -199,11 +392,41 @@ body:has(dialog[open]) {
   gap: 0.6rem;
 }
 
+.detalle__plataforma {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+.detalle__resena {
+  padding: 0.7rem 0.95rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+/* Descripción y capturas: título con una barrita del degradado de la marca */
 .detalle__seccion {
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+  animation: detalle-seccion-entrada 0.4s ease both;
+}
+
+.detalle__seccion .titulo-seccion {
+  display: flex;
+  align-items: center;
   gap: 0.6rem;
-  margin-top: 1.75rem;
+}
+
+.detalle__seccion .titulo-seccion::before {
+  content: "";
+  width: 4px;
+  height: 1.1em;
+  background: var(--degradado);
+  border-radius: 2px;
 }
 
 .detalle__texto {
@@ -217,21 +440,24 @@ body:has(dialog[open]) {
 }
 
 /* Cada miniatura es un <button> (se puede pulsar con ratón y con teclado); le
-   quito el aspecto de botón para que parezca solo la imagen. */
+   quito el aspecto de botón para que parezca solo la imagen. overflow: hidden
+   recorta la imagen al hacerle zoom al pasar el ratón. */
 .detalle__captura {
   display: block;
   width: 100%;
   padding: 0;
+  overflow: hidden;
   background: none;
   border: 2px solid transparent;
   border-radius: var(--radio);
   cursor: zoom-in;
-  transition: border-color var(--transicion);
+  transition: border-color var(--transicion), box-shadow var(--transicion);
 }
 
 .detalle__captura:hover,
 .detalle__captura:focus-visible {
   border-color: var(--acento);
+  box-shadow: 0 6px 18px var(--resplandor);
 }
 
 .detalle__captura img {
@@ -241,6 +467,12 @@ body:has(dialog[open]) {
   object-fit: cover;
   background: var(--superficie-2);
   border-radius: calc(var(--radio) - 2px);
+  transition: transform 0.35s ease;
+}
+
+.detalle__captura:hover img,
+.detalle__captura:focus-visible img {
+  transform: scale(1.05);
 }
 
 /* ---- Visor de capturas --------------------------------------------------- */
@@ -325,18 +557,15 @@ body:has(dialog[open]) {
 }
 
 .detalle__pie {
-  margin-top: 1.5rem;
   font-size: 0.9rem;
 }
 
 @media (max-width: 640px) {
-  .detalle {
-    padding: 1.25rem;
-  }
-
-  .detalle__cabecera {
+  .detalle__hero {
     flex-direction: column;
-    padding-right: 0;
+    align-items: flex-start;
+    gap: 1.1rem;
+    padding: 3.25rem 1.25rem 1.25rem;
   }
 
   .detalle__portada {
@@ -345,12 +574,15 @@ body:has(dialog[open]) {
   }
 
   .detalle__titulo {
-    font-size: 1.7rem;
+    font-size: 2rem;
   }
 
-  .detalle__fila {
-    grid-template-columns: 1fr;
-    gap: 0.1rem;
+  .detalle__cuerpo {
+    padding: 0 1.25rem 1.25rem;
+  }
+
+  .detalle__datos {
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
   }
 }
 

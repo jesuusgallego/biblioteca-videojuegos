@@ -244,6 +244,8 @@ export default {
   'progreso.logrosAria': 'Logros desbloqueados: {desbloqueados} de {total}',
 
   // ---- Lista de logros de un juego (viene de Steam) ----
+  'logros.ver': 'Ver logros',
+  'logros.ocultar': 'Ocultar logros',
   'logros.cargando': 'Cargando logros...',
   'logros.vacio': 'Steam no ha devuelto ningún logro para este juego.',
   'logros.oculto': 'Logro oculto: se revela al conseguirlo.',
