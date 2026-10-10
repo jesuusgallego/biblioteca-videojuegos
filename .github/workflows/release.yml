@@ -1,0 +1,83 @@
+# Compila la app de escritorio (instalador de Windows) en los servidores de GitHub, así
+# que no hace falta instalar nada en tu PC.
+#
+# Dos formas de lanzarlo:
+#
+#  1. PROBAR, sin publicar nada: pestaña "Actions" del repositorio > "Versión de
+#     escritorio" > "Run workflow". Al terminar (unos 5-8 minutos), en la página de la
+#     ejecución, abajo, en "Artifacts", se descarga el instalador "GameHub-instalador".
+#
+#  2. PUBLICAR la versión: sube una etiqueta "v...":
+#       git tag v1.0.0
+#       git push origin v1.0.0
+#     Crea la Release de GitHub con el instalador (y los archivos que usa la
+#     actualización automática de las apps ya instaladas).
+#
+# La dirección del servidor con la que se compila la app es la variable de repositorio
+# GAMEHUB_API_URL si existe; si no, la de producción de abajo.
+name: Versión de escritorio
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write # hace falta para subir el instalador a la Release
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    env:
+      GAMEHUB_API_URL: ${{ vars.GAMEHUB_API_URL || 'https://gamehub-api-sr2x.onrender.com' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar dependencias de la interfaz
+        run: npm ci
+        working-directory: frontend
+
+      - name: Instalar dependencias de escritorio
+        run: npm ci
+        working-directory: desktop
+
+      - name: Pruebas de la interfaz
+        run: npm test
+        working-directory: frontend
+
+      - name: Compilar la interfaz para escritorio
+        run: npm run build:web
+        working-directory: desktop
+
+      # Arranca la app de verdad (sin ventana) y comprueba que la interfaz carga.
+      # Si esto falla, no se genera ningún instalador.
+      - name: Prueba de humo (la app arranca)
+        run: npx electron . --smoke-test
+        working-directory: desktop
+        timeout-minutes: 3
+
+      # Ejecución manual: solo genera el instalador y lo deja para descargar
+      - name: Generar el instalador (sin publicar)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        run: npx electron-builder --win --publish never
+        working-directory: desktop
+
+      - name: Guardar el instalador para descargarlo
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: GameHub-instalador
+          path: desktop/release/*.exe
+          if-no-files-found: error
+
+      # Con una etiqueta v*: genera el instalador y lo publica en la Release
+      - name: Generar y publicar el instalador
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: npx electron-builder --win --publish always
+        working-directory: desktop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
