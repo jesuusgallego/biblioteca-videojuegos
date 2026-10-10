@@ -98,7 +98,11 @@ function huellaScriptEnLinea() {
     const html = fs.readFileSync(path.join(RAIZ_WEB, 'index.html'), 'utf8')
     const guion = html.match(/<script>([\s\S]*?)<\/script>/)
     if (!guion) return null
-    return `'sha256-${crypto.createHash('sha256').update(guion[1]).digest('base64')}'`
+    // El navegador convierte \r\n (Windows) y \r en \n al leer el HTML, y la huella se
+    // compara con ese texto ya convertido. Si hasheo el archivo tal cual en un Windows,
+    // con saltos \r\n, la huella no coincide y la CSP bloquea el script.
+    const texto = guion[1].replace(/\r\n?/g, '\n')
+    return `'sha256-${crypto.createHash('sha256').update(texto).digest('base64')}'`
   } catch {
     return null
   }
