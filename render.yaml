@@ -1,0 +1,41 @@
+# Plano (Blueprint) de Render: describe el servicio del backend para que Render lo cree
+# con unos pocos clics. La base de datos NO está aquí: es de Neon (la de Render gratuita
+# caduca a los 30 días). Pasos completos en docs/DESPLIEGUE.md.
+services:
+  - type: web
+    name: gamehub-api
+    runtime: docker
+    plan: free
+    # Frankfurt: el más cercano a España. Crea el proyecto de Neon en la misma región
+    # (AWS Europe, Frankfurt) para que la base de datos esté cerca del servidor.
+    region: frankfurt
+    rootDir: backend
+    # Estas dos rutas son relativas a la raíz del repositorio, no a rootDir
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Hay un proxy de Render delante: sin esto el límite de intentos vería a todos
+      # los usuarios con la misma IP
+      - key: TRUST_PROXY
+        value: "1"
+      # La app de escritorio llama desde este origen
+      - key: CORS_ORIGINS
+        value: app://gamehub
+      # Render genera un valor aleatorio largo la primera vez
+      - key: JWT_SECRET
+        generateValue: true
+      # Estas Render te las pide al crear el servicio (sync: false = no están en el repo)
+      - key: DATABASE_URL
+        sync: false
+      - key: TWITCH_CLIENT_ID
+        sync: false
+      - key: TWITCH_CLIENT_SECRET
+        sync: false
+      - key: STEAM_API_KEY
+        sync: false
+      # Opcionales y NO están aquí a propósito: una clave vacía o inventada haría que la app
+      # intentase usar Azure y fallase. Si tienes una, añade AZURE_TRANSLATOR_KEY y
+      # AZURE_TRANSLATOR_REGION a mano en Render > Environment.

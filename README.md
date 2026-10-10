@@ -1,6 +1,6 @@
 # GameHub
 
-Aplicación web para registrarte, iniciar sesión, buscar videojuegos y gestionar tu biblioteca personal (estado, puntuación y reseña). El frontend aún no usa el CRUD de la biblioteca: de momento solo está la búsqueda. Los datos de juegos se consultan a la API de IGDB (Twitch).
+Aplicación para llevar tu biblioteca personal de videojuegos: búsqueda en IGDB, estado, nota y reseña de cada juego, y vinculación con Steam para traer tus juegos, horas y logros. Hay versión web y versión de escritorio (Windows).
 
 ## Stack
 
@@ -16,10 +16,16 @@ Aplicación web para registrarte, iniciar sesión, buscar videojuegos y gestiona
 ```
 biblioteca-videojuegos/
 ├── docker-compose.yml   # PostgreSQL + backend + frontend
+├── CHANGELOG.md         # Qué cambia en cada versión
+├── render.yaml          # Plano para desplegar el backend en Render (gratis)
+├── desktop/             # App de escritorio (Electron): ver desktop/README.md
 ├── docs/
-│   └── DESARROLLO.md    # Cómo retomar el trabajo cada día
+│   ├── DESARROLLO.md    # Cómo retomar el trabajo cada día
+│   └── DESPLIEGUE.md    # Cómo poner el servidor en internet
+├── .github/workflows/   # Publicación del instalador al subir una etiqueta v*
 ├── backend/
-│   ├── .env             # Variables de entorno (no subir a git)
+│   ├── .env             # Variables de entorno (no subir a git; plantilla en .env.example)
+│   ├── test/            # Pruebas (npm test)
 │   └── src/app.js       # Servidor Express
 └── frontend/
     └── src/
@@ -140,14 +146,20 @@ docker compose up -d --build
 | GET | `/accounts` | Bearer token | Cuentas vinculadas del usuario y `steam_disponible` (si el servidor tiene `STEAM_API_KEY`) |
 | PUT | `/accounts/steam` | Bearer token | Vincula una cuenta de Steam. `perfil` puede ser la URL del perfil, el nombre personalizado o el SteamID de 17 dígitos. No se elige nada más: la sincronización siempre añade los juegos que te faltan. 409 si ya hay una vinculada |
 | POST | `/accounts/steam/sync` | Bearer token | Trae de Steam las horas y los logros de los juegos que ya tienes y añade los que te faltan (siempre). 422 si el perfil es privado; 409 si ya hay una sincronización en curso. No hace falta llamarlo a mano: el servidor lo hace solo cada `STEAM_SYNC_MINUTOS` y el frontend al abrir el perfil si los datos tienen más de 10 minutos |
+| GET | `/accounts/steam/games/:id/achievements?lang=es` | Bearer token | Lista de logros de un juego de tu biblioteca (`:id` es el de `user_games`): nombre, descripción, icono, si lo tienes y cuándo. Se pide a Steam en el momento, sin guardarla. 404 si el juego no es de Steam |
 | DELETE | `/accounts/steam` | Bearer token | Desvincula Steam y deja la biblioteca como antes de vincular: borra los juegos que añadió la importación (`user_games.imported_from = 'steam'`) y quita el progreso de Steam de los demás. Devuelve cuántos eliminó |
 
 `status` admite `jugando`, `completado`, `abandonado` y `pendiente`; `rating` va de 1 a 10.
 
 ## Scripts
 
-**Backend:** `npm run dev`, `npm start`
-**Frontend:** `npm run dev`, `npm run build`, `npm run preview`, `npm run lint`
+**Backend:** `npm run dev`, `npm start`, `npm test`
+**Frontend:** `npm run dev`, `npm run build`, `npm run preview`, `npm run lint`, `npm test`
+**Escritorio** (`desktop/`): `npm start`, `npm run build:web`, `npm run dist` (ver [`desktop/README.md`](desktop/README.md))
+
+Las pruebas (`npm test`) usan el ejecutor de pruebas que trae Node (`node --test`), sin
+dependencias extra. Cubren la lógica pura: búsqueda, filtros y orden de la biblioteca, y la
+lectura de logros de Steam con Steam simulado.
 
 ## Notas
 
