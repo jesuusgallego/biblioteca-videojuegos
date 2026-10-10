@@ -16,7 +16,7 @@ import { usePresencia } from './usePresencia'
 // El estado de la cuenta vive aquí; CuentasVinculadas solo me da la inicial.
 //  - disponible: si el servidor tiene la clave de Steam (si no, no se puede vincular)
 //  - onSincronizado(): avisa a la página de que la biblioteca ha cambiado (al
-//    sincronizar o al desvincular, que borra los juegos importados)
+//    sincronizar, que importa los juegos de Steam, o al desvincular, que los quita)
 // La sincronización es automática: el servidor la hace cada cierto tiempo (ver
 // backend/src/services/sincronizacionAutomatica.js) y, además, SteamVinculada la
 // lanza sola al abrirse si los datos están viejos. El botón queda para forzarla.
@@ -79,8 +79,6 @@ function CuentaSteam({ inicial, disponible, cerrarSesion, onSincronizado }) {
 function SteamVincular({ disponible, cerrarSesion, onVinculada }) {
   const { t } = useIdioma()
   const [perfil, setPerfil] = useState("")
-  // La importación solo se elige aquí, al vincular: luego no se puede cambiar
-  const [importar, setImportar] = useState(false)
   const [error, setError] = useState("")
   // Qué enseña la escena animada: "inactivo" (nada, se ve el formulario),
   // "conectando" (esperando al backend) o "conectado" (ya vinculada)
@@ -96,7 +94,7 @@ function SteamVincular({ disponible, cerrarSesion, onVinculada }) {
     setError("")
     setFase("conectando")
     try {
-      const data = await apiFetch('/accounts/steam', { method: 'PUT', body: { perfil, importar } })
+      const data = await apiFetch('/accounts/steam', { method: 'PUT', body: { perfil } })
       setResultado(data)
       setFase("conectado")
     } catch (err) {
@@ -125,14 +123,6 @@ function SteamVincular({ disponible, cerrarSesion, onVinculada }) {
             disabled={!disponible || fase !== "inactivo"}
             required
           />
-        </label>
-
-        <label className="casilla">
-          <input type="checkbox" checked={importar} onChange={(e) => setImportar(e.target.checked)} disabled={!disponible || fase !== "inactivo"} />
-          <span>
-            {t('steam.importar')}
-            <small>{t('steam.importarAyuda')}</small>
-          </span>
         </label>
 
         <Mensaje texto={error} />
@@ -238,14 +228,6 @@ function SteamVinculada({ cuenta, privado, cerrarSesion, onSincronizada, onDesvi
     ? new Date(cuenta.last_sync_at).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })
     : t('steam.nuncaSync')
 
-  // Lo elegido al vincular (ya no se puede cambiar): solo informa
-  let importacion = t('steam.importacionNo')
-  if (cuenta.import_games) {
-    importacion = cuenta.imported_count > 0
-      ? t('steam.importacionActivaN', { n: cuenta.imported_count })
-      : t('steam.importacionActiva')
-  }
-
   // Solo enlazo a Steam: así un dato raro de la BD no puede meter otra URL
   const enlacePerfil = cuenta.profile_url?.startsWith('https://steamcommunity.com/') ? cuenta.profile_url : null
   const ocupado = sincronizando || desvinculando
@@ -270,8 +252,8 @@ function SteamVinculada({ cuenta, privado, cerrarSesion, onSincronizada, onDesvi
           <dd>{ultimaSync}</dd>
         </div>
         <div className="dato-cuenta">
-          <dt>{t('steam.datoImportacion')}</dt>
-          <dd className={cuenta.import_games ? "dato-cuenta__valor--ok" : undefined}>{importacion}</dd>
+          <dt>{t('steam.datoImportados')}</dt>
+          <dd className={cuenta.imported_count > 0 ? "dato-cuenta__valor--ok" : undefined}>{cuenta.imported_count}</dd>
         </div>
       </dl>
 

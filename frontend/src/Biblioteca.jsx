@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import JuegoGuardado from './JuegoGuardado'
 import DetalleJuego from './DetalleJuego'
-import { ESTADOS } from './estados'
+import FiltrosBiblioteca from './FiltrosBiblioteca'
+import OrdenBiblioteca from './OrdenBiblioteca'
+import { CRITERIOS, TODOS, ordenar, filtrar, opcionesDeFiltros, filtrosVigentes } from './ordenFiltros'
 import { useIdioma } from './IdiomaContext'
 import { apiFetch } from './api'
 import Cargando from './Cargando'
@@ -10,14 +12,22 @@ import JugandoAhora from './JugandoAhora'
 
 // Muestro los juegos que el usuario ha guardado (GET /games).
 function Biblioteca({ setToken }) {
-  const { t } = useIdioma()
+  const { t, locale } = useIdioma()
   const [juegos, setJuegos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState("")
-  // Los filtros solo viven en el navegador: no piden nada al backend, los aplico
-  // sobre la lista que ya tengo en "juegos".
-  const [filtroEstado, setFiltroEstado] = useState("todos")
+  // Los filtros y el orden solo viven en el navegador: no piden nada al backend, los
+  // aplico sobre la lista que ya tengo en "juegos".
+  const [filtros, setFiltros] = useState({
+    estado: TODOS,
+    genero: TODOS,
+    compania: TODOS,
+    plataforma: TODOS,
+  })
   const [consulta, setConsulta] = useState("")
+  // Por qué dato se ordena y en qué sentido. Por defecto, lo último que añadí primero.
+  const [criterio, setCriterio] = useState("anadido")
+  const [direccion, setDireccion] = useState("desc")
   // Juego cuya ficha está abierta (null = ninguna). Un único estado en la página
   // vale para todas las tarjetas.
   const [detalle, setDetalle] = useState(null)
@@ -73,6 +83,22 @@ function Biblioteca({ setToken }) {
     }
   }
 
+  function cambiarFiltro(clave, valor) {
+    setFiltros((prev) => ({ ...prev, [clave]: valor }))
+  }
+
+  function limpiarFiltros() {
+    setFiltros({ estado: TODOS, genero: TODOS, compania: TODOS, plataforma: TODOS })
+    setConsulta("")
+  }
+
+  // Al elegir otro criterio vuelve al sentido que es lo normal en él: A → Z en un
+  // nombre, de mayor a menor en un tiempo...
+  function cambiarCriterio(id) {
+    setCriterio(id)
+    setDireccion(CRITERIOS.find((c) => c.id === id).porDefecto)
+  }
+
   function cerrarSesion() {
     localStorage.removeItem("token")
     setToken("")
@@ -104,22 +130,10 @@ function Biblioteca({ setToken }) {
   // nunca queden desactualizados (así no necesitan su propio useState).
   const jugandoAhora = juegos.filter((j) => j.status === "jugando")
 
-  const texto = consulta.trim().toLowerCase()
-  const visibles = juegos.filter(
-    (j) =>
-      (filtroEstado === "todos" || j.status === filtroEstado) &&
-      j.name.toLowerCase().includes(texto)
-  )
-
-  // Un botón por filtro con su contador. Ojo: "todos" no existe como estado en la BD.
-  const filtros = [
-    { id: "todos", etiqueta: t('biblioteca.todos'), cuenta: juegos.length },
-    ...ESTADOS.map((id) => ({
-      id,
-      etiqueta: t(`estado.${id}`),
-      cuenta: juegos.filter((j) => j.status === id).length,
-    })),
-  ]
+  const opciones = opcionesDeFiltros(juegos, locale)
+  const vigentes = filtrosVigentes(filtros, opciones)
+  const visibles = ordenar(filtrar(juegos, vigentes, consulta), criterio, direccion, locale)
+  const hayFiltros = consulta.trim() !== "" || Object.values(vigentes).some((v) => v !== TODOS)
 
   return (
     <div className="biblioteca-pagina">
@@ -133,29 +147,23 @@ function Biblioteca({ setToken }) {
       )}
 
       <div className="biblioteca">
-        <aside className="filtros" aria-label={t('biblioteca.filtrarPorEstado')}>
-          <p className="filtros__titulo">{t('biblioteca.estado')}</p>
-          {filtros.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              className={filtroEstado === f.id ? "filtro filtro--activo" : "filtro"}
-              aria-pressed={filtroEstado === f.id}
-              onClick={() => setFiltroEstado(f.id)}
-            >
-              <span className="filtro__nombre">
-                {f.id !== "todos" && <span className={`punto punto--${f.id}`} aria-hidden="true" />}
-                {f.etiqueta}
-              </span>
-              <span className="filtro__cuenta">{f.cuenta}</span>
-            </button>
-          ))}
-        </aside>
+        <FiltrosBiblioteca
+          juegos={juegos}
+          filtros={vigentes}
+          opciones={opciones}
+          onCambiar={cambiarFiltro}
+          onLimpiar={limpiarFiltros}
+          hayFiltros={hayFiltros}
+        />
 
         <section className="biblioteca__contenido" aria-labelledby="titulo-biblioteca">
           <div className="biblioteca__cabecera">
             <h1 id="titulo-biblioteca" className="titulo-pagina">
-              {t('biblioteca.titulo')} <span className="contador">{juegos.length}</span>
+              {t('biblioteca.titulo')}{" "}
+              <span className="contador">
+                {/* Con filtros: "12 / 48" (los que veo de los que tengo) */}
+                {visibles.length === juegos.length ? juegos.length : `${visibles.length} / ${juegos.length}`}
+              </span>
             </h1>
 
             <div className="caja-busqueda caja-busqueda--filtro">
@@ -171,6 +179,16 @@ function Biblioteca({ setToken }) {
                 aria-label={t('biblioteca.filtrarJuegos')}
               />
             </div>
+          </div>
+
+          {/* Barra de orden: debajo de la cabecera y pegada a la derecha */}
+          <div className="biblioteca__orden">
+            <OrdenBiblioteca
+              criterio={criterio}
+              direccion={direccion}
+              onCambiarCriterio={cambiarCriterio}
+              onInvertir={() => setDireccion(direccion === 'asc' ? 'desc' : 'asc')}
+            />
           </div>
 
           <ul className="rejilla">

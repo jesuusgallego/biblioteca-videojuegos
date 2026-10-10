@@ -17,7 +17,7 @@ a su vez importa el resto de archivos con `@import`.
 | `formularios.css` | `.formulario`, `.campo` y la casilla `.casilla` | formularios |
 | `desplegable.css` | Desplegable propio (el del estado y filtros) | `Desplegable` |
 | `login.css` | Inicio de sesión y registro | `Login`, `Registro` |
-| `biblioteca.css` | Mi biblioteca: fila "Jugando ahora", filtros laterales, portadas pulsables | `Biblioteca`, `JugandoAhora` |
+| `biblioteca.css` | Mi biblioteca: fila "Jugando ahora", filtros laterales y barra de orden, portadas pulsables | `Biblioteca`, `JugandoAhora`, `FiltrosBiblioteca`, `OrdenBiblioteca` |
 | `ventanas.css` | Ventanas modales: ficha del juego, visor de capturas, edición, confirmación | `DetalleJuego`, `VisorCapturas`, `EditarJuego`, `DialogoConfirmar` |
 | `menus.css` | Avatar, menú de usuario, menú de ajustes (idioma y tema) y menú contextual de las tarjetas | `Avatar`, `MenuUsuario`, `MenuAjustes`, `MenuContextual` |
 | `perfil.css` | Base del perfil, estadísticas, edición de foto/nombre/bio y el cambio animado `.vista` | `EstadisticasPerfil`, `EditarPerfil`, `SelectorArtwork`, `RecortadorFoto` |

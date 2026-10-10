@@ -81,16 +81,14 @@ CREATE TABLE IF NOT EXISTS linked_accounts (
     -- TIMESTAMPTZ guarda el instante exacto (el frontend lo enseña con hora, y así no
     -- depende de la zona horaria del servidor). NULL = vinculada pero sin sincronizar.
     last_sync_at TIMESTAMPTZ,
-    -- Si al vincular se eligió "añadir también los juegos que me falten". Se decide
-    -- solo al vincular; sincronizar lo respeta y desvincular borra lo importado.
-    import_games BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW(),
     UNIQUE (user_id, platform)
 );
 
--- Para una BD creada antes de existir esta columna (CREATE TABLE IF NOT EXISTS no
--- toca una tabla que ya existe)
-ALTER TABLE linked_accounts ADD COLUMN IF NOT EXISTS import_games BOOLEAN NOT NULL DEFAULT FALSE;
+-- Antes la importación de juegos era opcional y se elegía al vincular
+-- (import_games). Ahora la sincronización siempre importa y desvincular borra lo
+-- importado, así que la columna sobra. En una BD nueva no existe y esto no hace nada.
+ALTER TABLE linked_accounts DROP COLUMN IF EXISTS import_games;
 
 -- Progreso traído de Steam. Todo es NULL en los juegos que no vienen de Steam.
 --  - steam_appid: id del juego en Steam (distinto del igdb_id)
@@ -108,3 +106,17 @@ ALTER TABLE user_games ADD COLUMN IF NOT EXISTS achievements_total INTEGER;
 -- añadió el usuario. Sirve para que, al desvincular la cuenta, se borre lo importado
 -- y la biblioteca vuelva a quedar como antes de vincularla.
 ALTER TABLE user_games ADD COLUMN IF NOT EXISTS imported_from VARCHAR(20);
+
+-- Datos del juego que sirven para filtrar y ordenar la biblioteca. Vienen de IGDB y
+-- se copian aquí para no pedirlos en cada visita: GET /games rellena los juegos que
+-- aún no los tienen (metadata_at NULL) y los refresca pasado un mes.
+--  - genres, developers, publishers: nombres tal como los da IGDB (en inglés)
+--  - release_date: primer lanzamiento; igdb_rating: nota media de IGDB (0 a 100)
+--  - metadata_at: cuándo se consultó (también si IGDB no sabía nada del juego, para
+--    no volver a preguntar en cada visita)
+ALTER TABLE user_games ADD COLUMN IF NOT EXISTS genres TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE user_games ADD COLUMN IF NOT EXISTS developers TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE user_games ADD COLUMN IF NOT EXISTS publishers TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE user_games ADD COLUMN IF NOT EXISTS release_date DATE;
+ALTER TABLE user_games ADD COLUMN IF NOT EXISTS igdb_rating INTEGER;
+ALTER TABLE user_games ADD COLUMN IF NOT EXISTS metadata_at TIMESTAMPTZ;

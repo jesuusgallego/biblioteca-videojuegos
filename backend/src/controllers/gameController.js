@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const { urlImagen, searchGames, getGameDetails, getArtworks } = require('../services/igdbService');
+const { urlImagen, searchGames, getGameDetails, getArtworks, getMetadatos } = require('../services/igdbService');
 const { traducir, IDIOMAS, IDIOMA_ORIGINAL } = require('../services/traduccionService');
 
 // Mensajes legibles para los CHECK de user_games (los defino en schema.sql)
@@ -54,11 +54,70 @@ async function addGame(req, res) {
   }
 }
 
+// Cada cuánto se vuelven a pedir a IGDB los datos de un juego (la nota media y poco más
+// cambian con el tiempo; el género y la desarrolladora, casi nunca)
+const REFRESCO_METADATOS = "30 days";
+
+// Los juegos de la lista que no tienen todavía sus datos de IGDB (género, empresas,
+// fecha y nota) o los tienen viejos: los pide a IGDB en una sola consulta y los
+// guarda. Sirve para filtrar y ordenar la biblioteca. Si IGDB falla, no pasa nada: la
+// lista sale igual, sin esos datos, y se vuelve a intentar en la siguiente visita.
+// Devuelve true si ha guardado algo (para que quien llama vuelva a leer la lista).
+async function completarMetadatos(userId) {
+  const pendientes = await pool.query(
+    `SELECT igdb_id FROM user_games
+     WHERE user_id = $1
+       AND (metadata_at IS NULL OR metadata_at < NOW() - INTERVAL '${REFRESCO_METADATOS}')`,
+    [userId]
+  );
+  if (pendientes.rows.length === 0) return false;
+
+  const ids = pendientes.rows.map((r) => r.igdb_id);
+
+  try {
+    const metadatos = await getMetadatos(ids);
+
+    // Un solo UPDATE para todos (unnest convierte las listas en una tabla temporal, una
+    // fila por posición). Los arrays de texto no caben en una lista plana, así que los
+    // paso como JSON y los desarmo con jsonb_array_elements_text.
+    // Un juego que IGDB no devolvió se marca igual (con datos vacíos): así no se vuelve
+    // a preguntar por él en cada visita.
+    const filas = ids.map((id) => ({
+      id,
+      genres: metadatos.get(id)?.genres ?? [],
+      developers: metadatos.get(id)?.developers ?? [],
+      publishers: metadatos.get(id)?.publishers ?? [],
+      release_date: metadatos.get(id)?.release_date ?? null,
+      rating: metadatos.get(id)?.rating ?? null,
+    }));
+
+    await pool.query(
+      `UPDATE user_games g
+       SET genres = ARRAY(SELECT jsonb_array_elements_text(d.fila->'genres')),
+           developers = ARRAY(SELECT jsonb_array_elements_text(d.fila->'developers')),
+           publishers = ARRAY(SELECT jsonb_array_elements_text(d.fila->'publishers')),
+           release_date = (d.fila->>'release_date')::date,
+           igdb_rating = (d.fila->>'rating')::integer,
+           metadata_at = NOW()
+       FROM (SELECT (fila->>'id')::integer AS igdb_id, fila
+             FROM jsonb_array_elements($2::jsonb) AS fila) AS d
+       WHERE g.user_id = $1 AND g.igdb_id = d.igdb_id`,
+      [userId, JSON.stringify(filas)]
+    );
+    return true;
+  } catch (err) {
+    console.error('Error al completar los datos de IGDB de la biblioteca:', err.response?.data || err.message);
+    return false;
+  }
+}
+
 // GET /games — listar los juegos del usuario autenticado
 async function listGames(req, res) {
   const userId = req.user.id;
 
   try {
+    await completarMetadatos(userId);
+
     const result = await pool.query(
       'SELECT * FROM user_games WHERE user_id = $1 ORDER BY created_at DESC',
       [userId]

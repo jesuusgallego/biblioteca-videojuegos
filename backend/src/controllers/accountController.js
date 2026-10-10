@@ -5,7 +5,7 @@ const { IDIOMAS, IDIOMA_ORIGINAL } = require('../services/traduccionService');
 
 // imported_count: cuántos juegos de la biblioteca trajo la importación. El frontend lo
 // enseña y avisa de que se borrarán al desvincular.
-const COLUMNAS_CUENTA = `platform, external_id, display_name, avatar_url, profile_url, last_sync_at, import_games,
+const COLUMNAS_CUENTA = `platform, external_id, display_name, avatar_url, profile_url, last_sync_at,
   (SELECT COUNT(*)::int FROM user_games g
    WHERE g.user_id = linked_accounts.user_id AND g.imported_from = linked_accounts.platform) AS imported_count`;
 
@@ -59,22 +59,21 @@ async function listAccounts(req, res) {
   }
 }
 
-// PUT /accounts/steam { perfil, importar } — vincular la cuenta de Steam. "perfil"
-// puede ser la URL del perfil, el nombre personalizado o el SteamID. Solo compruebo
-// que el perfil existe y guardo su id: no se trae ningún juego hasta sincronizar.
-// "importar" (true/false) es la única vez que se elige si la sincronización añade
-// también los juegos que faltan; queda guardado y ya no se puede cambiar sin
-// desvincular.
+// PUT /accounts/steam { perfil } — vincular la cuenta de Steam. "perfil" puede ser la
+// URL del perfil, el nombre personalizado o el SteamID. Solo compruebo que el perfil
+// existe y guardo su id: no se trae ningún juego hasta sincronizar. La sincronización
+// siempre añade a la biblioteca los juegos de Steam que faltan (ya no es opcional) y
+// desvincular los quita, así que la biblioteca vuelve a quedar como estaba.
 async function linkSteam(req, res) {
   try {
     const steamId = await resolverSteamId(req.body?.perfil);
     const perfil = await getPerfil(steamId);
 
     const result = await pool.query(
-      `INSERT INTO linked_accounts (user_id, platform, external_id, display_name, avatar_url, profile_url, import_games)
-       VALUES ($1, 'steam', $2, $3, $4, $5, $6)
+      `INSERT INTO linked_accounts (user_id, platform, external_id, display_name, avatar_url, profile_url)
+       VALUES ($1, 'steam', $2, $3, $4, $5)
        RETURNING ${COLUMNAS_CUENTA}`,
-      [req.user.id, perfil.steamId, perfil.nombre, perfil.avatar, perfil.urlPerfil, req.body?.importar === true]
+      [req.user.id, perfil.steamId, perfil.nombre, perfil.avatar, perfil.urlPerfil]
     );
 
     // "publico" es solo un aviso: se puede vincular un perfil privado, pero no se
@@ -144,7 +143,8 @@ async function unlinkSteam(req, res) {
 //  1. Pido a Steam los juegos de la cuenta.
 //  2. Los emparejo con IGDB (mi biblioteca usa ids de IGDB, no de Steam).
 //  3. A los que ya están en mi biblioteca les actualizo el progreso.
-//  4. Si al vincular se eligió importar (import_games), añado también los que me faltan.
+//  4. Añado los que me faltan (quedan marcados con imported_from = 'steam' para poder
+//     quitarlos al desvincular).
 // Devuelve { account, resumen }. Si no se puede (sin cuenta, ya hay una en curso,
 // perfil privado...) lanza un ErrorSteam con su código HTTP.
 async function sincronizarSteam(userId) {
@@ -155,14 +155,13 @@ async function sincronizarSteam(userId) {
 
   try {
     const cuenta = await pool.query(
-      "SELECT external_id, import_games FROM linked_accounts WHERE user_id = $1 AND platform = 'steam'",
+      "SELECT external_id FROM linked_accounts WHERE user_id = $1 AND platform = 'steam'",
       [userId]
     );
     if (cuenta.rows.length === 0) {
       throw new ErrorSteam('No tienes ninguna cuenta de Steam vinculada', 404);
     }
     const steamId = cuenta.rows[0].external_id;
-    const importar = cuenta.rows[0].import_games;
 
     const poseidos = await getJuegosPoseidos(steamId);
     const igdbPorAppid = await getIgdbIdsDeSteam(poseidos.map((j) => j.appid));
@@ -181,8 +180,9 @@ async function sincronizarSteam(userId) {
     const guardados = await pool.query('SELECT igdb_id FROM user_games WHERE user_id = $1', [userId]);
     const enBiblioteca = new Set(guardados.rows.map((r) => r.igdb_id));
 
-    // Con importar=false solo toco lo que ya tengo
-    const objetivo = [...porIgdb].filter(([igdbId]) => importar || enBiblioteca.has(igdbId));
+    // Todos los juegos de Steam con equivalente en IGDB: los que ya tengo se
+    // actualizan y los que faltan se añaden
+    const objetivo = [...porIgdb];
 
     // Logros: solo de los juegos con horas (sin jugar no hay nada desbloqueado)
     const logros = new Map(); // igdbId -> { desbloqueados, total } | null

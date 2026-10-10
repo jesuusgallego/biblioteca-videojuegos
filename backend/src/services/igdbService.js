@@ -155,6 +155,41 @@ async function getIgdbIdsDeSteam(appids) {
   return resultado;
 }
 
+// Género, empresas, fecha y nota de varios juegos a la vez, para filtrar y ordenar la
+// biblioteca: Map igdbId -> { genres, developers, publishers, release_date, rating }.
+// Un juego que IGDB no devuelve (id retirado) no sale en el Map: quien llama decide
+// qué hacer. Igual que en las demás, las ids se interpolan: tienen que ser enteros.
+async function getMetadatos(igdbIds) {
+  const resultado = new Map();
+  const validos = igdbIds.filter((id) => Number.isInteger(id) && id > 0);
+
+  for (let i = 0; i < validos.length; i += LOTE_IGDB) {
+    const lote = validos.slice(i, i + LOTE_IGDB);
+    const juegos = await igdbPost(
+      'games',
+      `fields genres.name, involved_companies.developer, involved_companies.publisher, involved_companies.company.name, first_release_date, total_rating; where id = (${lote.join(',')}); limit ${LOTE_IGDB};`
+    );
+
+    for (const juego of juegos) {
+      const empresas = juego.involved_companies ?? [];
+      const conRol = (rol) => empresas.filter((e) => e[rol] && e.company).map((e) => e.company.name);
+
+      resultado.set(juego.id, {
+        genres: (juego.genres ?? []).map((g) => g.name),
+        developers: conRol('developer'),
+        publishers: conRol('publisher'),
+        // IGDB da la fecha en segundos Unix; la paso a "AAAA-MM-DD"
+        release_date: juego.first_release_date
+          ? new Date(juego.first_release_date * 1000).toISOString().slice(0, 10)
+          : null,
+        rating: juego.total_rating ? Math.round(juego.total_rating) : null,
+      });
+    }
+  }
+
+  return resultado;
+}
+
 // Nombre y portada de varios juegos a la vez: Map igdbId -> { name, imageId }.
 // Igual que en getArtworks, las ids se interpolan: tienen que llegar como enteros.
 async function getJuegosBasicos(igdbIds) {
@@ -176,4 +211,4 @@ async function getJuegosBasicos(igdbIds) {
   return resultado;
 }
 
-module.exports = { urlImagen, searchGames, getGameDetails, getArtworks, getIgdbIdsDeSteam, getJuegosBasicos };
+module.exports = { urlImagen, searchGames, getGameDetails, getArtworks, getIgdbIdsDeSteam, getJuegosBasicos, getMetadatos };

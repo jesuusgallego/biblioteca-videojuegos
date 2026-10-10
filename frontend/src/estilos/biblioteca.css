@@ -186,6 +186,21 @@
   color: var(--texto-suave);
 }
 
+/* Grupo de la barra lateral con un desplegable: título pequeño arriba y una línea
+   que lo separa de lo anterior */
+.filtros__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.9rem 0.4rem;
+  border-top: 1px solid var(--borde);
+}
+
+.filtros__titulo--grupo {
+  padding: 0.2rem 0 0;
+}
+
 .filtro {
   display: flex;
   align-items: center;
@@ -258,6 +273,48 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+}
+
+/* Barra de orden bajo la cabecera, pegada a la derecha. Si no cabe, el selector
+   pasa a otra línea. */
+.biblioteca__orden {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -0.25rem;
+}
+
+.orden {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.orden__etiqueta {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.orden__campo {
+  width: 12.5rem;
+}
+
+/* Misma altura que el desplegable que tiene al lado */
+.orden__direccion {
+  align-self: stretch;
+  white-space: nowrap;
+}
+
+/* La flecha apunta arriba (ascendente) y gira media vuelta al invertir el orden */
+.orden__flecha {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.orden__flecha--desc {
+  transform: rotate(180deg);
 }
 
 .sin-resultados {

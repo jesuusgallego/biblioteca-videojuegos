@@ -198,6 +198,7 @@ npm run build    # comprueba que compila para producción
 | En Perfil → Cuentas vinculadas sale "no tiene configurada la clave de Steam" | Falta `STEAM_API_KEY` en `backend/.env` | Crea la clave en https://steamcommunity.com/dev/apikey, añádela al `.env` y reinicia el backend |
 | Al sincronizar Steam sale "Tu perfil de Steam es privado" | El perfil o los "Detalles del juego" no son públicos | En Steam: Perfil → Editar perfil → Privacidad → "Detalles del juego" en Público |
 | Sincronizar Steam da error 500 o "column steam_appid does not exist" | La base de datos es anterior a la función de Steam | `docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db < backend/src/models/sql/schema.sql` |
+| Mi biblioteca da error 500 o "column genres does not exist" | La base de datos es anterior a los filtros por género y compañía | `docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db < backend/src/models/sql/schema.sql` |
 | Cambié el `.env` y no se nota | El `.env` solo se lee al arrancar | Reinicia el backend |
 
 ## Checklist de cierre de sesión
