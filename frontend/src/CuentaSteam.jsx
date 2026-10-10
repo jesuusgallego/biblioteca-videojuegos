@@ -171,7 +171,7 @@ function SteamVinculada({ cuenta, privado, cerrarSesion, onSincronizada, onDesvi
   // ejemplo) no es un error que enseñar.
   async function sincronizar(automatica) {
     try {
-      const data = await apiFetch('/accounts/steam/sync', { method: 'POST' })
+      const data = await apiFetch('/accounts/steam/sync', { method: 'POST', avisoLento: false })
       setResultado(t('steam.resumen', {
         actualizados: data.resumen.actualizados,
         anadidos: data.resumen.anadidos,

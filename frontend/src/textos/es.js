@@ -12,6 +12,7 @@ export default {
   // ---- Errores que genera el cliente (los del backend se traducen en en.js) ----
   'api.sinConexion': 'No se pudo conectar con el servidor',
   'api.errorInesperado': 'Error inesperado del servidor',
+  'api.servidorLento': 'El servidor está tardando en responder. Si llevaba un rato sin usarse, puede tardar hasta un minuto en despertar.',
 
   // ---- Validaciones de formularios ----
   'validacion.emailInvalido': 'El email no tiene un formato válido',

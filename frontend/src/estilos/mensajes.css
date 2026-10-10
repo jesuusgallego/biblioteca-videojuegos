@@ -73,3 +73,20 @@
   background: color-mix(in srgb, var(--estado-pendiente) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--estado-pendiente) 35%, transparent);
 }
+
+/* Aviso flotante de "servidor tardando" (AvisoServidor.jsx): abajo y centrado, por
+   encima de la página. No bloquea los clics de lo que hay debajo. */
+.aviso-servidor {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  z-index: 2000;
+  width: min(34rem, calc(100% - 2rem));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.aviso-servidor .mensaje {
+  background-color: var(--superficie); /* sólido: el del aviso es translúcido y sobre la página no se lee */
+  box-shadow: var(--sombra);
+}
