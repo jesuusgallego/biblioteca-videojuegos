@@ -173,3 +173,23 @@ lectura de logros de Steam con Steam simulado.
 - **Perfil (`/perfil`):** un banner con el avatar, la bio y tres cifras (juegos, nota media y % completados) sobre un fondo fijo con los colores de la marca (una aurora violeta, azul y cian con una rejilla tenue, solo CSS), y debajo cuatro pestañas: Estadísticas, Editar perfil, Cuentas vinculadas y Seguridad. La pestaña va en la URL (`/perfil?tab=cuentas`), se maneja con las flechas del teclado y los cuatro paneles siguen montados al cambiar, así que lo que escribes en "Editar perfil" no se pierde. Todos los campos de contraseña (`CampoContrasena.jsx`) tienen un ojo para verla, y la nueva muestra sus requisitos en vivo. Al vincular Steam, `ConexionSteam.jsx` anima la conexión y avisa con `animationend` (no con temporizadores) cuando termina.
 - Las credenciales de `docker-compose.yml` son solo para desarrollo; cámbialas en cualquier otro entorno.
 - `backend/.env` contiene secretos: asegúrate de que esté en `.gitignore`.
+
+## Licencia y créditos
+
+El código de GameHub se distribuye bajo la licencia **MIT** (ver [`LICENSE`](LICENSE)): puedes
+usarlo, modificarlo y compartirlo, conservando el aviso de copyright.
+
+Lo que **no** es del proyecto y mantiene sus propios términos:
+
+- **Datos de los juegos** (nombres, portadas, capturas, descripciones, notas): vienen de
+  [IGDB](https://www.igdb.com), propiedad de Twitch, y se usan conforme a los términos de su API.
+- **Steam** y su logo son marcas de Valve Corporation. GameHub no está afiliado ni respaldado
+  por Valve; el logo solo indica que una cuenta o un juego vienen de Steam. Los datos se
+  obtienen de la Steam Web API.
+- **Iconos de plataformas** (PlayStation, Xbox, Nintendo, Apple, Android, Linux…): trazados de
+  [Simple Icons](https://simpleicons.org) (CC0). Las marcas pertenecen a sus dueños y se usan
+  solo para identificar la plataforma.
+- **Tipografías** Barlow Condensed y Figtree, bajo la licencia SIL Open Font License, servidas
+  con los paquetes `@fontsource`.
+- **Traducciones automáticas** de las descripciones: Azure AI Translator (Microsoft) o
+  LibreTranslate.

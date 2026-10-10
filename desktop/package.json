@@ -5,6 +5,7 @@
   "private": true,
   "description": "GameHub: tu biblioteca de videojuegos (versión de escritorio)",
   "author": "jesuusgallego",
+  "license": "MIT",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

@@ -22,6 +22,10 @@ Primera versión pública, con la app de escritorio.
 - Aviso en pantalla cuando el servidor tarda en responder (el plan gratuito lo duerme).
 - `render.yaml` y guía para desplegar el backend gratis con Render y Neon.
 
+### Licencia
+- El código se publica bajo licencia MIT (`LICENSE`), con los créditos de IGDB, Steam y
+  las tipografías en el README.
+
 ### Seguridad
 - Límite de intentos en el inicio de sesión y el registro.
 - Cabeceras de seguridad (`helmet`) y CORS restringido por configuración.
