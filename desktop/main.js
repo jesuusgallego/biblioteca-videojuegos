@@ -25,6 +25,11 @@ const ORIGEN = `${ESQUEMA}://gamehub`
 // En desarrollo se puede apuntar a un servidor de Vite: GAMEHUB_DEV_URL=http://localhost:5173
 const URL_DESARROLLO = app.isPackaged ? null : process.env.GAMEHUB_DEV_URL
 
+// "Prueba de humo": con --smoke-test la app arranca sin enseñar la ventana, comprueba que
+// la interfaz carga y se cierra con código 0 (bien) o 1 (mal). La usa el flujo de GitHub
+// Actions para no generar un instalador de una app que ni siquiera arranca.
+const PRUEBA_HUMO = process.argv.includes('--smoke-test')
+
 // Esto tiene que ir ANTES de que la app esté lista
 protocol.registerSchemesAsPrivileged([
   { scheme: ESQUEMA, privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true } },
@@ -144,7 +149,7 @@ function crearVentana() {
 
   if (estado.maximizada) ventana.maximize()
   // La enseño cuando ya hay algo que pintar, no en blanco
-  ventana.once('ready-to-show', () => ventana.show())
+  ventana.once('ready-to-show', () => { if (!PRUEBA_HUMO) ventana.show() })
 
   // Cualquier enlace que intente abrir una ventana nueva (los de IGDB, Steam...) va al
   // navegador del usuario, no a una ventana de Electron
@@ -165,6 +170,45 @@ function crearVentana() {
   ventana.on('closed', () => { ventana = null })
 
   ventana.loadURL(URL_DESARROLLO ?? `${ORIGEN}/index.html`)
+  if (PRUEBA_HUMO) ejecutarPruebaHumo(ventana)
+}
+
+// Termina el proceso con "bien" solo si la interfaz ha cargado, React ha pintado algo y
+// la CSP no ha bloqueado nada. Cualquier otra cosa, o pasar de 60 s, es un fallo.
+function ejecutarPruebaHumo(win) {
+  const problemas = []
+  const terminar = (codigo, texto) => {
+    console.log(`PRUEBA DE HUMO ${codigo === 0 ? 'OK' : 'FALLO'}: ${texto}`)
+    app.exit(codigo)
+  }
+  setTimeout(() => terminar(1, 'la interfaz no terminó de cargar en 60 s'), 60000)
+
+  // Según la versión de Electron el mensaje llega en un objeto o como tercer argumento
+  win.webContents.on('console-message', (...args) => {
+    const mensaje = String(args[0]?.message ?? args[2] ?? '')
+    if (/Content Security Policy|Refused to/i.test(mensaje)) problemas.push(mensaje.slice(0, 200))
+  })
+  win.webContents.on('did-fail-load', (_e, codigo, descripcion, url) => {
+    terminar(1, `no se pudo cargar ${url} (${codigo} ${descripcion})`)
+  })
+  win.webContents.on('render-process-gone', (_e, detalles) => {
+    terminar(1, `el proceso de la interfaz se cerró (${detalles.reason})`)
+  })
+
+  win.webContents.once('did-finish-load', async () => {
+    try {
+      // Doy un respiro para que React termine de pintar
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const hijos = await win.webContents.executeJavaScript(
+        'document.getElementById("root") ? document.getElementById("root").children.length : -1'
+      )
+      if (hijos < 1) return terminar(1, `React no pintó nada (hijos de #root: ${hijos})`)
+      if (problemas.length > 0) return terminar(1, `la CSP bloqueó algo: ${problemas[0]}`)
+      terminar(0, `interfaz cargada (${hijos} elemento(s) en #root, sin violaciones de la CSP)`)
+    } catch (err) {
+      terminar(1, `error al comprobar: ${err.message}`)
+    }
+  })
 }
 
 // ---- Arranque --------------------------------------------------------------------

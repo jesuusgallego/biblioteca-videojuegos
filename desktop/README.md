@@ -16,7 +16,19 @@ por internet al backend (ver [`docs/DESPLIEGUE.md`](../docs/DESPLIEGUE.md)).
 La dirección del servidor **se graba al compilar** (`GAMEHUB_API_URL`). Para cambiarla hay
 que compilar de nuevo.
 
-## Probarla en tu PC
+## Probarla SIN instalar nada (recomendado)
+
+GitHub puede compilar el instalador por ti en sus servidores:
+
+1. En el repositorio, pestaña **Actions** → **Versión de escritorio** → **Run workflow**.
+2. Espera unos 5–8 minutos. El flujo instala dependencias, pasa las pruebas, **arranca la
+   app de verdad** (prueba de humo) y genera el instalador.
+3. En la página de esa ejecución, abajo, en **Artifacts**, descarga `GameHub-instalador` y
+   ejecuta el `.exe`.
+
+No se publica nada: es solo para probar. Para publicar una versión, ver más abajo.
+
+## Probarla en tu PC (con las herramientas instaladas)
 
 Necesitas Node 20+ y el servidor (o el backend local en `http://localhost:4000`).
 
