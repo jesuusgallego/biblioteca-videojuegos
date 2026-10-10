@@ -140,15 +140,18 @@ Consulta rápida sin entrar al modo interactivo:
 docker exec biblioteca_db psql -U biblioteca_user -d biblioteca_db -c "SELECT * FROM users;"
 ```
 
-### Crear las tablas en una base de datos vacía
+### Crear o actualizar las tablas
 
-Normalmente no hace falta: con un volumen nuevo, Postgres ejecuta `schema.sql` solo, una única vez (está montado en `/docker-entrypoint-initdb.d`). Pero si tu volumen `pgdata` ya existía de antes de añadir ese montaje y quedó sin tablas, créalas a mano con:
+No hay que hacer nada: el backend ejecuta `schema.sql` cada vez que arranca. Crea las
+tablas que falten y añade las columnas nuevas, y es seguro repetirlo porque usa
+`IF NOT EXISTS` y no toca los datos. Si has actualizado el código, **reinicia el backend**
+y la base de datos se pone al día sola.
+
+Si alguna vez necesitas aplicarlo a mano (sin el backend):
 
 ```bash
 docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db < backend/src/models/sql/schema.sql
 ```
-
-Es seguro repetirlo: el esquema usa `IF NOT EXISTS`, así que si las tablas ya existen solo muestra avisos (`NOTICE ... already exists, skipping`) y no toca los datos.
 
 ### Probar la API sin el frontend
 
@@ -172,12 +175,16 @@ cd backend && npm install
 cd frontend && npm install
 ```
 
-### Comprobar la calidad del frontend
+### Comprobar la calidad
 
 ```bash
 cd frontend
 npm run lint     # revisa el código con ESLint
+npm test         # pruebas de búsqueda, filtros y orden
 npm run build    # comprueba que compila para producción
+
+cd ../backend
+npm test         # pruebas de la lectura de logros de Steam (Steam simulado)
 ```
 
 ## Problemas frecuentes
@@ -193,12 +200,11 @@ npm run build    # comprueba que compila para producción
 | Cambié `VITE_API_URL` y no se nota en Docker | Vite la incrusta al compilar | Reconstruye: `docker compose build frontend && docker compose up -d` |
 | `port is already allocated` (5432) | Hay otro Postgres usando el puerto | Para el otro Postgres, o cambia el puerto de la izquierda en `docker-compose.yml` (`"5433:5432"`) y ajusta `DATABASE_URL` |
 | La app te echa al login | El token JWT caducó (dura 7 días) o es inválido | Vuelve a iniciar sesión |
-| `relation "users" does not exist` | Base de datos sin tablas | Ejecuta el comando de la sección *Crear las tablas* |
+| `relation "users" does not exist` | Base de datos sin tablas | Reinicia el backend: crea las tablas al arrancar |
 | Error de IGDB / búsqueda sin resultados | Faltan o son erróneas `TWITCH_CLIENT_ID` y `TWITCH_CLIENT_SECRET` en `backend/.env` | Revisa el `.env` y reinicia el backend |
 | En Perfil → Cuentas vinculadas sale "no tiene configurada la clave de Steam" | Falta `STEAM_API_KEY` en `backend/.env` | Crea la clave en https://steamcommunity.com/dev/apikey, añádela al `.env` y reinicia el backend |
 | Al sincronizar Steam sale "Tu perfil de Steam es privado" | El perfil o los "Detalles del juego" no son públicos | En Steam: Perfil → Editar perfil → Privacidad → "Detalles del juego" en Público |
-| Sincronizar Steam da error 500 o "column steam_appid does not exist" | La base de datos es anterior a la función de Steam | `docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db < backend/src/models/sql/schema.sql` |
-| Mi biblioteca da error 500 o "column genres does not exist" | La base de datos es anterior a los filtros por género y compañía | `docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db < backend/src/models/sql/schema.sql` |
+| Un error 500 con `column "..." does not exist` | El código es más nuevo que la base de datos y el backend aún no ha aplicado el esquema | Reinicia el backend: aplica `schema.sql` al arrancar |
 | Cambié el `.env` y no se nota | El `.env` solo se lee al arrancar | Reinicia el backend |
 
 ## Checklist de cierre de sesión

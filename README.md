@@ -6,41 +6,48 @@ Aplicación para llevar tu biblioteca personal de videojuegos: búsqueda en IGDB
 
 | Capa | Tecnologías |
 |------|-------------|
-| Frontend | React 19, React Router 7, Vite 8, ESLint |
-| Backend | Node.js, Express 5, JWT, bcrypt, axios, pg |
-| Base de datos | PostgreSQL 16 (Docker) |
-| Despliegue | Docker Compose (nginx sirve el frontend) |
+| Interfaz | React 19, React Router 7, Vite 8 |
+| Escritorio | Electron, electron-builder, electron-updater |
+| Backend | Node.js 22, Express 5, JWT, bcrypt, pg, axios, helmet, express-rate-limit |
+| Base de datos | PostgreSQL 16 |
+| Servicios externos | IGDB (datos de juegos), Steam Web API (horas y logros), Azure Translator o LibreTranslate (traducción) |
+| Despliegue | Render (backend) + Neon (PostgreSQL), instalador de Windows generado con GitHub Actions. Docker Compose para desarrollo |
 
 ## Estructura
 
 ```
 biblioteca-videojuegos/
-├── docker-compose.yml   # PostgreSQL + backend + frontend
-├── CHANGELOG.md         # Qué cambia en cada versión
-├── render.yaml          # Plano para desplegar el backend en Render (gratis)
-├── desktop/             # App de escritorio (Electron): ver desktop/README.md
+├── backend/                 # API: Express + PostgreSQL
+│   ├── src/
+│   │   ├── app.js               # Arranque, seguridad (helmet, CORS, límites) y rutas
+│   │   ├── routes/              # Qué URL llama a qué controlador
+│   │   ├── controllers/         # Lógica de cada ruta: auth, games, profile, accounts
+│   │   ├── middleware/          # Sesión (JWT) y límites de intentos
+│   │   ├── services/            # IGDB, Steam, traducción y sincronización automática
+│   │   ├── models/sql/schema.sql  # Esquema de la BD (idempotente: se aplica al arrancar)
+│   │   └── config/db.js
+│   ├── test/                    # Pruebas (npm test)
+│   ├── .env.example             # Plantilla de variables de entorno
+│   └── Dockerfile
+├── frontend/                # Interfaz React, para web y escritorio (ver frontend/README.md)
+│   ├── src/                     # Componentes .jsx
+│   │   ├── estilos/             # CSS por zonas (ver estilos/LEEME.md)
+│   │   └── textos/              # Traducciones es/en
+│   └── test/                    # Pruebas (npm test)
+├── desktop/                 # App de escritorio con Electron (ver desktop/README.md)
 ├── docs/
-│   ├── DESARROLLO.md    # Cómo retomar el trabajo cada día
-│   └── DESPLIEGUE.md    # Cómo poner el servidor en internet
-├── .github/workflows/   # Publicación del instalador al subir una etiqueta v*
-├── backend/
-│   ├── .env             # Variables de entorno (no subir a git; plantilla en .env.example)
-│   ├── test/            # Pruebas (npm test)
-│   └── src/app.js       # Servidor Express
-└── frontend/
-    └── src/
-        ├── estilos/           # CSS dividido por zonas (mira estilos/LEEME.md)
-        ├── App.jsx            # Rutas
-        ├── Login.jsx
-        ├── Registro.jsx
-        ├── Biblioteca.jsx     # Búsqueda de juegos
-        ├── GameCard.jsx
-        └── RutaProtegida.jsx  # Requiere token para acceder
+│   ├── DESARROLLO.md            # Cómo retomar el trabajo cada día
+│   └── DESPLIEGUE.md            # Cómo poner el servidor en internet
+├── .github/workflows/       # Compila y publica el instalador de Windows
+├── docker-compose.yml       # PostgreSQL, traductor local y backend + frontend en Docker
+├── render.yaml              # Plano para desplegar el backend en Render
+├── CHANGELOG.md             # Qué cambia en cada versión
+└── LICENSE                  # MIT
 ```
 
 ## Requisitos
 
-- Node.js 20+ y npm
+- Node.js 22 y npm
 - Docker y Docker Compose
 - Credenciales de la API de Twitch/IGDB (`TWITCH_CLIENT_ID` y `TWITCH_CLIENT_SECRET`)
 - Opcional: una clave de Azure AI Translator (`AZURE_TRANSLATOR_KEY` y `AZURE_TRANSLATOR_REGION`) para mejorar la traducción de las descripciones
@@ -71,23 +78,16 @@ docker exec biblioteca_db psql -U biblioteca_user -d biblioteca_db -c "SELECT * 
 
 ### 2. Backend
 
-Crea `backend/.env`:
+Copia la plantilla y rellena lo que necesites:
 
-```env
-PORT=4000
-DATABASE_URL=postgresql://biblioteca_user:biblioteca_pass@localhost:5432/biblioteca_db
-JWT_SECRET=una_clave_larga_y_secreta
-TWITCH_CLIENT_ID=tu_client_id
-TWITCH_CLIENT_SECRET=tu_client_secret
-# Opcional: traducción de calidad con Azure Translator (sin ella se usa LibreTranslate)
-# AZURE_TRANSLATOR_KEY=tu_clave
-# AZURE_TRANSLATOR_REGION=westeurope
-# AZURE_TRANSLATOR_LIMITE_MENSUAL=1900000
-# Opcional: vincular Steam (https://steamcommunity.com/dev/apikey)
-# STEAM_API_KEY=tu_clave
-# Opcional: cada cuántos minutos se sincroniza sola cada cuenta de Steam (60 por defecto, 0 = nunca)
-# STEAM_SYNC_MINUTOS=60
+```bash
+cp backend/.env.example backend/.env
 ```
+
+Lo imprescindible es `JWT_SECRET` (una cadena larga y aleatoria) y `TWITCH_CLIENT_ID` /
+`TWITCH_CLIENT_SECRET`; el `DATABASE_URL` de la plantilla ya apunta al contenedor de
+`docker compose`. Steam y Azure son opcionales. Cada variable está explicada en
+[`backend/.env.example`](backend/.env.example).
 
 ```bash
 cd backend
@@ -118,7 +118,7 @@ docker compose up -d --build
 - Frontend: http://localhost:5173 (nginx)
 - Backend: http://localhost:4000
 - Traductor (LibreTranslate): http://localhost:5000
-- Las tablas se crean solas la primera vez (`schema.sql` se monta en `/docker-entrypoint-initdb.d`). Si ya tenías el volumen `pgdata` creado, no se vuelve a ejecutar.
+- Las tablas las crea el propio backend al arrancar (ejecuta `schema.sql`, que es idempotente), así que también se actualiza solo una base de datos antigua.
 - Para pararlo: `docker compose down` (añade `-v` solo si quieres borrar los datos).
 - Si cambias `VITE_API_URL`, reconstruye el frontend: la URL se incrusta al compilar (`docker compose build --build-arg VITE_API_URL=... frontend`).
 
@@ -129,7 +129,6 @@ docker compose up -d --build
 | GET | `/health` | No | Comprueba servidor y conexión a la base de datos |
 | POST | `/auth/register` | No | Crea un usuario |
 | POST | `/auth/login` | No | Inicia sesión y devuelve un token JWT |
-| GET | `/auth/me` | Bearer token | Devuelve el usuario del token |
 | GET | `/games/search?q=<nombre>` | Bearer token | Busca juegos por nombre en IGDB |
 | GET | `/games/details/:igdbId?lang=es` | Bearer token | Ficha completa de un juego desde IGDB: descripción (con `lang=es` se traduce al español con Azure Translator o, si no está disponible, con LibreTranslate, y se guarda en la tabla `translations`; si no responde ninguno, sale en inglés y `summary_lang` vale `en`), fecha de lanzamiento, desarrolladora, publishers, géneros, plataformas, nota, capturas (caché de 1 hora en memoria) |
 | GET | `/games/artworks` | Bearer token | Ilustraciones oficiales (artworks) de IGDB de los juegos de tu biblioteca, agrupadas por juego (máx. 12 por juego, caché de 1 hora en memoria). Sirven para elegir la foto de perfil |
@@ -167,12 +166,12 @@ lectura de logros de Steam con Steam simulado.
 - La columna `user_games.igdb_id` guarda el ID del juego en **IGDB**.
 - El token JWT se guarda en `localStorage`.
 - **Tarjetas de la biblioteca:** no llevan botones de Editar y Quitar. Salen con el **clic derecho** sobre la tarjeta (`MenuContextual.jsx`; con el teclado, la tecla de menú contextual o Mayús + F10 sobre el título; Mayús + clic derecho deja el menú del navegador) y dentro de la **ficha** que abre un clic normal (recuadro "En tu biblioteca"). Lo comparten la tarjeta, "Jugando ahora" y la ficha con `useAccionesJuego` y `VentanasJuego`. Cambiar el estado sigue estando en el chip de la tarjeta.
-- La foto de perfil se guarda como texto (data URL en base64) en `users.avatar`; el navegador la recorta en cuadrado y la reduce a 256 px antes de enviarla. Puede ser una foto subida o una ilustración de IGDB de un juego de tu biblioteca: en el segundo caso el navegador descarga la ilustración (IGDB permite leer sus imágenes desde otras webs), te deja ajustar el encuadre y guarda el recorte, igual que una foto subida; el backend no guarda ninguna URL de IGDB como avatar. Si tu base de datos es anterior al perfil, añade las columnas con `docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT; ALTER TABLE users ADD COLUMN IF NOT EXISTS bio VARCHAR(300);"` (o vuelve a ejecutar `schema.sql`, que es idempotente).
-- **Filtrar, buscar y ordenar la biblioteca:** el estado, el género, la compañía (desarrolladoras y publishers juntas) y la plataforma se combinan entre sí. El buscador mira a la vez el nombre, las compañías, los géneros y la plataforma, sin distinguir mayúsculas ni acentos, y con varias palabras exige que cada una aparezca en algún sitio del juego ("nintendo zelda"). Se ordena por fecha de adición, nombre, tiempo jugado, logros completados, tu nota, la nota de IGDB o lanzamiento, en los dos sentidos (`frontend/src/ordenFiltros.js`); género y compañía no son criterios de orden (un juego puede tener varios), para eso están el filtro y la búsqueda. Todo se hace en el navegador sobre la lista que ya llega. El género, las empresas, la fecha y la nota de IGDB se guardan en `user_games` (`genres`, `developers`, `publishers`, `release_date`, `igdb_rating`, `metadata_at`): `GET /games` rellena en una sola consulta a IGDB los juegos que aún no los tienen y los refresca pasado un mes; si IGDB falla, la lista sale igual y se reintenta en la siguiente visita. Los nombres de género y empresa se muestran tal como los da IGDB (en inglés). Si tu base de datos es anterior, ejecuta de nuevo `schema.sql` (es idempotente).
-- **Steam:** es la única plataforma con una API oficial para leer la biblioteca de un jugador, por eso es la única que se puede vincular. Hace falta que el perfil tenga los "Detalles del juego" en público. No se guarda ninguna contraseña: solo el SteamID (dato público) en `linked_accounts`; las consultas las hace el backend con su propia `STEAM_API_KEY`. Steam identifica los juegos con su `appid` y la biblioteca usa ids de IGDB, así que al sincronizar se emparejan con el campo `external_games` de IGDB (los que no tienen equivalente no se pueden importar). El progreso se guarda en `user_games` (`steam_appid`, `playtime_minutes`, `achievements_unlocked`, `achievements_total`). La importación de juegos nuevos es siempre (ya no es opcional: antes se elegía al vincular con `linked_accounts.import_games`, una columna que `schema.sql` elimina) y los juegos que trae entran como **Pendiente**: Steam no guarda si te has pasado un juego, así que el estado lo cambia el usuario a mano, como en el resto de la biblioteca. **La sincronización es automática:** `services/sincronizacionAutomatica.js` revisa cada pocos minutos las cuentas que llevan más de `STEAM_SYNC_MINUTOS` (60 por defecto) sin sincronizarse y las sincroniza de una en una; además, el frontend la lanza al abrir el perfil si hace más de 10 minutos (o nunca se hizo). Cada sincronización gasta una consulta a Steam por juego jugado y la clave tiene un tope de 100.000 al día, así que no conviene bajar mucho el intervalo. Quedan marcados con `user_games.imported_from = 'steam'`, para poder borrarlos al desvincular sin tocar los que añadiste tú. Si tu base de datos es anterior a esta función, ejecuta de nuevo `schema.sql` (es idempotente): `docker exec -i biblioteca_db psql -U biblioteca_user -d biblioteca_db < backend/src/models/sql/schema.sql`.
+- La foto de perfil se guarda como texto (data URL en base64) en `users.avatar`; el navegador la recorta en cuadrado y la reduce a 256 px antes de enviarla. Puede ser una foto subida o una ilustración de IGDB de un juego de tu biblioteca: en el segundo caso el navegador descarga la ilustración (IGDB permite leer sus imágenes desde otras webs), te deja ajustar el encuadre y guarda el recorte, igual que una foto subida; el backend no guarda ninguna URL de IGDB como avatar.
+- **Filtrar, buscar y ordenar la biblioteca:** el estado, el género, la compañía (desarrolladoras y publishers juntas) y la plataforma se combinan entre sí. El buscador mira a la vez el nombre, las compañías, los géneros y la plataforma, sin distinguir mayúsculas ni acentos, y con varias palabras exige que cada una aparezca en algún sitio del juego ("nintendo zelda"). Se ordena por fecha de adición, nombre, tiempo jugado, logros completados, tu nota, la nota de IGDB o lanzamiento, en los dos sentidos (`frontend/src/ordenFiltros.js`); género y compañía no son criterios de orden (un juego puede tener varios), para eso están el filtro y la búsqueda. Todo se hace en el navegador sobre la lista que ya llega. El género, las empresas, la fecha y la nota de IGDB se guardan en `user_games` (`genres`, `developers`, `publishers`, `release_date`, `igdb_rating`, `metadata_at`): `GET /games` rellena en una sola consulta a IGDB los juegos que aún no los tienen y los refresca pasado un mes; si IGDB falla, la lista sale igual y se reintenta en la siguiente visita. Los nombres de género y empresa se muestran tal como los da IGDB (en inglés).
+- **Steam:** es la única plataforma con una API oficial para leer la biblioteca de un jugador, por eso es la única que se puede vincular. Hace falta que el perfil tenga los "Detalles del juego" en público. No se guarda ninguna contraseña: solo el SteamID (dato público) en `linked_accounts`; las consultas las hace el backend con su propia `STEAM_API_KEY`. Steam identifica los juegos con su `appid` y la biblioteca usa ids de IGDB, así que al sincronizar se emparejan con el campo `external_games` de IGDB (los que no tienen equivalente no se pueden importar). El progreso se guarda en `user_games` (`steam_appid`, `playtime_minutes`, `achievements_unlocked`, `achievements_total`). La importación de juegos nuevos es siempre (ya no es opcional: antes se elegía al vincular con `linked_accounts.import_games`, una columna que `schema.sql` elimina) y los juegos que trae entran como **Pendiente**: Steam no guarda si te has pasado un juego, así que el estado lo cambia el usuario a mano, como en el resto de la biblioteca. **La sincronización es automática:** `services/sincronizacionAutomatica.js` revisa cada pocos minutos las cuentas que llevan más de `STEAM_SYNC_MINUTOS` (60 por defecto) sin sincronizarse y las sincroniza de una en una; además, el frontend la lanza al abrir el perfil si hace más de 10 minutos (o nunca se hizo). Cada sincronización gasta una consulta a Steam por juego jugado y la clave tiene un tope de 100.000 al día, así que no conviene bajar mucho el intervalo. Quedan marcados con `user_games.imported_from = 'steam'`, para poder borrarlos al desvincular sin tocar los que añadiste tú.
 - **Perfil (`/perfil`):** un banner con el avatar, la bio y tres cifras (juegos, nota media y % completados) sobre un fondo fijo con los colores de la marca (una aurora violeta, azul y cian con una rejilla tenue, solo CSS), y debajo cuatro pestañas: Estadísticas, Editar perfil, Cuentas vinculadas y Seguridad. La pestaña va en la URL (`/perfil?tab=cuentas`), se maneja con las flechas del teclado y los cuatro paneles siguen montados al cambiar, así que lo que escribes en "Editar perfil" no se pierde. Todos los campos de contraseña (`CampoContrasena.jsx`) tienen un ojo para verla, y la nueva muestra sus requisitos en vivo. Al vincular Steam, `ConexionSteam.jsx` anima la conexión y avisa con `animationend` (no con temporizadores) cuando termina.
 - Las credenciales de `docker-compose.yml` son solo para desarrollo; cámbialas en cualquier otro entorno.
-- `backend/.env` contiene secretos: asegúrate de que esté en `.gitignore`.
+- `backend/.env` contiene secretos y git lo ignora: nunca lo subas ni lo pegues en un chat.
 
 ## Licencia y créditos
 
