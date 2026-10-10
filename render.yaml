@@ -9,8 +9,9 @@ services:
     # Frankfurt: el más cercano a España. Crea el proyecto de Neon en la misma región
     # (AWS Europe, Frankfurt) para que la base de datos esté cerca del servidor.
     region: frankfurt
-    rootDir: backend
-    # Estas dos rutas son relativas a la raíz del repositorio, no a rootDir
+    # OJO: aquí NO hay "rootDir". Con rootDir: backend, Render encadenaba esa carpeta con
+    # estas rutas y buscaba backend/backend (el primer despliegue falló por eso). Sin
+    # rootDir, las dos rutas son relativas a la raíz del repositorio.
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     healthCheckPath: /health
